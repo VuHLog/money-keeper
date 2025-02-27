@@ -10,7 +10,6 @@ import com.vuhlog.money_keeper.dto.response.IntrospectResponse;
 import com.vuhlog.money_keeper.entity.Users;
 
 import java.text.ParseException;
-import java.util.Map;
 
 public interface AuthenticationService {
 
@@ -20,11 +19,11 @@ public interface AuthenticationService {
     //check username, password -> generate token
     AuthenticationResponse authenticate(AuthenticationRequest request);
 
-    AuthenticationResponse authenticateGoogle(Map<String,String> body);
+    AuthenticationResponse outboundAuthenticate(String code);
 
-    public String generateToken(Users user);
+    String generateToken(Users user);
 
-    public void logout(LogoutRequest request) throws JOSEException, ParseException;
+    void logout(LogoutRequest request) throws JOSEException, ParseException;
 
-    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException;
+    AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException;
 }

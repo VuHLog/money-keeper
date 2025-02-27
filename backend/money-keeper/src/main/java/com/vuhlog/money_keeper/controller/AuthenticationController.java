@@ -10,10 +10,7 @@ import com.vuhlog.money_keeper.dto.response.AuthenticationResponse;
 import com.vuhlog.money_keeper.dto.response.IntrospectResponse;
 import com.vuhlog.money_keeper.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 import java.util.Map;
@@ -34,13 +31,12 @@ public class AuthenticationController {
                 .build();
     }
 
-    @PostMapping("/google")
-    public ApiResponse<AuthenticationResponse> googleLogin(@RequestBody Map<String, String> body) {
-        var res = authenticationService.authenticateGoogle(body);
-
-        return ApiResponse.<AuthenticationResponse>builder()
-                .result(res)
-                .build();
+    @PostMapping("/outbound/authentication")
+    ApiResponse<AuthenticationResponse> outboundAuthenticate(
+            @RequestParam("code") String code
+    ){
+        var result = authenticationService.outboundAuthenticate(code);
+        return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
 
     @PostMapping("/introspect")

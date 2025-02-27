@@ -33,7 +33,17 @@ public class Users {
 
     private String avatarUrl;
 
+    @Column
+    private Boolean oAuth2;
+
     @OneToMany(mappedBy = "user",cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JsonIgnore
     private Set<UserRole> user_roles;
+
+    @PrePersist
+    public void onCreate() {
+        if(oAuth2 == null) {
+            oAuth2 = false;
+        }
+    }
 }

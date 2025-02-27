@@ -8,10 +8,9 @@ import com.nimbusds.jwt.SignedJWT;
 import com.vuhlog.money_keeper.dao.InvalidatedTokenRepository;
 import com.vuhlog.money_keeper.dao.RoleRepository;
 import com.vuhlog.money_keeper.dao.UsersRepository;
-import com.vuhlog.money_keeper.dto.request.AuthenticationRequest;
-import com.vuhlog.money_keeper.dto.request.IntrospectRequest;
-import com.vuhlog.money_keeper.dto.request.LogoutRequest;
-import com.vuhlog.money_keeper.dto.request.RefreshRequest;
+import com.vuhlog.money_keeper.dao.httpClient.OutBoundUserClient;
+import com.vuhlog.money_keeper.dao.httpClient.OutboundIdentityClient;
+import com.vuhlog.money_keeper.dto.request.*;
 import com.vuhlog.money_keeper.dto.response.AuthenticationResponse;
 import com.vuhlog.money_keeper.dto.response.IntrospectResponse;
 import com.vuhlog.money_keeper.entity.InvalidatedToken;
@@ -22,9 +21,7 @@ import com.vuhlog.money_keeper.exception.ErrorCode;
 import com.vuhlog.money_keeper.service.AuthenticationService;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -38,21 +35,16 @@ import java.util.*;
 @Service
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
-    @Autowired
-    private UsersRepository usersRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private InvalidatedTokenRepository invalidatedTokenRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UsersRepository usersRepository;
+    private final RoleRepository roleRepository;
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final OutboundIdentityClient outboundIdentityClient;
+    private final OutBoundUserClient outBoundUserClient;
 
     @NonFinal
     @Value("${jwt.signerKey}")
-    protected String SIGN_KEY="ZcCAeQKy0ly5bPdCVHM8bLQp5KJX9eczTqZl7zhjzK42U7SXfALZcWpSjitA5tLX";
+    protected String SIGN_KEY;
 
     @NonFinal
     @Value("${jwt.valid-duration}")
@@ -62,14 +54,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Value("${jwt.refreshable-duration}")
     protected long REFRESHABLE_DURATION;
 
-    @Autowired
-    private RestTemplate restTemplate;
+    @NonFinal
+    @Value("${outbound.identity.client-id}")
+    private String CLIENT_ID;
 
-    @Value("${spring.security.oauth2.client.registration.google.client-id}")
-    private String clientId;
+    @NonFinal
+    @Value("${outbound.identity.client-secret}")
+    private String CLIENT_SECRET;
 
-    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
-    private String clientSecret;
+    @NonFinal
+    @Value("${outbound.identity.redirect-uri}")
+    private String REDIRECT_URI;
+
+    @NonFinal
+    private String GRANT_TYPE = "authorization_code";
+
+    public AuthenticationServiceImpl(UsersRepository usersRepository, RoleRepository roleRepository, InvalidatedTokenRepository invalidatedTokenRepository, PasswordEncoder passwordEncoder, OutboundIdentityClient outboundIdentityClient, OutBoundUserClient outBoundUserClient, RestTemplate restTemplate) {
+        this.usersRepository = usersRepository;
+        this.roleRepository = roleRepository;
+        this.invalidatedTokenRepository = invalidatedTokenRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.outboundIdentityClient = outboundIdentityClient;
+        this.outBoundUserClient = outBoundUserClient;
+    }
 
     @Override
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
@@ -94,7 +101,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         boolean authenticated =  passwordEncoder.matches(request.getPassword(), user.getPassword());
 
-        if(!authenticated)
+        if(!authenticated || user.getOAuth2())
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         // login success -> create token
@@ -108,39 +115,40 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public AuthenticationResponse authenticateGoogle(Map<String, String> body) {
-        String tokenRequest = body.get("token");
-        String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + tokenRequest;
+    public AuthenticationResponse outboundAuthenticate(String code) {
+        var response = outboundIdentityClient.exchangeToken(ExchangeTokenRequest.builder()
+                .code(code)
+                .clientId(CLIENT_ID)
+                .clientSecret(CLIENT_SECRET)
+                .redirectUri(REDIRECT_URI)
+                .grantType(GRANT_TYPE)
+                .build());
 
-        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+        log.info("TOKEN RESPONSE {}", response);
 
-        Map<String, Object> userInfo = response.getBody();
+        var userInfo = outBoundUserClient.getUserInfo("json", response.getAccessToken());
+        log.info("USER INFO {}", userInfo);
 
-        Users user = new Users();
-        Optional<Users> userOptional = usersRepository.findByUsername((String) userInfo.get("email"));
-        //neu khong ton tai thi them moi user
-        if(!userOptional.isPresent()){
-            user = Users.builder()
-                    .username((String) userInfo.get("email"))
-                    .password(null)
-                    .fullName((String) userInfo.get("name"))
-                    .avatarUrl((String) userInfo.get("picture"))
-                    .email((String) userInfo.get("email"))
-                    .build();
+        var user = usersRepository.findByUsername(userInfo.getEmail()).orElseGet(
+                () -> {
+                    Users newUser = Users.builder()
+                            .username(userInfo.getEmail())
+                            .avatarUrl(userInfo.getPicture())
+                            .email(userInfo.getEmail())
+                            .fullName(userInfo.getName())
+                            .oAuth2(true)
+                            .build();
+                    //add role User
+                    Set<UserRole> userRoles = new HashSet<>();
+                    UserRole userRole = new UserRole();
+                    userRole.setRole(roleRepository.findByRoleName("USER"));
+                    userRole.setUser(newUser);
+                    userRoles.add(userRole);
+                    newUser.setUser_roles(userRoles);
+                    return usersRepository.save(newUser);
+                }
+        );
 
-            //add role User
-            Set<UserRole> user_roles = new HashSet<>();
-            UserRole user_role = new UserRole();
-            user_role.setRole(roleRepository.findByRoleName("User"));
-            user_role.setUser(user);
-            user_roles.add(user_role);
-            user.setUser_roles(user_roles);
-            usersRepository.save(user);
-        }else {
-            user = userOptional.get();
-        }
-
-        // login success -> create token
         var token = generateToken(user);
 
         return AuthenticationResponse.builder()
@@ -237,7 +245,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         //check thoi han cua token
         Date expiryTime = (isRefresh)
                 ? new Date(signedJWT.getJWTClaimsSet().getIssueTime()
-                    .toInstant().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli())
+                .toInstant().plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
 
         if (!(verified && expiryTime.after(new Date()))) throw new AppException(ErrorCode.UNAUTHENTICATED);
