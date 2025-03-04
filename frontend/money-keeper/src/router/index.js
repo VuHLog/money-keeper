@@ -6,6 +6,8 @@ import AuthLayout from "@layouts/AuthLayout.vue";
 import SignIn from "@pages/SignIn.vue";
 import SignUp from "@pages/SignUp.vue";
 import Home from "@pages/Home.vue";
+import IncomeAndExpenditure from "@pages/IncomeAndExpenditure.vue";
+import Account from "@pages/Account.vue";
 
 const routes = [
   {
@@ -19,6 +21,21 @@ const routes = [
       path: "/home",
       name: "Home",
       component: Home
+      },
+      { 
+        path: "/income-and-expenditure",
+        name: "Income and expenditure",
+        component: IncomeAndExpenditure
+      },
+      { 
+        path: "/account",
+        name: "Account",
+        component: Account
+      },
+      { 
+        path: "/account/savings",
+        name: "Account Savings",
+        component: Account
       },
     ],
   },

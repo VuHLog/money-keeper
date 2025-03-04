@@ -77,13 +77,13 @@ async function signInWithGoogle() {
   <div class="width-form-login d-flex flex-column">
     <div class="d-flex w-100">
       <div
-        class="text-center bg-white text-blue-darken-1 text-16 pa-5 rounded-ts-xl rounded-te-xl w-50 font-weight-bold border-sm border-b-0"
+        class="text-center bg-white text-green-darken-1 text-16 pa-5 rounded-ts-xl rounded-te-xl w-50 font-weight-bold border-sm border-b-0"
       >
         Đăng nhập
       </div>
       <router-link
         to="/auth/sign-up"
-        class="text-center bg-blue-darken-1 text-16 pa-5 rounded-ts-xl rounded-te-xl w-50 font-weight-bold text-decoration-none"
+        class="text-center bg-green-darken-1 text-16 pa-5 rounded-ts-xl rounded-te-xl w-50 font-weight-bold text-decoration-none"
       >
         Đăng ký
       </router-link>
@@ -115,7 +115,7 @@ async function signInWithGoogle() {
           {{ errMsg }}
         </div>
         <button
-          class="bg-blue-accent-4 w-100 py-3 rounded-lg mt-10"
+          class="bg-green-accent-4 text-white w-100 py-3 rounded-lg mt-10"
           type="submit"
         >
           Đăng nhập

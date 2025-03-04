@@ -124,12 +124,12 @@ async function signUp() {
     <div class="d-flex w-100">
       <router-link
         to="/auth/sign-in"
-        class="text-center bg-blue-darken-1 text-16 pa-5 rounded-ts-xl rounded-te-xl w-50 font-weight-bold text-decoration-none"
+        class="text-center bg-green-darken-1 text-16 pa-5 rounded-ts-xl rounded-te-xl w-50 font-weight-bold text-decoration-none"
       >
         Đăng nhập
       </router-link>
       <div
-        class="text-center bg-white text-blue-darken-1 text-16 pa-5 rounded-ts-xl rounded-te-xl w-50 font-weight-bold border-sm border-b-0"
+        class="text-center bg-white text-green-darken-1 text-16 pa-5 rounded-ts-xl rounded-te-xl w-50 font-weight-bold border-sm border-b-0"
       >
         Đăng ký
       </div>
