@@ -75,7 +75,7 @@ const userSettingList = ref([
 </script>
 
 <template>
-  <div class="header z-index-99 position-fixed w-100">
+  <div class="header bg-white z-index-99 position-fixed w-100">
     <div class="d-flex h-100 mx-10 d-flex justify-space-between">
       <div class="d-flex">
         <div class="header-logo h-100 pa-2 mr-6">
