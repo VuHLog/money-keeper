@@ -13,6 +13,7 @@ export default defineConfig({
       '@scss': fileURLToPath(new URL('./src/assets/scss', import.meta.url)),
       '@layouts': fileURLToPath(new URL('./src/views/layouts', import.meta.url)),
       '@components': fileURLToPath(new URL('./src/views/components', import.meta.url)),
+      '@constants': fileURLToPath(new URL('./src/views/constants', import.meta.url)),
       '@pages': fileURLToPath(new URL('./src/views/pages', import.meta.url)),
     },
   },

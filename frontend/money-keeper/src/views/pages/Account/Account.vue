@@ -4,12 +4,23 @@ import { useBaseStore } from "@/store/index.js";
 import { useRouter } from "vue-router";
 
 const panel = ref([0, 1]);
-const show = ref(false);
+const show = ref(true);
 </script>
 
 <template>
   <div class="h">
     <h1 class="text-center text-primary-color mb-5">Tài khoản</h1>
+    <div>
+      <router-link
+        to="/account/create"
+        class="text-decoration-none text-white bg-primary-color pa-2 rounded"
+      >
+        <button>
+          <font-awesome-icon class="mr-2" :icon="['fas', 'plus']" />
+          <span>Thêm tài khoản</span>
+        </button>
+      </router-link>
+    </div>
     <div v-if="show">
       <div class="text-end mb-2">
         <span class="font-weight-bold text-20">Tổng tiền: 6.000 ₫</span>
@@ -28,9 +39,12 @@ const show = ref(false);
                 >
                   <div class="d-flex">
                     <div
-                      class="align-self-center icon-size flex-center rounded-circle bg-grey-darken-1 mr-4"
+                      class="align-self-center flex-center rounded-circle bg-grey-darken-1 mr-4"
                     >
-                      <font-awesome-icon :icon="['fas', 'wallet']" />
+                      <img
+                        class="icon-size"
+                        src="../../../assets/img/icon/wallet.png"
+                      />
                     </div>
                     <div class="d-flex flex-column justify-space-between">
                       <span class="font-weight-bold text-grey-color">Long</span>
@@ -387,14 +401,22 @@ const show = ref(false);
       </v-expansion-panels>
     </div>
     <div class="flex-center flex-column" v-else>
-        <div class="text-disable mb-3">
-            <img src="@images/logo/logo-disable.png" alt="Sổ thu chi" class="text-disable" style="height: 100px;" />
-        </div>
-        <p class="text-20 text-disable mb-3">Bạn chưa có tài khoản nào</p>
-        <router-link to="/account/create" class="text-decoration-none text-primary-color text-20 hover-opacity-06">
-            <font-awesome-icon class="mr-2" :icon="['fas', 'plus']" />
-            <span>Thêm tài khoản</span>
-        </router-link>
+      <div class="text-disable mb-3">
+        <img
+          src="@images/logo/logo-disable.png"
+          alt="Sổ thu chi"
+          class="text-disable"
+          style="height: 100px"
+        />
+      </div>
+      <p class="text-20 text-disable mb-3">Bạn chưa có tài khoản nào</p>
+      <router-link
+        to="/account/create"
+        class="text-decoration-none text-primary-color text-20 hover-opacity-06"
+      >
+        <font-awesome-icon class="mr-2" :icon="['fas', 'plus']" />
+        <span>Thêm tài khoản</span>
+      </router-link>
     </div>
   </div>
 </template>

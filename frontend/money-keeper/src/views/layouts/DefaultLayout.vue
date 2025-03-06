@@ -24,7 +24,7 @@ const getRoute = computed(() => {
         </div>
       </div>
     </div>
-    <div v-if="getRoute !== 'income-and-expenditure'" class="position-fixed feature-list user-select-none">
+    <div v-if="getRoute !== 'income-and-expenditure'" class="position-fixed z-index-99 feature-list user-select-none">
       <router-link to="/income-and-expenditure" class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
         <font-awesome-icon class="text-primary-color" :icon="['fas', 'plus']" />
         <v-tooltip activator="parent" location="start">Ghi thu chi</v-tooltip>

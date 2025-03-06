@@ -7,7 +7,8 @@ import SignIn from "@pages/SignIn.vue";
 import SignUp from "@pages/SignUp.vue";
 import Home from "@pages/Home.vue";
 import IncomeAndExpenditure from "@pages/IncomeAndExpenditure.vue";
-import Account from "@pages/Account.vue";
+import Account from "@pages/Account/Account.vue";
+import CreateAccount from "@pages/Account/Create.vue";
 
 const routes = [
   {
@@ -31,6 +32,11 @@ const routes = [
         path: "/account",
         name: "Account",
         component: Account
+      },
+      { 
+        path: "/account/create",
+        name: "Create account",
+        component: CreateAccount
       },
       { 
         path: "/account/savings",
