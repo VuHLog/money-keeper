@@ -8,6 +8,7 @@ import SignUp from "@pages/SignUp.vue";
 import Home from "@pages/Home.vue";
 import IncomeAndExpenditure from "@pages/IncomeAndExpenditure.vue";
 import Account from "@pages/Account/Account.vue";
+import AccountInfo from "@pages/Account/Info.vue";
 import CreateAccount from "@pages/Account/Create.vue";
 
 const routes = [
@@ -32,6 +33,11 @@ const routes = [
         path: "/account",
         name: "Account",
         component: Account
+      },
+      { 
+        path: "/account/info/:accountId",
+        name: "Account Information",
+        component: AccountInfo
       },
       { 
         path: "/account/create",

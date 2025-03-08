@@ -17,6 +17,7 @@
     "@stomp/stompjs": "^7.0.0",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
+    "element-plus": "^2.9.6",
     "jwt-decode": "^4.0.0",
     "pinia": "^3.0.1",
     "vue": "^3.5.13",

@@ -34,7 +34,7 @@ const show = ref(true);
             <div>
               <div class="d-flex py-2 border-b-sm">
                 <router-link
-                  to="/account/accountId"
+                  to="/account/info/1"
                   class="flex-1-1 text-decoration-none"
                 >
                   <div class="d-flex">
