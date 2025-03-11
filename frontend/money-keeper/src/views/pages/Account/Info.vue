@@ -14,7 +14,7 @@ const datePicker = ref();
 
 <template>
   <div class="account-info text-grey-color">
-    <div class="text-primary-color position-relative mb-5">
+    <div class="text-primary-color position-relative mb-10">
       <router-link
         to="/account"
         class="position-absolute top-0 left-0 text-primary-color text-decoration-none"
@@ -58,8 +58,7 @@ const datePicker = ref();
       </v-row>
       <v-row
         no-gutters
-        class="pa-2 mb-2 rounded"
-        style="box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px"
+        class="pa-2 mb-2 rounded box-shadow-default"
       >
         <v-col cols="4">
           <div class="flex-center flex-column text-20 border-e-sm">
@@ -83,8 +82,7 @@ const datePicker = ref();
       <v-row>
         <v-col cols="6">
           <div
-            class="pa-2 rounded"
-            style="box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px"
+            class="pa-2 rounded box-shadow-default"
           >
             <div class="account-history-list">
               <div class="account-history-item">
@@ -167,8 +165,7 @@ const datePicker = ref();
         </v-col>
         <v-col cols="6">
           <div
-            class="pa-2 rounded"
-            style="box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px"
+            class="pa-2 rounded box-shadow-default"
           >
             <div class="account-history-list">
               <div class="account-history-item">

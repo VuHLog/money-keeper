@@ -191,6 +191,11 @@ ol {
   background-color: #f6f6f6 !important;
 }
 
+//box shadow
+.box-shadow-default{
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px
+}
+
 //flex
 .flex-center{
   display: flex;

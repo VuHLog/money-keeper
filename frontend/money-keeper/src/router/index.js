@@ -10,6 +10,8 @@ import IncomeAndExpenditure from "@pages/IncomeAndExpenditure.vue";
 import Account from "@pages/Account/Account.vue";
 import AccountInfo from "@pages/Account/Info.vue";
 import CreateAccount from "@pages/Account/Create.vue";
+import AdjustedBalance from "@pages/Account/AdjustedBalance.vue";
+import Transfer from "@pages/Account/Transfer.vue";
 
 const routes = [
   {
@@ -43,6 +45,16 @@ const routes = [
         path: "/account/create",
         name: "Create account",
         component: CreateAccount
+      },
+      { 
+        path: "/account/adjusted-balance/:accountId",
+        name: "Adjusted balance",
+        component: AdjustedBalance
+      },
+      { 
+        path: "/account/transfer/:accountId",
+        name: "Transfer",
+        component: Transfer
       },
       { 
         path: "/account/savings",

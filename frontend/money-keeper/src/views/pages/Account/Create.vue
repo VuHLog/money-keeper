@@ -16,8 +16,19 @@ const bank = ref();
 
 <template>
   <div>
-    <h1 class="text-center text-primary-color mb-5">Thêm tài khoản</h1>
-    <v-row>
+    <div class="text-primary-color position-relative mb-10">
+      <router-link
+        to="/account"
+        class="position-absolute top-0 left-0 text-primary-color text-decoration-none"
+      >
+        <font-awesome-icon
+          :icon="['fas', 'angle-left']"
+          style="font-size: 32px"
+        />
+      </router-link>
+      <h1 class="text-center">Thêm tài khoản</h1>
+    </div>
+    <v-row class="mb-10">
       <v-col cols="6">
         <v-text-field hide-details="auto" label="Số dư ban đầu"></v-text-field>
       </v-col>

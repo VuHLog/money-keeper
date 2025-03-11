@@ -9,7 +9,7 @@ const show = ref(true);
 
 <template>
   <div class="h">
-    <h1 class="text-center text-primary-color mb-5">Tài khoản</h1>
+    <h1 class="text-center text-primary-color mb-10">Tài khoản</h1>
     <div>
       <router-link
         to="/account/create"
@@ -70,7 +70,7 @@ const show = ref(true);
                       <v-list-item-title>
                         <router-link
                           class="text-decoration-none text-grey-darken-4"
-                          to="/account"
+                          to="/account/transfer/id"
                         >
                           <div class="text-12 d-flex">
                             <div class="mr-2">
@@ -87,7 +87,7 @@ const show = ref(true);
                       <v-list-item-title>
                         <router-link
                           class="text-decoration-none text-grey-darken-4"
-                          to="/account"
+                          to="/account/adjusted-balance/accountId"
                         >
                           <div class="text-12 d-flex">
                             <div class="mr-2">
@@ -213,7 +213,7 @@ const show = ref(true);
                       <v-list-item-title>
                         <router-link
                           class="text-decoration-none text-grey-darken-4"
-                          to="/account"
+                          to="/account/adjusted-balance/accountId"
                         >
                           <div class="text-12 d-flex">
                             <div class="mr-2">
