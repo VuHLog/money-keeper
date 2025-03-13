@@ -128,7 +128,7 @@ const userSettingList = ref([
                     <v-list-item-title>
                       <router-link
                         class="text-decoration-none text-grey-darken-4"
-                        to="/account"
+                        to="/passbook"
                         >Sổ tiết kiệm
                       </router-link>
                     </v-list-item-title>

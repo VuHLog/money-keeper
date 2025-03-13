@@ -12,6 +12,8 @@ import AccountInfo from "@pages/Account/Info.vue";
 import CreateAccount from "@pages/Account/Create.vue";
 import AdjustedBalance from "@pages/Account/AdjustedBalance.vue";
 import Transfer from "@pages/Account/Transfer.vue";
+import Passbook from "@pages/Passbook/Passbook.vue";
+import CreatePassbook from "@pages/Passbook/Create.vue";
 
 const routes = [
   {
@@ -19,7 +21,7 @@ const routes = [
     name: "/",
     redirect: "/home",
     component: DefaultLayout,
-    meta: { requiresAuth: true },
+    // meta: { requiresAuth: true },
     children: [
       { 
       path: "/home",
@@ -57,9 +59,14 @@ const routes = [
         component: Transfer
       },
       { 
-        path: "/account/savings",
-        name: "Account Savings",
-        component: Account
+        path: "/passbook",
+        name: "Passbook",
+        component: Passbook
+      },
+      { 
+        path: "/passbook/create",
+        name: "Create passbook",
+        component: CreatePassbook
       },
     ],
   },

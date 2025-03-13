@@ -9,49 +9,54 @@ const show = ref(true);
 
 <template>
   <div class="h">
-    <h1 class="text-center text-primary-color mb-10">Tài khoản</h1>
+    <h1 class="text-center text-primary-color mb-10">Sổ tiết kiệm</h1>
     <div>
       <router-link
-        to="/account/create"
+        to="/passbook/create"
         class="text-decoration-none text-white bg-primary-color pa-2 rounded"
       >
         <button>
           <font-awesome-icon class="mr-2" :icon="['fas', 'plus']" />
-          <span>Thêm tài khoản</span>
+          <span>Thêm sổ tiết kiệm</span>
         </button>
       </router-link>
     </div>
     <div v-if="show">
       <div class="text-end mb-2">
-        <span class="font-weight-bold text-20">Tổng tiền: 6.000 ₫</span>
+        <span class="font-weight-bold text-20">Tổng tiền: 6.000 ₫(2 sổ)</span>
       </div>
       <v-expansion-panels v-model="panel" multiple>
         <v-expansion-panel>
           <v-expansion-panel-title class="font-weight-bold"
-            >Đang sử dụng (2.000 ₫)</v-expansion-panel-title
+            >Ngân hàng TMCP Á Châu (1.000 ₫)</v-expansion-panel-title
           >
           <v-expansion-panel-text>
             <div>
               <div class="d-flex py-2 border-b-sm">
-                <router-link
-                  to="/account/info/1"
-                  class="flex-1-1 text-decoration-none"
-                >
+                <div class="flex-1-1">
                   <div class="d-flex">
                     <div
                       class="align-self-center flex-center rounded-circle bg-grey-darken-1 mr-4"
                     >
                       <img
                         class="icon-size-thumbnail"
-                        src="../../../assets/img/icon/wallet.png"
+                        src="https://api.vietqr.io/img/ACB.png"
                       />
                     </div>
                     <div class="d-flex flex-column justify-space-between">
-                      <span class="font-weight-bold text-grey-color">Long</span>
+                      <div>
+                        <span class="font-weight-bold text-grey-color mr-2"
+                          >Tên ngân hàng</span
+                        >
+                        <span
+                          class="text-red-accent-2 pa-1 border-sm rounded border-error"
+                          >0%</span
+                        >
+                      </div>
                       <span class="text-grey-lighten-1">1.000 ₫</span>
                     </div>
                   </div>
-                </router-link>
+                </div>
                 <v-menu>
                   <template v-slot:activator="{ props }">
                     <div
@@ -78,7 +83,7 @@ const show = ref(true);
                                 :icon="['fas', 'right-left']"
                               />
                             </div>
-                            <span>Chuyển khoản</span>
+                            <span>Gửi thêm</span>
                           </div>
                         </router-link>
                       </v-list-item-title>
@@ -95,7 +100,7 @@ const show = ref(true);
                                 :icon="['fas', 'right-left']"
                               />
                             </div>
-                            <span>Điều chỉnh số dư</span>
+                            <span>Rút một phần</span>
                           </div>
                         </router-link>
                       </v-list-item-title>
@@ -112,7 +117,7 @@ const show = ref(true);
                                 :icon="['fas', 'right-left']"
                               />
                             </div>
-                            <span>Chia sẻ tài khoản</span>
+                            <span>Tất toán</span>
                           </div>
                         </router-link>
                       </v-list-item-title>
@@ -143,144 +148,6 @@ const show = ref(true);
                             <font-awesome-icon :icon="['fas', 'right-left']" />
                           </div>
                           <span>Xóa</span>
-                        </div>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <div
-                          class="text-12 d-flex text-grey-darken-4 cursor-pointer"
-                        >
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
-                          </div>
-                          <span>Ngừng sử dụng</span>
-                        </div>
-                      </v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
-              </div>
-              <div class="d-flex py-2 border-b-sm">
-                <router-link
-                  to="/account/accountId"
-                  class="flex-1-1 text-decoration-none"
-                >
-                  <div class="d-flex">
-                    <div
-                      class="align-self-center icon-size-thumbnail flex-center rounded-circle bg-grey-darken-1 mr-4"
-                    >
-                      <font-awesome-icon :icon="['fas', 'wallet']" />
-                    </div>
-                    <div class="d-flex flex-column justify-space-between">
-                      <span class="font-weight-bold text-grey-color">Long</span>
-                      <span class="text-grey-lighten-1">1.000 ₫</span>
-                    </div>
-                  </div>
-                </router-link>
-                <v-menu>
-                  <template v-slot:activator="{ props }">
-                    <div
-                      class="flex-center pa-3"
-                      v-bind="props"
-                      style="font-size: 20px"
-                    >
-                      <font-awesome-icon
-                        class="text-grey-color"
-                        :icon="['fas', 'ellipsis-vertical']"
-                      />
-                    </div>
-                  </template>
-                  <v-list>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <router-link
-                          class="text-decoration-none text-grey-darken-4"
-                          to="/account"
-                        >
-                          <div class="text-12 d-flex">
-                            <div class="mr-2">
-                              <font-awesome-icon
-                                :icon="['fas', 'right-left']"
-                              />
-                            </div>
-                            <span>Chuyển khoản</span>
-                          </div>
-                        </router-link>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <router-link
-                          class="text-decoration-none text-grey-darken-4"
-                          to="/account/adjusted-balance/accountId"
-                        >
-                          <div class="text-12 d-flex">
-                            <div class="mr-2">
-                              <font-awesome-icon
-                                :icon="['fas', 'right-left']"
-                              />
-                            </div>
-                            <span>Điều chỉnh số dư</span>
-                          </div>
-                        </router-link>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <router-link
-                          class="text-decoration-none text-grey-darken-4"
-                          to="/account"
-                        >
-                          <div class="text-12 d-flex">
-                            <div class="mr-2">
-                              <font-awesome-icon
-                                :icon="['fas', 'right-left']"
-                              />
-                            </div>
-                            <span>Chia sẻ tài khoản</span>
-                          </div>
-                        </router-link>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <router-link
-                          class="text-decoration-none text-grey-darken-4"
-                          to="/account"
-                        >
-                          <div class="text-12 d-flex">
-                            <div class="mr-2">
-                              <font-awesome-icon
-                                :icon="['fas', 'right-left']"
-                              />
-                            </div>
-                            <span>Sửa</span>
-                          </div>
-                        </router-link>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <div
-                          class="text-12 d-flex text-grey-darken-4 cursor-pointer"
-                        >
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
-                          </div>
-                          <span>Xóa</span>
-                        </div>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <div
-                          class="text-12 d-flex text-grey-darken-4 cursor-pointer"
-                        >
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
-                          </div>
-                          <span>Ngừng sử dụng</span>
                         </div>
                       </v-list-item-title>
                     </v-list-item>
@@ -288,32 +155,72 @@ const show = ref(true);
                 </v-menu>
               </div>
             </div>
+            <v-tooltip activator="parent" location="bottom start" width="20%">
+              <div class="d-flex justify-space-between">
+                <span>Số dư còn lại</span>
+                <span class="font-weight-bold">1.000 ₫</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span
+                  ><font-awesome-icon :icon="['far', 'calendar']" /> Ngày
+                  gửi</span
+                >
+                <span>12/03/2025</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span
+                  ><font-awesome-icon :icon="['far', 'calendar']" /> Kỳ
+                  hạn</span
+                >
+                <span>3 tháng</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span>Lãi suất</span>
+                <div>
+                  <span class="text-red-accent-2 border-sm rounded border-error"
+                    >0%</span
+                  >
+                  <span>/năm</span>
+                </div>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span>Số dư bạn đầu</span>
+                <span class="font-weight-bold">1.000 ₫</span>
+              </div>
+            </v-tooltip>
           </v-expansion-panel-text>
         </v-expansion-panel>
-
         <v-expansion-panel>
           <v-expansion-panel-title class="font-weight-bold"
-            >Ngừng sử dụng (1.000 ₫)</v-expansion-panel-title
+            >Ngân hàng TMCP Á Châu (1.000 ₫)</v-expansion-panel-title
           >
           <v-expansion-panel-text>
             <div>
               <div class="d-flex py-2 border-b-sm">
-                <router-link
-                  to="/account/accountId"
-                  class="flex-1-1 text-decoration-none"
-                >
+                <div class="flex-1-1">
                   <div class="d-flex">
                     <div
-                      class="align-self-center icon-size-thumbnail flex-center rounded-circle bg-grey-darken-1 mr-4"
+                      class="align-self-center flex-center rounded-circle bg-grey-darken-1 mr-4"
                     >
-                      <font-awesome-icon :icon="['fas', 'wallet']" />
+                      <img
+                        class="icon-size-thumbnail"
+                        src="https://api.vietqr.io/img/ACB.png"
+                      />
                     </div>
                     <div class="d-flex flex-column justify-space-between">
-                      <span class="font-weight-bold text-grey-color">Long</span>
+                      <div>
+                        <span class="font-weight-bold text-grey-color mr-2"
+                          >Tên ngân hàng</span
+                        >
+                        <span
+                          class="text-red-accent-2 pa-1 border-sm rounded border-error"
+                          >0%</span
+                        >
+                      </div>
                       <span class="text-grey-lighten-1">1.000 ₫</span>
                     </div>
                   </div>
-                </router-link>
+                </div>
                 <v-menu>
                   <template v-slot:activator="{ props }">
                     <div
@@ -328,54 +235,72 @@ const show = ref(true);
                     </div>
                   </template>
                   <v-list>
-                    <v-list-item>
+                    <v-list-item class="hover-bg-grey">
                       <v-list-item-title>
-                        <div class="text-12 d-flex text-disable">
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
+                        <router-link
+                          class="text-decoration-none text-grey-darken-4"
+                          to="/account/transfer/id"
+                        >
+                          <div class="text-12 d-flex">
+                            <div class="mr-2">
+                              <font-awesome-icon
+                                :icon="['fas', 'right-left']"
+                              />
+                            </div>
+                            <span>Gửi thêm</span>
                           </div>
-                          <span>Chuyển khoản</span>
-                        </div>
+                        </router-link>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item>
+                    <v-list-item class="hover-bg-grey">
                       <v-list-item-title>
-                        <div class="text-12 d-flex text-disable">
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
+                        <router-link
+                          class="text-decoration-none text-grey-darken-4"
+                          to="/account/adjusted-balance/accountId"
+                        >
+                          <div class="text-12 d-flex">
+                            <div class="mr-2">
+                              <font-awesome-icon
+                                :icon="['fas', 'right-left']"
+                              />
+                            </div>
+                            <span>Rút một phần</span>
                           </div>
-                          <span>Điều chỉnh số dư</span>
-                        </div>
+                        </router-link>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item>
+                    <v-list-item class="hover-bg-grey">
                       <v-list-item-title>
-                        <div class="text-12 d-flex text-disable">
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
+                        <router-link
+                          class="text-decoration-none text-grey-darken-4"
+                          to="/account"
+                        >
+                          <div class="text-12 d-flex">
+                            <div class="mr-2">
+                              <font-awesome-icon
+                                :icon="['fas', 'right-left']"
+                              />
+                            </div>
+                            <span>Tất toán</span>
                           </div>
-                          <span>Chia sẻ tài khoản</span>
-                        </div>
+                        </router-link>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item>
+                    <v-list-item class="hover-bg-grey">
                       <v-list-item-title>
-                        <div class="text-12 d-flex text-disable">
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
+                        <router-link
+                          class="text-decoration-none text-grey-darken-4"
+                          to="/account"
+                        >
+                          <div class="text-12 d-flex">
+                            <div class="mr-2">
+                              <font-awesome-icon
+                                :icon="['fas', 'right-left']"
+                              />
+                            </div>
+                            <span>Sửa</span>
                           </div>
-                          <span>Sửa</span>
-                        </div>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item>
-                      <v-list-item-title>
-                        <div class="text-12 d-flex text-disable">
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
-                          </div>
-                          <span>Xóa</span>
-                        </div>
+                        </router-link>
                       </v-list-item-title>
                     </v-list-item>
                     <v-list-item class="hover-bg-grey">
@@ -384,11 +309,9 @@ const show = ref(true);
                           class="text-12 d-flex text-grey-darken-4 cursor-pointer"
                         >
                           <div class="mr-2">
-                            <font-awesome-icon
-                              :icon="['fas', 'unlock-keyhole']"
-                            />
+                            <font-awesome-icon :icon="['fas', 'right-left']" />
                           </div>
-                          <span>Sử dụng lại</span>
+                          <span>Xóa</span>
                         </div>
                       </v-list-item-title>
                     </v-list-item>
@@ -396,6 +319,39 @@ const show = ref(true);
                 </v-menu>
               </div>
             </div>
+            <v-tooltip activator="parent" location="bottom start" width="20%">
+              <div class="d-flex justify-space-between">
+                <span>Số dư còn lại</span>
+                <span class="font-weight-bold">1.000 ₫</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span
+                  ><font-awesome-icon :icon="['far', 'calendar']" /> Ngày
+                  gửi</span
+                >
+                <span>12/03/2025</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span
+                  ><font-awesome-icon :icon="['far', 'calendar']" /> Kỳ
+                  hạn</span
+                >
+                <span>3 tháng</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span>Lãi suất</span>
+                <div>
+                  <span class="text-red-accent-2 border-sm rounded border-error"
+                    >0%</span
+                  >
+                  <span>/năm</span>
+                </div>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span>Số dư ban đầu</span>
+                <span class="font-weight-bold">1.000 ₫</span>
+              </div>
+            </v-tooltip>
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
