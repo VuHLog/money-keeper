@@ -159,7 +159,21 @@ const bank = ref();
         </v-autocomplete>
       </v-col>
       <v-col cols="12">
-        <v-textarea label="Diễn giải" rows="1" auto-grow clearable></v-textarea>
+        <v-textarea
+            class="text-grey-color"
+            label="Diễn giải"
+            bg-color="bg-white"
+            rows="1"
+            auto-grow
+            hide-details="auto"
+            clearable
+          >
+            <template v-slot:prepend>
+              <v-avatar class="flex-center">
+                <font-awesome-icon :icon="['far', 'rectangle-list']" />
+              </v-avatar>
+            </template>
+          </v-textarea>
       </v-col>
     </v-row>
     <div class="text-center">

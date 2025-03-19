@@ -75,14 +75,29 @@ const categorySelected = ref();
     <div class="mb-10">
       <v-row justify="end">
         <v-col cols="2" class="d-flex align-center">
-        <el-date-picker
-          v-model="currentTime"
-          type="datetime"
-          placeholder="Select date and time"
-        />
-      </v-col>
+          <el-date-picker
+            v-model="currentTime"
+            type="datetime"
+            placeholder="Select date and time"
+          />
+        </v-col>
       </v-row>
       <v-row class="mb-2 align-center" justify="space-between">
+        <v-col cols="3">
+          <div class="flex-center flex-column text-20">
+            <div class="flex-center w-100">
+              <v-text-field
+                label="Số tiền"
+                type="number"
+                hide-details="auto"
+                class="text-blue-accent-3 font-weight-bold text-end"
+                bg-color="bg-white"
+                hide-spin-buttons
+              ></v-text-field>
+              <span class="font-weight-bold text-20">₫</span>
+            </div>
+          </div>
+        </v-col>
         <v-col cols="3">
           <v-select
             label="Từ tài khoản"
@@ -145,31 +160,24 @@ const categorySelected = ref();
             </template>
           </v-select>
         </v-col>
-        <v-col cols="3">
-          <div class="flex-center flex-column text-20">
-            <div class="flex-center w-100">
-              <v-text-field
-                label="Số tiền"
-                type="number"
-                hide-details="auto"
-                class="text-blue-accent-3 font-weight-bold text-end"
-                bg-color="bg-white"
-                hide-spin-buttons
-              ></v-text-field>
-              <span class="font-weight-bold text-20">₫</span>
-            </div>
-          </div>
-        </v-col>
       </v-row>
       <v-row>
         <v-col cols="4">
           <v-textarea
+            class="text-grey-color"
             label="Diễn giải"
+            bg-color="bg-white"
             rows="1"
             auto-grow
             hide-details="auto"
             clearable
-          ></v-textarea>
+          >
+            <template v-slot:prepend>
+              <v-avatar class="flex-center">
+                <font-awesome-icon :icon="['far', 'rectangle-list']" />
+              </v-avatar>
+            </template>
+          </v-textarea>
         </v-col>
       </v-row>
     </div>

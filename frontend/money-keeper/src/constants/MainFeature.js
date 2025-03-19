@@ -2,13 +2,13 @@ export const MainFeature = [
   { id: 1,
     name: "Chi tiền",
     icon: ['fas', 'minus'],
-    href: "/",
+    href: "/expense/create",
   },
   {
     id: 2,
     name: "Thu tiền",
     icon: ['fas', 'plus'],
-    href: "/abc",
+    href: "/revenue/create",
   },
   {
     id: 3,

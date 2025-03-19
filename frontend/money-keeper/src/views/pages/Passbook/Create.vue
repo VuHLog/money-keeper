@@ -294,38 +294,52 @@ const myAccountList = ref([]);
         </v-select>
       </v-col>
       <v-col cols="2">
-          <v-select
-            label="Từ tài khoản"
-            variant="solo"
-            rounded
-            v-model="fromAccount"
-            :items="myAccountList"
-            item-title="name"
-            :return-object="true"
-            class="text-grey-color d-inline-block"
-            width="100%"
-            hide-details="true"
-            no-data-text="Không tìm thấy"
-          >
-            <template v-slot:item="{ props, item }">
-              <v-list-item
-                v-bind="props"
-                :prepend-avatar="item.raw.icon"
-                :title="item.raw.name"
-              ></v-list-item>
-            </template>
-            <template v-slot:selection="{ item }">
-              <div>
-                <v-avatar start>
-                  <img class="icon-size" :src="item.raw.icon" alt="icon" />
-                </v-avatar>
-                <span class="text-grey-color">{{ item.raw.name }}</span>
-              </div>
-            </template>
-          </v-select>
-        </v-col>
+        <v-select
+          label="Từ tài khoản"
+          variant="solo"
+          rounded
+          v-model="fromAccount"
+          :items="myAccountList"
+          item-title="name"
+          :return-object="true"
+          class="text-grey-color d-inline-block"
+          width="100%"
+          hide-details="true"
+          no-data-text="Không tìm thấy"
+        >
+          <template v-slot:item="{ props, item }">
+            <v-list-item
+              v-bind="props"
+              :prepend-avatar="item.raw.icon"
+              :title="item.raw.name"
+            ></v-list-item>
+          </template>
+          <template v-slot:selection="{ item }">
+            <div>
+              <v-avatar start>
+                <img class="icon-size" :src="item.raw.icon" alt="icon" />
+              </v-avatar>
+              <span class="text-grey-color">{{ item.raw.name }}</span>
+            </div>
+          </template>
+        </v-select>
+      </v-col>
       <v-col cols="12">
-        <v-textarea label="Diễn giải" rows="1" auto-grow clearable></v-textarea>
+        <v-textarea
+          class="text-grey-color"
+          label="Diễn giải"
+          bg-color="bg-white"
+          rows="1"
+          auto-grow
+          hide-details="auto"
+          clearable
+        >
+          <template v-slot:prepend>
+            <v-avatar class="flex-center">
+              <font-awesome-icon :icon="['far', 'rectangle-list']" />
+            </v-avatar>
+          </template>
+        </v-textarea>
       </v-col>
     </v-row>
     <div class="text-center">

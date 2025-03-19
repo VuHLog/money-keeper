@@ -6,7 +6,6 @@ import AuthLayout from "@layouts/AuthLayout.vue";
 import SignIn from "@pages/SignIn.vue";
 import SignUp from "@pages/SignUp.vue";
 import Home from "@pages/Home.vue";
-import IncomeAndExpenditure from "@pages/IncomeAndExpenditure.vue";
 import Account from "@pages/Account/Account.vue";
 import AccountInfo from "@pages/Account/Info.vue";
 import CreateAccount from "@pages/Account/Create.vue";
@@ -14,6 +13,8 @@ import AdjustedBalance from "@pages/Account/AdjustedBalance.vue";
 import Transfer from "@pages/Account/Transfer.vue";
 import Passbook from "@pages/Passbook/Passbook.vue";
 import CreatePassbook from "@pages/Passbook/Create.vue";
+import CreateExpense from "@pages/Expense/Create.vue";
+import CreateRevenue from "@pages/Revenue/Create.vue";
 
 const routes = [
   {
@@ -21,17 +22,12 @@ const routes = [
     name: "/",
     redirect: "/home",
     component: DefaultLayout,
-    // meta: { requiresAuth: true },
+    meta: { requiresAuth: true },
     children: [
       { 
       path: "/home",
       name: "Home",
       component: Home
-      },
-      { 
-        path: "/income-and-expenditure",
-        name: "Income and expenditure",
-        component: IncomeAndExpenditure
       },
       { 
         path: "/account",
@@ -68,6 +64,16 @@ const routes = [
         name: "Create passbook",
         component: CreatePassbook
       },
+      {
+        path: "/expense/create",
+        name: "Create expense",
+        component: CreateExpense
+      },
+      {
+        path: "/revenue/create",
+        name: "Create revenue",
+        component: CreateRevenue
+      }
     ],
   },
   {

@@ -40,6 +40,10 @@ public class Users {
     @JsonIgnore
     private Set<UserRole> user_roles;
 
+    @OneToMany(mappedBy = "user",cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JsonIgnore
+    private Set<DictionaryExpense> dictionaryExpenses;
+
     @PrePersist
     public void onCreate() {
         if(oAuth2 == null) {
