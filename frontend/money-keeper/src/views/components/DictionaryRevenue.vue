@@ -12,11 +12,11 @@ const props = defineProps({
   },
 });
 
-const dictionaryExpense = ref([]);
+const dictionaryRevenue = ref([]);
 onMounted(async () => {
   let data = [];
   await proxy.$api
-    .get("/dictionary-expense")
+    .get("/dictionary-revenue")
     .then((res) => {
       data = res.result;
     })
@@ -26,7 +26,7 @@ onMounted(async () => {
   parents.forEach((parent) => {
     parent.children = data.filter((child) => child.parentId === parent.id);
   });
-  dictionaryExpense.value = parents;
+  dictionaryRevenue.value = parents;
 });
 
 function handleClickCategory(category) {
@@ -39,7 +39,7 @@ function handleClickCategory(category) {
     <h1 class="text-center text-primary-color mb-8">Chọn hạng mục</h1>
 
     <v-row class="scroll-container" align="stretch">
-      <template v-for="category in dictionaryExpense" :key="category.id">
+      <template v-for="category in dictionaryRevenue" :key="category.id">
         <v-col cols="6">
           <div class="category-box">
             <v-row class="hover-bg-grey-darken cursor-pointer" @click="handleClickCategory(category)">
@@ -59,7 +59,7 @@ function handleClickCategory(category) {
               </v-col>
             </v-row>
 
-            <v-row>
+            <v-row v-if="category.children && category.children.length > 0">
               <template v-for="child in category.children" :key="child.id">
                 <v-col
                   cols="3"

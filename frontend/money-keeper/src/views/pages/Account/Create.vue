@@ -1,17 +1,88 @@
 <script setup>
-import { ref, onMounted, getCurrentInstance } from "vue";
+import { ref, onMounted, getCurrentInstance, inject } from "vue";
 import { AccountType } from "@/constants/AccountType.js";
-import { Banks } from "@/constants/Banks.js";
+import { useRouter } from "vue-router";
 
+const { proxy } = getCurrentInstance();
+const router = useRouter();
+const swal = inject("$swal");
 const accountTypeList = ref(AccountType);
-const accountType = ref({
-  id: 1,
-  name: "Tiền mặt",
-  icon: "https://res.cloudinary.com/cloud1412/image/upload/v1741273907/cash_ifor6b.png",
+const accountType = ref(accountTypeList.value.find((item) => item.id === 1));
+
+const banks = ref([]);
+const bank = ref();
+
+const bucketPayment = ref({
+  initialBalance: "",
+  creditLimit: "",
+  accountName: "",
+  accountType: "",
+  interpretation: "",
+  bankId: "",
 });
 
-const banks = ref(Banks);
-const bank = ref();
+const errMsg = ref("");
+
+onMounted(async () => {
+  await proxy.$api.get("/banks").then((res) => {
+    banks.value = res.result;
+  });
+});
+
+function isValid() {
+  const numberRegex = /^-?[1-9]\d*$/; // Cho phép số, không có số 0 ở đầu, có thể có dấu '-'
+
+  if (!numberRegex.test(bucketPayment.value.initialBalance)) {
+    errMsg.value = "Số dư ban đầu không hợp lệ";
+    return false;
+  }
+
+  if (
+    bucketPayment.value.accountType.id === 3 &&
+    !numberRegex.test(bucketPayment.value.creditLimit)
+  ) {
+    errMsg.value = "Hạn mức tín dụng không hợp lệ";
+    return false;
+  }
+  if (bucketPayment.value.accountName === "") {
+    errMsg.value = "Tên tài khoản không được để trống";
+    return false;
+  }
+
+  if (Object.keys(accountType.value).length === 0) {
+    errMsg.value = "Loại tài khoản không được để trống";
+    return false;
+  }
+
+  if (
+    accountType.value.id === 2 ||
+    (accountType.value.id === 3 && Object.keys(bank.value).length === 0)
+  ) {
+    errMsg.value = "Ngân hàng không được để trống";
+    return false;
+  }
+
+  return true;
+}
+
+async function createAccount() {
+  if (!isValid()) {
+    return;
+  }
+
+  bucketPayment.value.accountType = accountType.value.name;
+  bucketPayment.value.bankId = bank.value.id;
+  await proxy.$api
+    .post("/dictionary-bucket-payment", bucketPayment.value)
+    .then(() => {
+      swal.fire({
+        title: "Thành công",
+        text: "Bạn đã thêm tài khoản thành công!",
+        icon: "success",
+      });
+      router.push("/account")
+    });
+}
 </script>
 
 <template>
@@ -30,16 +101,25 @@ const bank = ref();
     </div>
     <v-row class="mb-10">
       <v-col cols="6">
-        <v-text-field hide-details="auto" label="Số dư ban đầu"></v-text-field>
+        <v-text-field
+          v-model="bucketPayment.initialBalance"
+          hide-details="auto"
+          label="Số dư ban đầu"
+        ></v-text-field>
       </v-col>
       <v-col cols="6" v-show="accountType?.id === 3">
         <v-text-field
+          v-model="bucketPayment.creditLimit"
           hide-details="auto"
           label="Hạn mức tín dụng"
         ></v-text-field>
       </v-col>
       <v-col cols="6">
-        <v-text-field hide-details="auto" label="Tên tài khoản"></v-text-field>
+        <v-text-field
+          v-model="bucketPayment.accountName"
+          hide-details="auto"
+          label="Tên tài khoản"
+        ></v-text-field>
       </v-col>
       <v-col cols="6">
         <v-autocomplete
@@ -160,24 +240,31 @@ const bank = ref();
       </v-col>
       <v-col cols="12">
         <v-textarea
-            class="text-grey-color"
-            label="Diễn giải"
-            bg-color="bg-white"
-            rows="1"
-            auto-grow
-            hide-details="auto"
-            clearable
-          >
-            <template v-slot:prepend>
-              <v-avatar class="flex-center">
-                <font-awesome-icon :icon="['far', 'rectangle-list']" />
-              </v-avatar>
-            </template>
-          </v-textarea>
+          v-model="bucketPayment.interpretation"
+          class="text-grey-color"
+          label="Diễn giải"
+          bg-color="bg-white"
+          rows="1"
+          auto-grow
+          hide-details="auto"
+          clearable
+        >
+          <template v-slot:prepend>
+            <v-avatar class="flex-center">
+              <font-awesome-icon :icon="['far', 'rectangle-list']" />
+            </v-avatar>
+          </template>
+        </v-textarea>
+      </v-col>
+      <v-col cols="12">
+        <p class="text-red-accent-3 text-center">{{ errMsg }}</p>
       </v-col>
     </v-row>
     <div class="text-center">
-      <button class="bg-primary-color text-white py-2 px-10 rounded">
+      <button
+        class="bg-primary-color text-white py-2 px-10 rounded"
+        @click="createAccount"
+      >
         Lưu
       </button>
     </div>

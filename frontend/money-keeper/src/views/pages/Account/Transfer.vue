@@ -93,7 +93,13 @@ const categorySelected = ref();
                 class="text-blue-accent-3 font-weight-bold text-end"
                 bg-color="bg-white"
                 hide-spin-buttons
-              ></v-text-field>
+              >
+                <template v-slot:prepend>
+                  <v-avatar class="flex-center">
+                    <font-awesome-icon :icon="['fas', 'money-bill']" />
+                  </v-avatar>
+                </template>
+              </v-text-field>
               <span class="font-weight-bold text-20">₫</span>
             </div>
           </div>

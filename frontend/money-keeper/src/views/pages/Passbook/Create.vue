@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, getCurrentInstance } from "vue";
 import { AccountType } from "@/constants/AccountType.js";
-import { Banks } from "@/constants/Banks.js";
 
 const accountTypeList = ref(AccountType);
 const accountType = ref({
@@ -10,7 +9,7 @@ const accountType = ref({
   icon: "https://res.cloudinary.com/cloud1412/image/upload/v1741273907/cash_ifor6b.png",
 });
 
-const banks = ref(Banks);
+const banks = ref([]);
 const bank = ref();
 
 const currentTime = ref(new Date());

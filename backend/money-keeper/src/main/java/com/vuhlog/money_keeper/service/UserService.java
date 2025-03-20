@@ -3,6 +3,7 @@ package com.vuhlog.money_keeper.service;
 import com.vuhlog.money_keeper.dto.request.UserCreationRequest;
 import com.vuhlog.money_keeper.dto.request.UserUpdateRequest;
 import com.vuhlog.money_keeper.dto.response.UserResponse;
+import com.vuhlog.money_keeper.entity.Users;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -11,6 +12,8 @@ public interface UserService {
 
     public Page<UserResponse> getUsersContains(String s,Pageable pageable);
     public UserResponse getById(String id);
+
+    Users getMyUserInfo();
 
     public UserResponse getByUsername(String username);
 

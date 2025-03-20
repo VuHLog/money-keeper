@@ -44,6 +44,15 @@ public class Users {
     @JsonIgnore
     private Set<DictionaryExpense> dictionaryExpenses;
 
+    @OneToMany(mappedBy = "user",cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JsonIgnore
+    private Set<DictionaryRevenue> dictionaryRevenues;
+
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private Set<DictionaryBucketPayment> dictionaryBucketPayment;
+
+
     @PrePersist
     public void onCreate() {
         if(oAuth2 == null) {

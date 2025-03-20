@@ -37,10 +37,8 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
         httpSecurity.authorizeHttpRequests(
                 configurer -> configurer
-                        .requestMatchers( HttpMethod.GET, "/api/orders","/api/users/*").authenticated()
-                        .requestMatchers( HttpMethod.GET).permitAll()
+                        .requestMatchers( HttpMethod.GET,"/api/users/*").authenticated()
                         .requestMatchers( HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.PUT,"/api/movies/*").permitAll()
                         .anyRequest().authenticated()
         );
 
