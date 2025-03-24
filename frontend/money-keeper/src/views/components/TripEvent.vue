@@ -21,42 +21,39 @@ const props = defineProps({
 const showCreateInput = ref(false);
 const tripEventTextInput = ref("");
 
-const tripEvents = ref([
-  {
-    id: 1,
-    name: "Chuyen di",
-  },
-  {
-    id: 2,
-    name: "Sự kiện 2",
-  },
-  {
-    id: 3,
-    name: "Sự kiện 3",
-  },
-  {
-    id: 4,
-    name: "Sự kiện 4",
-  },
-]);
+const tripEvents = ref([]);
+
+onMounted(() => {
+  proxy.$api.get("/trip-events").then((res) => {
+    tripEvents.value = res.result;
+  });
+});
 
 function handleClickTripEvent(tripEvent) {
   emit("update:modelValue", tripEvent);
 }
 
 async function handleClickCreateTripEvent(){
-  tripEvents.value.push({id: 10, name: tripEventTextInput.value })
-  tripEventTextInput.value = '';
-  showCreateInput.value = false;
+  await proxy.$api.post("/trip-events", { name: tripEventTextInput.value }).then((res) => {
+    tripEvents.value.push(res.result);
+    tripEventTextInput.value = '';
+    showCreateInput.value = false;
+  })
+}
+
+async function handleClickSaveTripEvent(tripEvent) {
+  await proxy.$api.put(`/trip-events/${tripEvent.id}`, { name: tripEvent.name }).then(() => {
+    tripEvent.isEditing = false;
+  })
 }
 
 async function handleClickDeleteTripEvent(tripEvent) {
   tripEvent.isDeleted = true;
-  setTimeout(() => {
+  await proxy.$api.delete(`/trip-events/${tripEvent.id}`).then(() => {
     tripEvents.value = tripEvents.value.filter(
       (value) => value.id != tripEvent.id
     );
-  }, 1000);
+  });
 }
 </script>
 
@@ -140,6 +137,7 @@ async function handleClickDeleteTripEvent(tripEvent) {
                   <font-awesome-icon
                     v-show="item?.isEditing"
                     :icon="['fas', 'check']"
+                    @click="handleClickSaveTripEvent(item)"
                   />
                   <v-tooltip activator="parent" location="bottom">{{
                     item.isEditing ? "Lưu" : "Sửa"

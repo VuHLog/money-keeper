@@ -1,41 +1,130 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, getCurrentInstance, onMounted, inject } from "vue";
+import { useRouter } from "vue-router";
 import { MainFeature } from "@/constants/MainFeature.js";
 import DictionaryExpense from "@components/DictionaryExpense.vue";
 import TripEvent from "@components/TripEvent.vue";
-import WhoSpendMoney from "@components/WhoSpendMoney.vue";
+import Beneficiary from "@components/Beneficiary.vue";
+import { AccountType } from "@/constants/AccountType.js";
+
+const { proxy } = getCurrentInstance();
+const router = useRouter();
+const swal = inject("$swal");
 
 const mainFeatureList = ref(MainFeature);
 const feature = ref(mainFeatureList.value.find((value) => value.id === 1));
-
 const currentTime = ref(new Date());
-
-const myAccountList = ref([]);
-
-const account = ref();
-
+const dictionaryBucketPayment = ref([]);
+const account = ref({});
 const categorySelected = ref({});
-
 const showPopupCategory = ref(false);
-
 watch(categorySelected, () => {
   showPopupCategory.value = false;
 });
-
 const tripEventSelected = ref({});
-
 const showPopupTripEvent = ref(false);
-
 watch(tripEventSelected, () => {
   showPopupTripEvent.value = false;
 });
 
-const whoSpendMoneySelected = ref({});
-const showWhoSpendMoney = ref(false);
+const beneficiarySelected = ref({});
+const showBeneficiary = ref(false);
 
-watch(whoSpendMoneySelected, () => {
-  showWhoSpendMoney.value = false;
+watch(beneficiarySelected, () => {
+  showBeneficiary.value = false;
 });
+
+const errMsg = ref("");
+
+onMounted(() => {
+  proxy.$api
+    .get("/dictionary-bucket-payment")
+    .then((res) => {
+      dictionaryBucketPayment.value = res.result;
+      dictionaryBucketPayment.value.forEach((item) => {
+        item.accountType = AccountType.find(
+          (type) => type.name === item.accountType
+        );
+      });
+      account.value = dictionaryBucketPayment.value[0];
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+const expense = ref({
+  amount: 0,
+  location: "",
+  interpretation: "",
+  expenseDate: "",
+  dictionaryBucketPaymentId: "",
+  dictionaryExpenseId: "",
+  tripEventId: "",
+  beneficiaryId: "",
+});
+
+function isValid() {
+  const numberRegex = /^(0|[1-9]\d*)$/; // Cho phép số 0 hoặc số dương không bắt đầu bằng 0
+
+  if (!numberRegex.test(expense.value.amount)) {
+    errMsg.value = "Số tiền không hợp lệ";
+    return false;
+  }
+
+  if(Object.keys(account.value).length === 0) {
+    errMsg.value = "Bạn phải chọn tài khoản";
+    return false;
+  }
+
+  if(Object.keys(categorySelected.value).length === 0) {
+    errMsg.value = "Bạn phải chọn hạng mục";
+    return false;
+  }
+
+  if(currentTime.value === "") {
+    errMsg.value = "Bạn phải chọn thời điểm chi tiêu";
+    return false;
+  }
+    
+  errMsg.value = "";
+  return true;
+}
+
+async function createExpense() {
+  if (!isValid()) {
+    return;
+  }
+
+  if(Object.keys(account.value).length !== 0) {
+    expense.value.dictionaryBucketPaymentId = account.value.id;
+  }
+
+  if(Object.keys(categorySelected.value).length !== 0) {
+    expense.value.dictionaryExpenseId = categorySelected.value.id;
+  }
+
+  if(Object.keys(tripEventSelected.value).length !== 0) {
+    expense.value.tripEventId = tripEventSelected.value.id;
+  }
+
+  if(Object.keys(beneficiarySelected.value).length !== 0) {
+    expense.value.beneficiaryId = beneficiarySelected.value.id;
+  }
+
+  expense.value.expenseDate = currentTime.value instanceof Date 
+    ? currentTime.value.toISOString().slice(0, 19).replace('T', ' ')
+    : currentTime.value;
+
+  await proxy.$api.post("/expense-regular", expense.value).then(() => {
+    swal.fire({
+      title: "Thành công",
+      text: "Bạn đã thêm khoản chi tiền thành công!",
+      icon: "success",
+    });
+    router.push("/expense");
+  });
+}
 </script>
 
 <template>
@@ -104,6 +193,7 @@ watch(whoSpendMoneySelected, () => {
           <div class="flex-center flex-column text-20">
             <div class="flex-center w-100">
               <v-text-field
+                v-model="expense.amount"
                 label="Số tiền"
                 type="number"
                 hide-details="auto"
@@ -127,7 +217,7 @@ watch(whoSpendMoneySelected, () => {
             variant="solo"
             rounded
             v-model="account"
-            :items="myAccountList"
+            :items="dictionaryBucketPayment"
             item-title="name"
             :return-object="true"
             class="text-grey-color d-inline-block"
@@ -138,16 +228,16 @@ watch(whoSpendMoneySelected, () => {
             <template v-slot:item="{ props, item }">
               <v-list-item
                 v-bind="props"
-                :prepend-avatar="item.raw.icon"
-                :title="item.raw.name"
+                :prepend-avatar="item.raw?.accountType?.icon"
+                :title="item.raw?.accountName"
               ></v-list-item>
             </template>
             <template v-slot:selection="{ item }">
               <div>
                 <v-avatar start>
-                  <img class="icon-size" :src="item.raw.icon" alt="icon" />
+                  <img class="icon-size" :src="item.raw?.accountType?.icon" alt="icon" />
                 </v-avatar>
-                <span class="text-grey-color">{{ item.raw.name }}</span>
+                <span class="text-grey-color">{{ item.raw?.accountName }}</span>
               </div>
             </template>
           </v-select>
@@ -229,11 +319,11 @@ watch(whoSpendMoneySelected, () => {
             elevation="4"
             rounded="xl"
             size="x-large"
-            @click="showWhoSpendMoney = true"
+            @click="showBeneficiary = true"
           >
-            <template v-if="Object.keys(whoSpendMoneySelected).length > 0">
+            <template v-if="Object.keys(beneficiarySelected).length > 0">
               <span class="text-16" style="text-transform: none">{{
-                whoSpendMoneySelected.name
+                beneficiarySelected.name
               }}</span>
               <v-tooltip activator="parent" location="bottom"
                 >Chi cho ai</v-tooltip
@@ -265,22 +355,26 @@ watch(whoSpendMoneySelected, () => {
           </v-textarea>
         </v-col>
       </v-row>
+      <v-col cols="12">
+        <p class="text-red-accent-3 text-center">{{ errMsg }}</p>
+      </v-col>
       <v-dialog v-model="showPopupCategory" width="auto">
         <dictionary-expense v-model="categorySelected"></dictionary-expense>
       </v-dialog>
       <v-dialog v-model="showPopupTripEvent" width="auto">
         <trip-event v-model="tripEventSelected"></trip-event>
       </v-dialog>
-      <v-dialog v-model="showWhoSpendMoney" width="auto">
-        <who-spend-money v-model="whoSpendMoneySelected"></who-spend-money>
+      <v-dialog v-model="showBeneficiary" width="auto">
+        <Beneficiary v-model="beneficiarySelected"></Beneficiary>
       </v-dialog>
     </div>
     <div class="text-center">
-      <button class="bg-primary-color text-white py-2 px-10 rounded">
+      <button class="bg-primary-color text-white py-2 px-10 rounded" @click.stop="createExpense">
         Lưu
       </button>
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+</style>
