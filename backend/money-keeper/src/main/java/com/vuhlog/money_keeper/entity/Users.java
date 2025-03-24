@@ -52,6 +52,12 @@ public class Users {
     @JsonIgnore
     private Set<DictionaryBucketPayment> dictionaryBucketPayment;
 
+    @OneToMany(mappedBy = "user")
+    private Set<Beneficiary> beneficiaries;
+
+    @OneToMany(mappedBy = "user")
+    private Set<TripEvent> tripEvents;
+
 
     @PrePersist
     public void onCreate() {

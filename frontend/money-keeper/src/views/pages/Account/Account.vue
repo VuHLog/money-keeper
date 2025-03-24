@@ -1,10 +1,32 @@
 <script setup>
-import { ref, getCurrentInstance } from "vue";
+import { ref, getCurrentInstance, onMounted } from "vue";
 import { useBaseStore } from "@/store/index.js";
 import { useRouter } from "vue-router";
+import { AccountType } from "@/constants/AccountType.js";
+
+const { proxy } = getCurrentInstance();
 
 const panel = ref([0, 1]);
-const show = ref(true);
+const show = ref(false);
+const dictionaryBucketPayment = ref([]);
+const currentBalance = ref(0);
+const currentBalanceUsed = ref(0);
+const currentBalanceNotUsed = ref(0);
+
+onMounted(() => {
+  proxy.$api.get("/dictionary-bucket-payment").then((res) => {
+    dictionaryBucketPayment.value = res.result;
+    show.value = true;
+    currentBalance.value = dictionaryBucketPayment.value.reduce((acc, curr) => acc + curr.initialBalance, 0);
+    currentBalanceUsed.value = dictionaryBucketPayment.value.filter(item => item.haveUse === true).reduce((acc, curr) => acc + curr.initialBalance, 0);
+    currentBalanceNotUsed.value = currentBalance.value - currentBalanceUsed.value;
+    dictionaryBucketPayment.value.forEach(item => {
+      item.accountType = AccountType.find(type => type.name === item.accountType);
+    });
+  }).catch((err) => {
+    console.log(err);
+  });
+});
 </script>
 
 <template>
@@ -23,18 +45,18 @@ const show = ref(true);
     </div>
     <div v-if="show">
       <div class="text-end mb-2">
-        <span class="font-weight-bold text-20">Tổng tiền: 6.000 ₫</span>
+        <span class="font-weight-bold text-20">Tổng tiền: {{currentBalance}} ₫</span>
       </div>
       <v-expansion-panels v-model="panel" multiple>
         <v-expansion-panel>
           <v-expansion-panel-title class="font-weight-bold"
-            >Đang sử dụng (2.000 ₫)</v-expansion-panel-title
+            >Đang sử dụng ({{ currentBalanceUsed }} ₫)</v-expansion-panel-title
           >
           <v-expansion-panel-text>
-            <div>
-              <div class="d-flex py-2 border-b-sm">
+            <div v-for="item in dictionaryBucketPayment" :key="item.id">
+              <div class="d-flex py-2 border-b-sm" v-if="item.haveUse === true">
                 <router-link
-                  to="/account/info/1"
+                  :to="`/account/info/${item.id}`"
                   class="flex-1-1 text-decoration-none"
                 >
                   <div class="d-flex">
@@ -43,12 +65,12 @@ const show = ref(true);
                     >
                       <img
                         class="icon-size-thumbnail"
-                        src="../../../assets/img/icon/wallet.png"
+                        :src="item.accountType.icon"
                       />
                     </div>
                     <div class="d-flex flex-column justify-space-between">
-                      <span class="font-weight-bold text-grey-color">Long</span>
-                      <span class="text-grey-lighten-1">1.000 ₫</span>
+                      <span class="font-weight-bold text-grey-color">{{ item.accountName }}</span>
+                      <span class="text-grey-lighten-1">{{ item.initialBalance }} ₫</span>
                     </div>
                   </div>
                 </router-link>
@@ -70,7 +92,7 @@ const show = ref(true);
                       <v-list-item-title>
                         <router-link
                           class="text-decoration-none text-grey-darken-4"
-                          to="/account/transfer/id"
+                          :to="`/account/transfer/${item.id}`"
                         >
                           <div class="text-12 d-flex">
                             <div class="mr-2">
@@ -87,7 +109,7 @@ const show = ref(true);
                       <v-list-item-title>
                         <router-link
                           class="text-decoration-none text-grey-darken-4"
-                          to="/account/adjusted-balance/accountId"
+                          :to="`/account/adjusted-balance/${item.id}`"
                         >
                           <div class="text-12 d-flex">
                             <div class="mr-2">
@@ -121,133 +143,7 @@ const show = ref(true);
                       <v-list-item-title>
                         <router-link
                           class="text-decoration-none text-grey-darken-4"
-                          to="/account"
-                        >
-                          <div class="text-12 d-flex">
-                            <div class="mr-2">
-                              <font-awesome-icon
-                                :icon="['fas', 'right-left']"
-                              />
-                            </div>
-                            <span>Sửa</span>
-                          </div>
-                        </router-link>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <div
-                          class="text-12 d-flex text-grey-darken-4 cursor-pointer"
-                        >
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
-                          </div>
-                          <span>Xóa</span>
-                        </div>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <div
-                          class="text-12 d-flex text-grey-darken-4 cursor-pointer"
-                        >
-                          <div class="mr-2">
-                            <font-awesome-icon :icon="['fas', 'right-left']" />
-                          </div>
-                          <span>Ngừng sử dụng</span>
-                        </div>
-                      </v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
-              </div>
-              <div class="d-flex py-2 border-b-sm">
-                <router-link
-                  to="/account/accountId"
-                  class="flex-1-1 text-decoration-none"
-                >
-                  <div class="d-flex">
-                    <div
-                      class="align-self-center icon-size-thumbnail flex-center rounded-circle bg-grey-darken-1 mr-4"
-                    >
-                      <font-awesome-icon :icon="['fas', 'wallet']" />
-                    </div>
-                    <div class="d-flex flex-column justify-space-between">
-                      <span class="font-weight-bold text-grey-color">Long</span>
-                      <span class="text-grey-lighten-1">1.000 ₫</span>
-                    </div>
-                  </div>
-                </router-link>
-                <v-menu>
-                  <template v-slot:activator="{ props }">
-                    <div
-                      class="flex-center pa-3"
-                      v-bind="props"
-                      style="font-size: 20px"
-                    >
-                      <font-awesome-icon
-                        class="text-grey-color"
-                        :icon="['fas', 'ellipsis-vertical']"
-                      />
-                    </div>
-                  </template>
-                  <v-list>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <router-link
-                          class="text-decoration-none text-grey-darken-4"
-                          to="/account"
-                        >
-                          <div class="text-12 d-flex">
-                            <div class="mr-2">
-                              <font-awesome-icon
-                                :icon="['fas', 'right-left']"
-                              />
-                            </div>
-                            <span>Chuyển khoản</span>
-                          </div>
-                        </router-link>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <router-link
-                          class="text-decoration-none text-grey-darken-4"
-                          to="/account/adjusted-balance/accountId"
-                        >
-                          <div class="text-12 d-flex">
-                            <div class="mr-2">
-                              <font-awesome-icon
-                                :icon="['fas', 'right-left']"
-                              />
-                            </div>
-                            <span>Điều chỉnh số dư</span>
-                          </div>
-                        </router-link>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <router-link
-                          class="text-decoration-none text-grey-darken-4"
-                          to="/account"
-                        >
-                          <div class="text-12 d-flex">
-                            <div class="mr-2">
-                              <font-awesome-icon
-                                :icon="['fas', 'right-left']"
-                              />
-                            </div>
-                            <span>Chia sẻ tài khoản</span>
-                          </div>
-                        </router-link>
-                      </v-list-item-title>
-                    </v-list-item>
-                    <v-list-item class="hover-bg-grey">
-                      <v-list-item-title>
-                        <router-link
-                          class="text-decoration-none text-grey-darken-4"
-                          to="/account"
+                          :to="`/account/edit/${item.id}`"
                         >
                           <div class="text-12 d-flex">
                             <div class="mr-2">
@@ -293,13 +189,13 @@ const show = ref(true);
 
         <v-expansion-panel>
           <v-expansion-panel-title class="font-weight-bold"
-            >Ngừng sử dụng (1.000 ₫)</v-expansion-panel-title
+            >Ngừng sử dụng ({{ currentBalanceNotUsed }} ₫)</v-expansion-panel-title
           >
           <v-expansion-panel-text>
-            <div>
-              <div class="d-flex py-2 border-b-sm">
+            <div v-for="item in dictionaryBucketPayment" :key="item.id">
+              <div class="d-flex py-2 border-b-sm" v-if="item.haveUse === false">
                 <router-link
-                  to="/account/accountId"
+                  :to="`/account/info/${item.id}`"
                   class="flex-1-1 text-decoration-none"
                 >
                   <div class="d-flex">
@@ -309,8 +205,8 @@ const show = ref(true);
                       <font-awesome-icon :icon="['fas', 'wallet']" />
                     </div>
                     <div class="d-flex flex-column justify-space-between">
-                      <span class="font-weight-bold text-grey-color">Long</span>
-                      <span class="text-grey-lighten-1">1.000 ₫</span>
+                      <span class="font-weight-bold text-grey-color">{{ item.accountName }}</span>
+                      <span class="text-grey-lighten-1">{{ item.initialBalance }} ₫</span>
                     </div>
                   </div>
                 </router-link>

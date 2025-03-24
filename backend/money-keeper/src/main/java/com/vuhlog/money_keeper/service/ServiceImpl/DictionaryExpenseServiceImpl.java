@@ -1,6 +1,7 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
 import com.vuhlog.money_keeper.dao.DictionaryExpenseRepository;
+import com.vuhlog.money_keeper.dao.ExpenseRegularRepository;
 import com.vuhlog.money_keeper.dao.UsersRepository;
 import com.vuhlog.money_keeper.dao.specification.DictionaryExpenseSpecification;
 import com.vuhlog.money_keeper.dto.request.DictionaryExpenseRequest;
@@ -23,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DictionaryExpenseServiceImpl implements DictionaryExpenseService {
     private final DictionaryExpenseRepository dictionaryExpenseRepository;
+    private final ExpenseRegularRepository expenseRegularRepository;
     private final UsersRepository usersRepository;
     private final DictionaryExpenseMapper dictionaryExpenseMapper;
 
@@ -48,6 +50,7 @@ public class DictionaryExpenseServiceImpl implements DictionaryExpenseService {
     public void deleteDictionaryExpenseItem(String id) {
         DictionaryExpense dictionaryExpense = dictionaryExpenseRepository.findById(id).orElseThrow( () -> new AppException(ErrorCode.DICTIONARY_EXPENSE_NOT_EXISTED));
         if(!dictionaryExpense.isSystemDefault() && dictionaryExpense.getUser().getId().equals(getMyInfo().getId())){
+            expenseRegularRepository.unsetDictionaryExpenseInExpenseRegular(id);
             dictionaryExpenseRepository.deleteById(id);
         }
     }

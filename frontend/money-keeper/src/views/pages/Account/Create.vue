@@ -61,7 +61,7 @@ function isValid() {
     errMsg.value = "Ngân hàng không được để trống";
     return false;
   }
-
+  errMsg.value = "";
   return true;
 }
 
@@ -71,7 +71,9 @@ async function createAccount() {
   }
 
   bucketPayment.value.accountType = accountType.value.name;
-  bucketPayment.value.bankId = bank.value.id;
+  if(accountType.value.id === 2 || accountType.value.id === 3) {
+    bucketPayment.value.bankId = bank.value.id;
+  }
   await proxy.$api
     .post("/dictionary-bucket-payment", bucketPayment.value)
     .then(() => {
@@ -103,6 +105,7 @@ async function createAccount() {
       <v-col cols="6">
         <v-text-field
           v-model="bucketPayment.initialBalance"
+          class="text-blue-accent-3"
           hide-details="auto"
           label="Số dư ban đầu"
         ></v-text-field>

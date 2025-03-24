@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
+import com.vuhlog.money_keeper.constants.DictionaryBucketPaymentType;
 import com.vuhlog.money_keeper.dao.BankRepository;
 import com.vuhlog.money_keeper.dao.DictionaryBucketPaymentRepository;
 import com.vuhlog.money_keeper.dao.UsersRepository;
@@ -29,7 +30,10 @@ public class DictionaryBucketPaymentImpl implements DictionaryBucketPaymentServi
     @Override
     public DictionaryBucketPaymentResponse createDictionaryBucketPayment(DictionaryBucketPaymentRequest request, String userId) {
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentMapper.toDictionaryBucketPayment(request);
-        dictionaryBucketPayment.setBank(bankRepository.findById(request.getBankId()).orElseThrow(() -> new AppException(ErrorCode.BANK_NOT_EXISTED)));
+        if(dictionaryBucketPayment.getAccountType().equalsIgnoreCase(DictionaryBucketPaymentType.BANK.getType())
+        || dictionaryBucketPayment.getAccountType().equalsIgnoreCase(DictionaryBucketPaymentType.CREDIT_DEBIT_CARD.getType())){
+            dictionaryBucketPayment.setBank(bankRepository.findById(request.getBankId()).orElseThrow(() -> new AppException(ErrorCode.BANK_NOT_EXISTED)));
+        }
         dictionaryBucketPayment.setUser(usersRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
         return dictionaryBucketPaymentMapper.toDictionaryBucketResponse(dictionaryBucketPaymentRepository.save(dictionaryBucketPayment));
     }

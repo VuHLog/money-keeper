@@ -3,34 +3,26 @@ package com.vuhlog.money_keeper.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.Set;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-@Table(name = "dictionary_expense")
 @Entity
-public class DictionaryExpense {
+@Table(name = "trip_event")
+public class TripEvent {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-
-    private String parentId;
-
     private String name;
 
-    private boolean regular;
-
-    private boolean systemDefault;
-
-    private String iconUrl;
-
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private Users user;
 
-    @OneToMany(mappedBy = "dictionaryExpense")
+    @OneToMany(mappedBy = "tripEvent")
     private Set<ExpenseRegular> expenseRegulars;
 }

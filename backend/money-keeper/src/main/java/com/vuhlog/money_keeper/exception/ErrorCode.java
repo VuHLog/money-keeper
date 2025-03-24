@@ -17,6 +17,8 @@ public enum ErrorCode {
     DICTIONARY_EXPENSE_NOT_EXISTED(2001, "Dictionary expense not existed", HttpStatus.NOT_FOUND),
     DICTIONARY_REVENUE_NOT_EXISTED(3001, "Dictionary revenue not existed", HttpStatus.NOT_FOUND),
     BANK_NOT_EXISTED(4001, "Bank not existed", HttpStatus.NOT_FOUND),
+    EXPENSE_REGULAR_NOT_EXISTED(5001, "Expense regular not existed", HttpStatus.NOT_FOUND),
+    REVENUE_REGULAR_NOT_EXISTED(6001, "Revenue regular not existed", HttpStatus.NOT_FOUND),
     ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

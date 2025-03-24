@@ -3,6 +3,8 @@ package com.vuhlog.money_keeper.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Setter
 @Getter
 @NoArgsConstructor
@@ -28,6 +30,9 @@ public class DictionaryBucketPayment {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private Users user;
+
+    @OneToMany(mappedBy = "dictionaryBucketPayment")
+    private Set<ExpenseRegular> expenseRegulars;
 
     @PrePersist
     public void prePersist() {

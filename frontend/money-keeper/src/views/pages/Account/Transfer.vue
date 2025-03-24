@@ -1,6 +1,9 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, getCurrentInstance } from "vue";
 import { MainFeature } from "@/constants/MainFeature.js";
+import { AccountType } from "@/constants/AccountType.js";
+
+const { proxy } = getCurrentInstance();
 
 const mainFeatureList = ref(MainFeature);
 const feature = ref({
@@ -11,14 +14,58 @@ const feature = ref({
 });
 
 const currentTime = ref(new Date());
-
-const myAccountList = ref([]);
-
 const fromAccount = ref();
-
 const toAccount = ref();
+const dictionaryBucketPayment = ref([]);
+const errMsg = ref("");
 
-const categorySelected = ref();
+const transfer = ref({
+  amount: "",
+  fromAccount: "",
+  toAccount: "",
+  interpretation: "",
+});
+
+function isValid() {
+  const numberRegex = /^[1-9]\d*$/; // Cho phép số, không có số 0 ở đầu
+
+  if (!numberRegex.test(transfer.value.amount)) {
+    errMsg.value = "Số tiền không hợp lệ";
+    return false;
+  }
+  if (Object.keys(fromAccount.value).length === 0 || Object.keys(toAccount.value).length === 0) {
+    errMsg.value = "Tài khoản không được để trống";
+    return false;
+  }
+  if (JSON.stringify(fromAccount.value) === JSON.stringify(toAccount.value)) {
+    errMsg.value = "Tài khoản không được trùng nhau";
+    return false;
+  }
+  errMsg.value = "";
+  return true;
+}
+
+async function handleClickSave() {
+  if (!isValid()) {
+    return;
+  }
+}
+
+onMounted(() => {
+  proxy.$api
+    .get("/dictionary-bucket-payment")
+    .then((res) => {
+      dictionaryBucketPayment.value = res.result;
+      dictionaryBucketPayment.value.forEach((item) => {
+        item.accountType = AccountType.find(
+          (type) => type.name === item.accountType
+        );
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
 </script>
 
 <template>
@@ -87,8 +134,8 @@ const categorySelected = ref();
           <div class="flex-center flex-column text-20">
             <div class="flex-center w-100">
               <v-text-field
+                v-model="transfer.amount"
                 label="Số tiền"
-                type="number"
                 hide-details="auto"
                 class="text-blue-accent-3 font-weight-bold text-end"
                 bg-color="bg-white"
@@ -110,7 +157,7 @@ const categorySelected = ref();
             variant="solo"
             rounded
             v-model="fromAccount"
-            :items="myAccountList"
+            :items="dictionaryBucketPayment"
             item-title="name"
             :return-object="true"
             class="text-grey-color d-inline-block"
@@ -121,16 +168,20 @@ const categorySelected = ref();
             <template v-slot:item="{ props, item }">
               <v-list-item
                 v-bind="props"
-                :prepend-avatar="item.raw.icon"
-                :title="item.raw.name"
+                :prepend-avatar="item.raw.accountType.icon"
+                :title="item.raw.accountName"
               ></v-list-item>
             </template>
             <template v-slot:selection="{ item }">
               <div>
                 <v-avatar start>
-                  <img class="icon-size" :src="item.raw.icon" alt="icon" />
+                  <img
+                    class="icon-size"
+                    :src="item.raw.accountType.icon"
+                    alt="icon"
+                  />
                 </v-avatar>
-                <span class="text-grey-color">{{ item.raw.name }}</span>
+                <span class="text-grey-color">{{ item.raw.accountName }}</span>
               </div>
             </template>
           </v-select>
@@ -141,7 +192,7 @@ const categorySelected = ref();
             variant="solo"
             rounded
             v-model="toAccount"
-            :items="myAccountList"
+            :items="dictionaryBucketPayment"
             item-title="name"
             :return-object="true"
             class="text-grey-color d-inline-block"
@@ -152,16 +203,20 @@ const categorySelected = ref();
             <template v-slot:item="{ props, item }">
               <v-list-item
                 v-bind="props"
-                :prepend-avatar="item.raw.icon"
-                :title="item.raw.name"
+                :prepend-avatar="item.raw.accountType.icon"
+                :title="item.raw.accountName"
               ></v-list-item>
             </template>
             <template v-slot:selection="{ item }">
               <div>
                 <v-avatar start>
-                  <img class="icon-size" :src="item.raw.icon" alt="icon" />
+                  <img
+                    class="icon-size"
+                    :src="item.raw.accountType.icon"
+                    alt="icon"
+                  />
                 </v-avatar>
-                <span class="text-grey-color">{{ item.raw.name }}</span>
+                <span class="text-grey-color">{{ item.raw.accountName }}</span>
               </div>
             </template>
           </v-select>
@@ -170,6 +225,7 @@ const categorySelected = ref();
       <v-row>
         <v-col cols="4">
           <v-textarea
+            v-model="transfer.interpretation"
             class="text-grey-color"
             label="Diễn giải"
             bg-color="bg-white"
@@ -185,10 +241,13 @@ const categorySelected = ref();
             </template>
           </v-textarea>
         </v-col>
+        <v-col cols="12">
+          <p class="text-red-accent-3 text-center">{{ errMsg }}</p>
+        </v-col>
       </v-row>
     </div>
     <div class="text-center">
-      <button class="bg-primary-color text-white py-2 px-10 rounded">
+      <button class="bg-primary-color text-white py-2 px-10 rounded" @click.stop="handleClickSave()">
         Lưu
       </button>
     </div>
