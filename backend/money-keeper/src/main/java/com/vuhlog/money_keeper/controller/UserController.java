@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.controller;
 
+import com.vuhlog.money_keeper.dto.request.ChangePasswordRequest;
 import com.vuhlog.money_keeper.dto.request.UserCreationRequest;
 import com.vuhlog.money_keeper.dto.request.UserUpdateRequest;
 import com.vuhlog.money_keeper.dto.response.ApiResponse;
@@ -77,6 +78,13 @@ public class UserController {
     public ApiResponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(userId, request))
+                .build();
+    }
+
+    @PatchMapping("/change-password")
+    public ApiResponse<String> changePassword(@RequestBody ChangePasswordRequest request) {
+        return ApiResponse.<String>builder()
+                .result(userService.changePassword(request))
                 .build();
     }
 

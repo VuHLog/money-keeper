@@ -25,4 +25,7 @@ public class TripEvent {
 
     @OneToMany(mappedBy = "tripEvent")
     private Set<ExpenseRegular> expenseRegulars;
+
+    @OneToMany(mappedBy = "tripEvent")
+    private Set<RevenueRegular> revenueRegulars;
 }

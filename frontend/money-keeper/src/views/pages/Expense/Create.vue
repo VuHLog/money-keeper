@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { MainFeature } from "@/constants/MainFeature.js";
 import DictionaryExpense from "@components/DictionaryExpense.vue";
 import TripEvent from "@components/TripEvent.vue";
-import Beneficiary from "@components/Beneficiary.vue";
+// import Beneficiary from "@components/Beneficiary.vue";
 import { AccountType } from "@/constants/AccountType.js";
 
 const { proxy } = getCurrentInstance();
@@ -113,7 +113,10 @@ async function createExpense() {
   }
 
   expense.value.expenseDate = currentTime.value instanceof Date 
-    ? currentTime.value.toISOString().slice(0, 19).replace('T', ' ')
+    ? new Date(currentTime.value.getTime() - (currentTime.value.getTimezoneOffset() * 60000))
+        .toISOString()
+        .slice(0, 19)
+        .replace('T', ' ')
     : currentTime.value;
 
   await proxy.$api.post("/expense-regular", expense.value).then(() => {
@@ -365,7 +368,7 @@ async function createExpense() {
         <trip-event v-model="tripEventSelected"></trip-event>
       </v-dialog>
       <v-dialog v-model="showBeneficiary" width="auto">
-        <Beneficiary v-model="beneficiarySelected"></Beneficiary>
+        <!-- <Beneficiary v-model="beneficiarySelected"></Beneficiary> -->
       </v-dialog>
     </div>
     <div class="text-center">

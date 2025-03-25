@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.service;
 
+import com.vuhlog.money_keeper.dto.request.ChangePasswordRequest;
 import com.vuhlog.money_keeper.dto.request.UserCreationRequest;
 import com.vuhlog.money_keeper.dto.request.UserUpdateRequest;
 import com.vuhlog.money_keeper.dto.response.UserResponse;
@@ -16,6 +17,8 @@ public interface UserService {
     Users getMyUserInfo();
 
     public UserResponse getByUsername(String username);
+
+    String changePassword(ChangePasswordRequest request);
 
     public UserResponse addUser(UserCreationRequest request);
 

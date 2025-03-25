@@ -34,6 +34,9 @@ public class DictionaryBucketPayment {
     @OneToMany(mappedBy = "dictionaryBucketPayment")
     private Set<ExpenseRegular> expenseRegulars;
 
+    @OneToMany(mappedBy = "dictionaryBucketPayment")
+    private Set<RevenueRegular> revenueRegulars;
+
     @PrePersist
     public void prePersist() {
         this.haveUse = true;

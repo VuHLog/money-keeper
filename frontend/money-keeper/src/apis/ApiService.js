@@ -96,6 +96,15 @@ export const base = {
     }
   },
 
+  async patch(url, data) {
+    try {
+      const response = await instance.patch(url, data);
+      return response.data;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  },
+
   async delete(url, params = {}) {
     try {
       const response = await instance.delete(url, { params });

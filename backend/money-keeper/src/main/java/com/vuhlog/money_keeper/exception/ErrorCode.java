@@ -14,6 +14,7 @@ public enum ErrorCode {
     USER_NOT_EXISTED(1005, "User not existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
+    PASSWORD_NOT_MATCH(1008, "Password does not match", HttpStatus.BAD_REQUEST),
     DICTIONARY_EXPENSE_NOT_EXISTED(2001, "Dictionary expense not existed", HttpStatus.NOT_FOUND),
     DICTIONARY_REVENUE_NOT_EXISTED(3001, "Dictionary revenue not existed", HttpStatus.NOT_FOUND),
     BANK_NOT_EXISTED(4001, "Bank not existed", HttpStatus.NOT_FOUND),

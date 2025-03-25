@@ -27,6 +27,7 @@ onMounted(async () => {
     parent.children = data.filter((child) => child.parentId === parent.id);
   });
   dictionaryExpense.value = parents;
+  console.log(parents);
 });
 
 function handleClickCategory(category) {

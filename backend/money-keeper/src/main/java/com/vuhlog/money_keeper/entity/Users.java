@@ -58,6 +58,10 @@ public class Users {
     @OneToMany(mappedBy = "user")
     private Set<TripEvent> tripEvents;
 
+    @OneToMany(mappedBy = "user")
+    private Set<CollectMoneyWho> collectMoneyWho;
+
+
 
     @PrePersist
     public void onCreate() {

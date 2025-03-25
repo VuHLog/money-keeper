@@ -3,6 +3,7 @@ package com.vuhlog.money_keeper.service.ServiceImpl;
 import com.vuhlog.money_keeper.dao.RoleRepository;
 import com.vuhlog.money_keeper.dao.UserRoleRepository;
 import com.vuhlog.money_keeper.dao.UsersRepository;
+import com.vuhlog.money_keeper.dto.request.ChangePasswordRequest;
 import com.vuhlog.money_keeper.dto.request.UserCreationRequest;
 import com.vuhlog.money_keeper.dto.request.UserUpdateRequest;
 import com.vuhlog.money_keeper.dto.response.UserResponse;
@@ -51,6 +52,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getByUsername(String username) {
         return userMapper.toUserResponse(usersRepository.findByUsername(username).get());
+    }
+
+    @Override
+    public String changePassword(ChangePasswordRequest request) {
+        Users user = getMyUserInfo();
+        if(!passwordEncoder.matches(request.getCurrPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        usersRepository.save(user);
+        return "Password changed successfully";
     }
 
     @Override

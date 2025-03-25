@@ -5,32 +5,23 @@ import lombok.*;
 
 import java.util.Set;
 
-@Getter
 @Setter
-@NoArgsConstructor
+@Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-@Table(name = "dictionary_revenue")
 @Entity
-public class DictionaryRevenue {
+@Table(name = "collect_money_who")
+public class CollectMoneyWho {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-
-    private String parentId;
-
     private String name;
 
-    private boolean regular;
-
-    private boolean systemDefault;
-
-    private String iconUrl;
-
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private Users user;
 
-    @OneToMany(mappedBy = "dictionaryRevenue")
+    @OneToMany(mappedBy = "collectMoneyWho")
     private Set<RevenueRegular> revenueRegulars;
 }
