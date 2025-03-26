@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, inject, onMounted, getCurrentInstance } from "vue";
+import { useRouter } from "vue-router";
 import { MainFeature } from "@/constants/MainFeature.js";
 import DictionaryRevenue from "@components/DictionaryRevenue.vue";
 import TripEvent from "@components/TripEvent.vue";
@@ -8,7 +9,7 @@ import { AccountType } from "@/constants/AccountType.js";
 
 const { proxy } = getCurrentInstance();
 const swal = inject("$swal");
-
+const router = useRouter();
 const mainFeatureList = ref(MainFeature);
 const feature = ref(mainFeatureList.value.find((value) => value.id === 2));
 const currentTime = ref(new Date());

@@ -8,10 +8,18 @@ import com.vuhlog.money_keeper.dao.specification.DictionaryBucketPaymentSpecific
 import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
 import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
 import com.vuhlog.money_keeper.entity.DictionaryBucketPayment;
+import com.vuhlog.money_keeper.entity.ExpenseRegular;
+import com.vuhlog.money_keeper.entity.RevenueRegular;
 import com.vuhlog.money_keeper.exception.AppException;
 import com.vuhlog.money_keeper.exception.ErrorCode;
 import com.vuhlog.money_keeper.mapper.DictionaryBucketPaymentMapper;
+import com.vuhlog.money_keeper.model.PeriodOfTime;
 import com.vuhlog.money_keeper.service.DictionaryBucketPaymentService;
+import com.vuhlog.money_keeper.util.TimestampUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,6 +34,9 @@ public class DictionaryBucketPaymentImpl implements DictionaryBucketPaymentServi
     private final BankRepository bankRepository;
     private final UsersRepository usersRepository;
     private final DictionaryBucketPaymentMapper dictionaryBucketPaymentMapper;
+
+    @PersistenceContext
+    private EntityManager em;
 
     @Override
     public DictionaryBucketPaymentResponse createDictionaryBucketPayment(DictionaryBucketPaymentRequest request, String userId) {
@@ -49,8 +60,9 @@ public class DictionaryBucketPaymentImpl implements DictionaryBucketPaymentServi
     }
 
     @Override
-    public DictionaryBucketPaymentResponse getDictionaryBucketPayment(String id) {
-        return null;
+    public DictionaryBucketPaymentResponse getDictionaryBucketPaymentById(String id) {
+        DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(id).orElse(null);
+        return dictionaryBucketPaymentMapper.toDictionaryBucketResponse(dictionaryBucketPayment);
     }
 
     @Override
@@ -60,5 +72,46 @@ public class DictionaryBucketPaymentImpl implements DictionaryBucketPaymentServi
 
         Sort sortable = Sort.by("accountName").ascending();
         return dictionaryBucketPaymentRepository.findAll(specs, sortable).stream().map(dictionaryBucketPaymentMapper::toDictionaryBucketResponse).toList();
+    }
+
+   @Override
+   public Long getTotalExpenseByBucketPaymentId(String bucketPaymentId, String timeOption) {
+       CriteriaBuilder cb = em.getCriteriaBuilder();
+       CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+       Root<DictionaryBucketPayment> root = cq.from(DictionaryBucketPayment.class);
+       Join<DictionaryBucketPayment, ExpenseRegular> expenseRegularJoin = root.join("expenseRegulars", JoinType.INNER);
+       cq.select(cb.sum(expenseRegularJoin.get("amount")));
+       cq.where(cb.equal(root.get("id"), bucketPaymentId));
+
+       PeriodOfTime periodOfTime = TimestampUtil.getPeriodOfTime(timeOption);
+
+       Long result = em.createQuery(cq).getSingleResult();
+       return result != null ? result : 0;
+   }
+
+    @Override
+    public Long getTotalRevenueByBucketPaymentId(String bucketPaymentId, String timeOption) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        Root<DictionaryBucketPayment> root = cq.from(DictionaryBucketPayment.class);
+        Join<DictionaryBucketPayment, RevenueRegular> revenueRegularJoin = root.join("revenueRegulars", JoinType.INNER);
+        cq.select(cb.sum(revenueRegularJoin.get("amount")));
+        cq.where(cb.equal(root.get("id"), bucketPaymentId));
+
+        PeriodOfTime periodOfTime = TimestampUtil.getPeriodOfTime(timeOption);
+
+        Long result = em.createQuery(cq).getSingleResult();
+        return result != null ? result : 0;
+    }
+
+    @Override
+    public Long getBalanceByBucketPaymentId(String bucketPaymentId) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        Root<DictionaryBucketPayment> root = cq.from(DictionaryBucketPayment.class);
+        cq.select(root.get("balance"));
+        cq.where(cb.equal(root.get("id"), bucketPaymentId));
+        Long result = em.createQuery(cq).getSingleResult();
+        return result != null ? result : 0;
     }
 }

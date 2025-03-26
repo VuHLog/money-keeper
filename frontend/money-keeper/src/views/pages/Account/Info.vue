@@ -1,15 +1,34 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { TimeOption } from "@/constants/TimeOption.js";
+import { useDictionaryBucketPaymentStore } from "@/store/DictionaryBucketPayment.js";
+import { useRoute } from "vue-router";
+import { formatCurrency } from "@/utils/format.js";
 
+const dictionaryBucketPaymentStore = useDictionaryBucketPaymentStore();
+const route = useRoute();
+const bucketPaymentId = ref(route.params.accountId);
 const timeOptions = ref(TimeOption);
 const timeOption = ref();
 
-const optionalDate = ref(false);
-function timeOptionChange() {
-  optionalDate.value = true;
-}
 const datePicker = ref();
+const bucketPayment = ref();
+const totalExpense = ref();
+const totalRevenue = ref();
+
+onMounted(async () => {
+  bucketPayment.value = await dictionaryBucketPaymentStore.getBucketPaymentById(bucketPaymentId.value);
+  await getData();
+});
+
+async function getData(){
+  totalExpense.value = await dictionaryBucketPaymentStore.getTotalExpenseByBucketPaymentId(bucketPaymentId.value, timeOption.value);
+  totalRevenue.value = await dictionaryBucketPaymentStore.getTotalRevenueByBucketPaymentId(bucketPaymentId.value, timeOption.value);
+}
+
+watch(timeOption, () => {
+  getData();
+});
 </script>
 
 <template>
@@ -35,10 +54,9 @@ const datePicker = ref();
             width="100%"
             :items="timeOptions"
             item-title="option"
-            :return-object="true"
+            item-value="option"
             no-data-text="Không tìm thấy"
             class="text-grey-color d-inline-block"
-            @change="timeOptionChange()"
           >
             <template v-slot:selection="{ item }">
               <div>
@@ -63,19 +81,19 @@ const datePicker = ref();
         <v-col cols="4">
           <div class="flex-center flex-column text-20 border-e-sm">
             <span class="text-grey-color">Tổng thu</span>
-            <span class="text-blue-accent-3 font-weight-bold">6.000 ₫</span>
+            <span class="text-blue-accent-3 font-weight-bold">{{ formatCurrency(totalRevenue) }}</span>
           </div>
         </v-col>
         <v-col cols="4">
           <div class="flex-center flex-column text-20 border-e-sm">
             <span class="text-grey-color">Tổng chi</span>
-            <span class="text-red-accent-3 font-weight-bold">6.000 ₫</span>
+            <span class="text-red-accent-3 font-weight-bold">{{ formatCurrency(totalExpense) }}</span>
           </div>
         </v-col>
         <v-col cols="4">
           <div class="flex-center flex-column text-20">
             <span class="text-grey-color">Số dư hiện tại</span>
-            <span class="text-grey-color font-weight-bold">6.000 ₫</span>
+            <span class="text-grey-color font-weight-bold">{{ formatCurrency(bucketPayment?.balance) }}</span>
           </div>
         </v-col>
       </v-row>

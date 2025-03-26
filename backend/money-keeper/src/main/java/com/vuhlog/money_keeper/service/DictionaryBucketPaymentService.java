@@ -12,7 +12,11 @@ public interface DictionaryBucketPaymentService {
 
     void deleteDictionaryBucketPayment(String id);
 
-    DictionaryBucketPaymentResponse getDictionaryBucketPayment(String id);
+    DictionaryBucketPaymentResponse getDictionaryBucketPaymentById(String id);
 
     List<DictionaryBucketPaymentResponse> getAllDictionaryBucketPayment(String userId);
+
+    Long getTotalExpenseByBucketPaymentId(String bucketPaymentId, String timeOption);
+    Long getTotalRevenueByBucketPaymentId(String bucketPaymentId, String timeOption);
+    Long getBalanceByBucketPaymentId(String bucketPaymentId);
 }

@@ -17,8 +17,8 @@ onMounted(() => {
   proxy.$api.get("/dictionary-bucket-payment").then((res) => {
     dictionaryBucketPayment.value = res.result;
     show.value = true;
-    currentBalance.value = dictionaryBucketPayment.value.reduce((acc, curr) => acc + curr.initialBalance, 0);
-    currentBalanceUsed.value = dictionaryBucketPayment.value.filter(item => item.haveUse === true).reduce((acc, curr) => acc + curr.initialBalance, 0);
+    currentBalance.value = dictionaryBucketPayment.value.reduce((acc, curr) => acc + curr.balance, 0);
+    currentBalanceUsed.value = dictionaryBucketPayment.value.filter(item => item.haveUse === true).reduce((acc, curr) => acc + curr.balance, 0);
     currentBalanceNotUsed.value = currentBalance.value - currentBalanceUsed.value;
     dictionaryBucketPayment.value.forEach(item => {
       item.accountType = AccountType.find(type => type.name === item.accountType);
@@ -70,7 +70,7 @@ onMounted(() => {
                     </div>
                     <div class="d-flex flex-column justify-space-between">
                       <span class="font-weight-bold text-grey-color">{{ item.accountName }}</span>
-                      <span class="text-grey-lighten-1">{{ item.initialBalance }} ₫</span>
+                      <span class="text-grey-lighten-1">{{ item.balance }} ₫</span>
                     </div>
                   </div>
                 </router-link>
@@ -206,7 +206,7 @@ onMounted(() => {
                     </div>
                     <div class="d-flex flex-column justify-space-between">
                       <span class="font-weight-bold text-grey-color">{{ item.accountName }}</span>
-                      <span class="text-grey-lighten-1">{{ item.initialBalance }} ₫</span>
+                      <span class="text-grey-lighten-1">{{ item.balance }} ₫</span>
                     </div>
                   </div>
                 </router-link>

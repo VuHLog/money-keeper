@@ -26,6 +26,40 @@ public class DictionaryBucketPaymentController {
                 .build();
     }
 
+    @GetMapping("/{id}")
+    public ApiResponse<DictionaryBucketPaymentResponse> getDictionaryBucketPaymentById(@PathVariable(name = "id") String id) {
+        return ApiResponse.<DictionaryBucketPaymentResponse>builder()
+                .result(dictionaryBucketPaymentService.getDictionaryBucketPaymentById(id))
+                .build();
+    }
+
+    @GetMapping("/{id}/total-expense")
+    public ApiResponse<Long> getTotalExpenseById(@PathVariable(name = "id") String id,
+                                                 @RequestParam(name = "timeOption", required = false) String timeOption
+    ) {
+        return ApiResponse.<Long>builder()
+                .result(dictionaryBucketPaymentService.getTotalExpenseByBucketPaymentId(id, timeOption))
+                .build();
+    }
+
+    @GetMapping("/{id}/total-revenue")
+    public ApiResponse<Long> getTotalRevenueById(@PathVariable(name = "id") String id,
+                                                 @RequestParam(name = "timeOption", required = false) String timeOption
+
+    ) {
+        return ApiResponse.<Long>builder()
+                .result(dictionaryBucketPaymentService.getTotalRevenueByBucketPaymentId(id, timeOption))
+                .build();
+    }
+
+    @GetMapping("/{id}/balance")
+    public ApiResponse<Long> getAmountById(@PathVariable(name = "id") String id) {
+        return ApiResponse.<Long>builder()
+                .result(dictionaryBucketPaymentService.getBalanceByBucketPaymentId(id))
+                .build();
+    }
+
+
     @PostMapping("")
     public ApiResponse<DictionaryBucketPaymentResponse> createDictionaryBucketPayment(@RequestBody DictionaryBucketPaymentRequest request) {
         Users user = usersService.getMyUserInfo();

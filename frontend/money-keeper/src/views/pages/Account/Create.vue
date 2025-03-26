@@ -13,7 +13,7 @@ const banks = ref([]);
 const bank = ref();
 
 const bucketPayment = ref({
-  initialBalance: "",
+  balance: "",
   creditLimit: "",
   accountName: "",
   accountType: "",
@@ -32,7 +32,7 @@ onMounted(async () => {
 function isValid() {
   const numberRegex = /^-?[1-9]\d*$/; // Cho phép số, không có số 0 ở đầu, có thể có dấu '-'
 
-  if (!numberRegex.test(bucketPayment.value.initialBalance)) {
+  if (!numberRegex.test(bucketPayment.value.balance)) {
     errMsg.value = "Số dư ban đầu không hợp lệ";
     return false;
   }
@@ -104,7 +104,7 @@ async function createAccount() {
     <v-row class="mb-10">
       <v-col cols="6">
         <v-text-field
-          v-model="bucketPayment.initialBalance"
+          v-model="bucketPayment.balance"
           class="text-blue-accent-3"
           hide-details="auto"
           label="Số dư ban đầu"

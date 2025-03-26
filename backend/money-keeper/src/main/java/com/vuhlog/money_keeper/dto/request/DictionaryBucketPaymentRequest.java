@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class DictionaryBucketPaymentRequest {
-    private Long initialBalance;
+    private Long balance;
     private Long creditLimit;
     private String accountName;
     private String accountType;
