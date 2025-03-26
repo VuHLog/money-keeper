@@ -24,6 +24,11 @@ public class ExpenseRegular {
     private Timestamp expenseDate;
     private Timestamp createdDate;
     private Timestamp modifiedDate;
+    private String transferType;
+
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
+    @JoinColumn(name = "received_account_id")
+    private DictionaryBucketPayment receivedAccount;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
     @JoinColumn(name = "dictionary_bucket_payment_id")

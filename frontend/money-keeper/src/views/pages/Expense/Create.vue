@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { MainFeature } from "@/constants/MainFeature.js";
 import DictionaryExpense from "@components/DictionaryExpense.vue";
 import TripEvent from "@components/TripEvent.vue";
-// import Beneficiary from "@components/Beneficiary.vue";
+import Beneficiary from "@components/Beneficiary.vue";
 import { AccountType } from "@/constants/AccountType.js";
 
 const { proxy } = getCurrentInstance();
@@ -73,17 +73,17 @@ function isValid() {
   }
 
   if(Object.keys(account.value).length === 0) {
-    errMsg.value = "Bạn phải chọn tài khoản";
+    errMsg.value = "Tài khoản không được để trống";
     return false;
   }
 
   if(Object.keys(categorySelected.value).length === 0) {
-    errMsg.value = "Bạn phải chọn hạng mục";
+    errMsg.value = "Hạng mục không được để trống";
     return false;
   }
 
   if(currentTime.value === "") {
-    errMsg.value = "Bạn phải chọn thời điểm chi tiêu";
+    errMsg.value = "Thời điểm chi tiêu không được để trống";
     return false;
   }
     
@@ -368,7 +368,7 @@ async function createExpense() {
         <trip-event v-model="tripEventSelected"></trip-event>
       </v-dialog>
       <v-dialog v-model="showBeneficiary" width="auto">
-        <!-- <Beneficiary v-model="beneficiarySelected"></Beneficiary> -->
+        <Beneficiary v-model="beneficiarySelected"></Beneficiary>
       </v-dialog>
     </div>
     <div class="text-center">

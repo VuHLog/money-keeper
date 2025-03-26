@@ -1,6 +1,7 @@
 package com.vuhlog.money_keeper.controller;
 
 import com.vuhlog.money_keeper.dto.request.ExpenseRegularRequest;
+import com.vuhlog.money_keeper.dto.request.TransferRequest;
 import com.vuhlog.money_keeper.dto.response.ApiResponse;
 import com.vuhlog.money_keeper.dto.response.ExpenseRegularResponse;
 import com.vuhlog.money_keeper.service.ExpenseRegularService;
@@ -28,6 +29,11 @@ public class ExpenseRegularController {
     @PostMapping("")
     public ApiResponse<ExpenseRegularResponse> createExpenseRegular(@RequestBody ExpenseRegularRequest req) {
         return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.createExpenseRegular(req)).build();
+    }
+
+    @PostMapping("/transfer")
+    public ApiResponse<ExpenseRegularResponse> createTransfer(@RequestBody TransferRequest req) {
+        return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.createExpenseRegularFromTransferRequest(req)).build();
     }
 
     @PutMapping("/{id}")

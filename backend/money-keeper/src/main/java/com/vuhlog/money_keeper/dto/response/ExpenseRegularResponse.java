@@ -18,6 +18,8 @@ public class ExpenseRegularResponse {
     private String expenseDate;
     private String createdDate;
     private String modifiedDate;
+    private String transferType;
+    private DictionaryBucketPaymentResponse receivedAccount;
     private DictionaryBucketPaymentResponse dictionaryBucketPayment;
     private DictionaryExpense dictionaryExpense;
     private TripEventResponse tripEvent;

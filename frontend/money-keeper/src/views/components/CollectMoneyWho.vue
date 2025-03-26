@@ -65,7 +65,7 @@ async function handleClickDeleteItem(item) {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg pa-3 position-relative container-box">
+  <div class="bg-white rounded-lg pa-3 position-relative container-box overflow-y-auto overflow-hidden">
     <h1 class="text-center text-primary-color mb-8">Thu từ ai</h1>
 
     <div class="d-flex justify-end">

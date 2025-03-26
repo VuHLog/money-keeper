@@ -1,8 +1,10 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
+import com.vuhlog.money_keeper.constants.TransferType;
 import com.vuhlog.money_keeper.dao.*;
 import com.vuhlog.money_keeper.dao.specification.ExpenseRegularSpecification;
 import com.vuhlog.money_keeper.dto.request.ExpenseRegularRequest;
+import com.vuhlog.money_keeper.dto.request.TransferRequest;
 import com.vuhlog.money_keeper.dto.response.ExpenseRegularResponse;
 import com.vuhlog.money_keeper.entity.*;
 import com.vuhlog.money_keeper.exception.AppException;
@@ -38,6 +40,8 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     public ExpenseRegularResponse createExpenseRegular(ExpenseRegularRequest request) {
         ExpenseRegular expenseRegular = expenseRegularMapper.toExpenseRegular(request);
 
+        expenseRegular.setTransferType(TransferType.NORMAL.getType());
+
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
         expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
 
@@ -49,6 +53,21 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
 
         Beneficiary beneficiary = beneficiaryRepository.findById(request.getBeneficiaryId()).orElse(null);
         expenseRegular.setBeneficiary(beneficiary);
+
+        return expenseRegularMapper.toExpenseRegularResponse(expenseRegularRepository.save(expenseRegular));
+    }
+
+    @Override
+    public ExpenseRegularResponse createExpenseRegularFromTransferRequest(TransferRequest request) {
+        ExpenseRegular expenseRegular = expenseRegularMapper.toExpenseRegularFromTransferRequest(request);
+
+        expenseRegular.setTransferType(TransferType.TRANSFER.getType());
+
+        DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
+        expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
+
+        DictionaryBucketPayment receivedAccount = dictionaryBucketPaymentRepository.findById(request.getReceivedAccountId()).orElse(null);
+        expenseRegular.setReceivedAccount(receivedAccount);
 
         return expenseRegularMapper.toExpenseRegularResponse(expenseRegularRepository.save(expenseRegular));
     }

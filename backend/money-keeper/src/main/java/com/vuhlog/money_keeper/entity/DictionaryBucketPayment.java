@@ -34,6 +34,9 @@ public class DictionaryBucketPayment {
     @OneToMany(mappedBy = "dictionaryBucketPayment")
     private Set<ExpenseRegular> expenseRegulars;
 
+    @OneToMany(mappedBy = "receivedAccount")
+    private Set<ExpenseRegular> expenseRegularsForReceivedAccount;
+
     @OneToMany(mappedBy = "dictionaryBucketPayment")
     private Set<RevenueRegular> revenueRegulars;
 
