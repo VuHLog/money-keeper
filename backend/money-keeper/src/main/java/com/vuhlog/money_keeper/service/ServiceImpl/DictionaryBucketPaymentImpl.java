@@ -8,7 +8,7 @@ import com.vuhlog.money_keeper.dao.UsersRepository;
 import com.vuhlog.money_keeper.dao.specification.DictionaryBucketPaymentSpecification;
 import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
 import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
-import com.vuhlog.money_keeper.dto.response.ExpenseRevenueRegularResponse;
+import com.vuhlog.money_keeper.dto.response.ExpenseRevenueHistory;
 import com.vuhlog.money_keeper.entity.DictionaryBucketPayment;
 import com.vuhlog.money_keeper.entity.ExpenseRegular;
 import com.vuhlog.money_keeper.entity.RevenueRegular;
@@ -20,7 +20,6 @@ import com.vuhlog.money_keeper.service.DictionaryBucketPaymentService;
 import com.vuhlog.money_keeper.util.TimestampUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,7 +28,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +80,7 @@ public class DictionaryBucketPaymentImpl implements DictionaryBucketPaymentServi
     }
 
     @Override
-    public Page<ExpenseRevenueRegularResponse> getAllExpenseRevenueRegularsByDate(String userId, Pageable pageable, Integer pageNumber, Integer pageSize, String sort, String timeOption, String startDate, String endDate) {
+    public List<ExpenseRevenueHistory> getAllExpenseRevenueRegularsByIdAndDate(String bucketPaymentId, Integer pageNumber, Integer pageSize, String sort, String timeOption, String startDate, String endDate) {
         PeriodOfTime periodOfTime = new PeriodOfTime();
         if(timeOption.equalsIgnoreCase(TimeOptionType.FULL.getType())){
             periodOfTime = null;
@@ -90,7 +91,8 @@ public class DictionaryBucketPaymentImpl implements DictionaryBucketPaymentServi
             periodOfTime = TimestampUtil.getPeriodOfTime(timeOption);
         }
 
-        return null;
+        List<Object[]> results =  dictionaryBucketPaymentRepository.getAllExpenseRevenueHistoryByBucketPaymentId(bucketPaymentId, periodOfTime.getStartDate(), periodOfTime.getEndDate());
+        return convertToExpenseRevenueHistory(results);
     }
 
     @Override
@@ -132,5 +134,19 @@ public class DictionaryBucketPaymentImpl implements DictionaryBucketPaymentServi
         cq.where(cb.equal(root.get("id"), bucketPaymentId));
         Long result = em.createQuery(cq).getSingleResult();
         return result != null ? result : 0;
+    }
+
+    private List<ExpenseRevenueHistory> convertToExpenseRevenueHistory(List<Object[]> list) {
+        return list.stream().map(obj ->
+                new ExpenseRevenueHistory(
+                        (String) obj[0], // id
+                        (String) TimestampUtil.timestampToString((Timestamp) obj[1]), // date
+                        ((Number) obj[2]).longValue(), // amount
+                        (String) obj[3], // iconUrl
+                        (String) obj[4], // categoryName
+                        (String) obj[5], // type
+                        (String) obj[6]  // interpretation
+                )
+        ).collect(Collectors.toList());
     }
 }

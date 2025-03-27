@@ -9,7 +9,7 @@ public enum TimeOptionType {
     LAST_MONTH("Tháng trước"),
     THIS_QUARTER("Quý này"),
     LAST_QUARTER("Quý trước"),
-    THIS_YEAR("Năm này"),
+    THIS_YEAR("Năm nay"),
     LAST_YEAR("Năm trước"),
     FULL("Toàn bộ thời gian"),
     OPTIONAL("Tùy chọn")

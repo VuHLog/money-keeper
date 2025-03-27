@@ -2,7 +2,7 @@ package com.vuhlog.money_keeper.service;
 
 import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
 import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
-import com.vuhlog.money_keeper.dto.response.ExpenseRevenueRegularResponse;
+import com.vuhlog.money_keeper.dto.response.ExpenseRevenueHistory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,7 +19,7 @@ public interface DictionaryBucketPaymentService {
 
     List<DictionaryBucketPaymentResponse> getAllDictionaryBucketPayment(String userId);
 
-    Page<ExpenseRevenueRegularResponse> getAllExpenseRevenueRegularsByDate(String userId, Pageable pageable, Integer pageNumber,Integer pageSize, String sort, String timeOption, String startDate, String endDate);
+    List<ExpenseRevenueHistory> getAllExpenseRevenueRegularsByIdAndDate(String bucketPaymentId, Integer pageNumber, Integer pageSize, String sort, String timeOption, String startDate, String endDate);
 
     Long getTotalExpenseByBucketPaymentId(String bucketPaymentId, String timeOption);
     Long getTotalRevenueByBucketPaymentId(String bucketPaymentId, String timeOption);

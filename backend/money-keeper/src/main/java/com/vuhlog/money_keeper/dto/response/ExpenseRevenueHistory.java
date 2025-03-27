@@ -5,13 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BucketPaymentHistoryResponse {
+public class ExpenseRevenueHistory {
+    private String id;
     private String date;
-    private List<ExpenseRevenueRegularResponse> expenseRevenueRegulars;
+    private long amount;
+    private String iconUrl;
+    private String categoryName;
+    private String type;
+    private String interpretation;
 }

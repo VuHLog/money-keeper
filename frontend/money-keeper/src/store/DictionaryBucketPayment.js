@@ -46,5 +46,12 @@ export const useDictionaryBucketPaymentStore = defineStore("dictionaryBucketPaym
       })
       return response;
     },
+    async getTransactionHistoryByBucketPaymentId(id, timeOption, startDate, endDate){
+      let response = null;
+      await base.get("/dictionary-bucket-payment/"+ id + "/transaction-history?timeOption=" + timeOption + "&startDate=" + startDate + "&endDate=" + endDate).then((res) => {
+        response = res.result;
+      })
+      return response;
+    },
   },
 });
