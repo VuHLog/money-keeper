@@ -78,9 +78,7 @@ public class TimestampUtil {
             LocalDateTime endDateTime = LocalDateTime.of(year, 1, 1, 23,59,59);
             periodOfTime.setStartDate(Timestamp.valueOf(startDateTime));
             periodOfTime.setEndDate(Timestamp.valueOf(endDateTime));
-        }else if (timeOption.equals(TimeOptionType.FULL.getType())) {
-            periodOfTime.setEndDate(Timestamp.valueOf(localDateTimeNow));
         }
-        return null;
+        return periodOfTime;
     }
 }

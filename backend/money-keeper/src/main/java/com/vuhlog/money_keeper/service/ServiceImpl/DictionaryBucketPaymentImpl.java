@@ -1,12 +1,14 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
 import com.vuhlog.money_keeper.constants.DictionaryBucketPaymentType;
+import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.dao.BankRepository;
 import com.vuhlog.money_keeper.dao.DictionaryBucketPaymentRepository;
 import com.vuhlog.money_keeper.dao.UsersRepository;
 import com.vuhlog.money_keeper.dao.specification.DictionaryBucketPaymentSpecification;
 import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
 import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
+import com.vuhlog.money_keeper.dto.response.ExpenseRevenueRegularResponse;
 import com.vuhlog.money_keeper.entity.DictionaryBucketPayment;
 import com.vuhlog.money_keeper.entity.ExpenseRegular;
 import com.vuhlog.money_keeper.entity.RevenueRegular;
@@ -21,6 +23,8 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -74,7 +78,22 @@ public class DictionaryBucketPaymentImpl implements DictionaryBucketPaymentServi
         return dictionaryBucketPaymentRepository.findAll(specs, sortable).stream().map(dictionaryBucketPaymentMapper::toDictionaryBucketResponse).toList();
     }
 
-   @Override
+    @Override
+    public Page<ExpenseRevenueRegularResponse> getAllExpenseRevenueRegularsByDate(String userId, Pageable pageable, Integer pageNumber, Integer pageSize, String sort, String timeOption, String startDate, String endDate) {
+        PeriodOfTime periodOfTime = new PeriodOfTime();
+        if(timeOption.equalsIgnoreCase(TimeOptionType.FULL.getType())){
+            periodOfTime = null;
+        }else if (timeOption.equalsIgnoreCase(TimeOptionType.OPTIONAL.getType())){
+            periodOfTime.setStartDate(TimestampUtil.stringToTimestamp(startDate));
+            periodOfTime.setEndDate(TimestampUtil.stringToTimestamp(endDate));
+        }else {
+            periodOfTime = TimestampUtil.getPeriodOfTime(timeOption);
+        }
+
+        return null;
+    }
+
+    @Override
    public Long getTotalExpenseByBucketPaymentId(String bucketPaymentId, String timeOption) {
        CriteriaBuilder cb = em.getCriteriaBuilder();
        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
