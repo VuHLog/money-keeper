@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ExpenseRevenueHistory {
     private String id;
+    private long currentBalance;
     private String date;
     private long amount;
     private String iconUrl;

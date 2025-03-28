@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,5 +33,6 @@ public class DictionaryExpense {
     private Users user;
 
     @OneToMany(mappedBy = "dictionaryExpense")
+    @JsonIgnore
     private Set<ExpenseRegular> expenseRegulars;
 }

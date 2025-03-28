@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
+import com.vuhlog.money_keeper.constants.TransactionType;
 import com.vuhlog.money_keeper.constants.TransferType;
 import com.vuhlog.money_keeper.dao.*;
 import com.vuhlog.money_keeper.dao.specification.ExpenseRegularSpecification;
@@ -14,6 +15,7 @@ import com.vuhlog.money_keeper.service.ExpenseRegularService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -26,6 +28,8 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     private final DictionaryExpenseRepository dictionaryExpenseRepository;
     private final TripEventRepository tripEventRepository;
     private final BeneficiaryRepository beneficiaryRepository;
+    private final TransactionHistoryRepository transactionHistoryRepository;
+    private final BalanceHistoryRepository balanceHistoryRepository;
     private final ExpenseRegularMapper expenseRegularMapper;
 
     @Override
@@ -37,24 +41,38 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ExpenseRegularResponse createExpenseRegular(ExpenseRegularRequest request) {
+        //save expense
         ExpenseRegular expenseRegular = expenseRegularMapper.toExpenseRegular(request);
-
         expenseRegular.setTransferType(TransferType.NORMAL.getType());
-
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
         expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
-
-        DictionaryExpense dictionaryExpense = dictionaryExpenseRepository.findById(request.getDictionaryExpenseId()).orElse(null);
+        DictionaryExpense dictionaryExpense = dictionaryExpenseRepository.findById(request.getDictionaryExpenseId()).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
         expenseRegular.setDictionaryExpense(dictionaryExpense);
-
         TripEvent tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
         expenseRegular.setTripEvent(tripEvent);
-
         Beneficiary beneficiary = beneficiaryRepository.findById(request.getBeneficiaryId()).orElse(null);
         expenseRegular.setBeneficiary(beneficiary);
+        expenseRegular = expenseRegularRepository.save(expenseRegular);
 
-        return expenseRegularMapper.toExpenseRegularResponse(expenseRegularRepository.save(expenseRegular));
+        //update balance for account table
+        long oldBalance = dictionaryBucketPayment.getBalance();
+        long newBalance = oldBalance - request.getAmount();
+        dictionaryBucketPayment.setBalance(newBalance);
+        dictionaryBucketPaymentRepository.save(dictionaryBucketPayment);
+
+        //create balance history
+        BalanceHistory balanceHistory = BalanceHistory.builder()
+                .transactionId(expenseRegular.getId())
+                .transactionType(TransactionType.EXPENSE.getType())
+                .prevBalance(oldBalance)
+                .newBalance(newBalance)
+                .bucketPayment(dictionaryBucketPayment)
+                .build();
+        balanceHistoryRepository.save(balanceHistory);
+
+        return expenseRegularMapper.toExpenseRegularResponse(expenseRegular);
     }
 
     @Override
@@ -79,26 +97,56 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ExpenseRegularResponse updateExpenseRegular(String id, ExpenseRegularRequest request) {
+        //save update expense
         ExpenseRegular expenseRegular = expenseRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.EXPENSE_REGULAR_NOT_EXISTED));
+        long oldAmount = expenseRegular.getAmount();
+        long newAmount = request.getAmount();
+        String oldCategoryId = expenseRegular.getDictionaryExpense().getId();
+        String newCategoryId = request.getDictionaryExpenseId();
         expenseRegularMapper.updateExpenseRegularFromRequest(request, expenseRegular);
-        if(!expenseRegular.getDictionaryBucketPayment().getId().equals(request.getDictionaryBucketPaymentId())){
-            DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
-            expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
-        }
+        DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
+        expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
         if(!expenseRegular.getDictionaryExpense().getId().equals(request.getDictionaryExpenseId())){
             DictionaryExpense dictionaryExpense = dictionaryExpenseRepository.findById(request.getDictionaryExpenseId()).orElse(null);
             expenseRegular.setDictionaryExpense(dictionaryExpense);
         }
-        if(!expenseRegular.getTripEvent().getId().equals(request.getTripEventId())){
-            TripEvent tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
-            expenseRegular.setTripEvent(tripEvent);
-        }
-        if(!expenseRegular.getBeneficiary().getId().equals(request.getBeneficiaryId())){
-            Beneficiary beneficiary = beneficiaryRepository.findById(request.getBeneficiaryId()).orElse(null);
-            expenseRegular.setBeneficiary(beneficiary);
-        }
-        return expenseRegularMapper.toExpenseRegularResponse(expenseRegularRepository.save(expenseRegular));
+        TripEvent tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        expenseRegular.setTripEvent(tripEvent);
+        Beneficiary beneficiary = beneficiaryRepository.findById(request.getBeneficiaryId()).orElse(null);
+        expenseRegular.setBeneficiary(beneficiary);
+        expenseRegular = expenseRegularRepository.save(expenseRegular);
+
+        //create transaction history
+        TransactionHistory transactionHistory = TransactionHistory.builder()
+                .transactionId(expenseRegular.getId())
+                .transactionType(TransactionType.EXPENSE.getType())
+                .oldAmount(oldAmount)
+                .newAmount(newAmount)
+                .oldCategoryId(oldCategoryId)
+                .newCategoryId(newCategoryId)
+                .bucketPayment(dictionaryBucketPayment)
+                .build();
+        transactionHistoryRepository.save(transactionHistory);
+
+        //update balance for account table
+        long oldBalance = dictionaryBucketPayment.getBalance();
+        long newBalance = oldBalance - (newAmount - oldAmount);
+        dictionaryBucketPayment.setBalance(newBalance);
+        dictionaryBucketPaymentRepository.save(dictionaryBucketPayment);
+
+        //create balance history
+        BalanceHistory balanceHistory = BalanceHistory.builder()
+                .transactionId(expenseRegular.getId())
+                .transactionType(TransactionType.EXPENSE.getType())
+                .prevBalance(oldBalance)
+                .newBalance(newBalance)
+                .bucketPayment(dictionaryBucketPayment)
+                .build();
+        balanceHistoryRepository.save(balanceHistory);
+
+        return expenseRegularMapper.toExpenseRegularResponse(expenseRegular);
     }
 
     @Override

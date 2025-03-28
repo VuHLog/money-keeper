@@ -20,6 +20,7 @@ public enum ErrorCode {
     BANK_NOT_EXISTED(4001, "Bank not existed", HttpStatus.NOT_FOUND),
     EXPENSE_REGULAR_NOT_EXISTED(5001, "Expense regular not existed", HttpStatus.NOT_FOUND),
     REVENUE_REGULAR_NOT_EXISTED(6001, "Revenue regular not existed", HttpStatus.NOT_FOUND),
+    BUCKET_PAYMENT_NOT_EXISTED(7001, "Bucket payment not existed", HttpStatus.NOT_FOUND),
     ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

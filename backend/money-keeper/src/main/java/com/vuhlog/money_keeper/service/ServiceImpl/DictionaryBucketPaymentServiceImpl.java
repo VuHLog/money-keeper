@@ -173,12 +173,13 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
         return list.stream().map(obj ->
                 new ExpenseRevenueHistory(
                         (String) obj[0], // id
-                        (String) TimestampUtil.timestampToString((Timestamp) obj[1]), // date
-                        ((Number) obj[2]).longValue(), // amount
-                        (String) obj[3], // iconUrl
-                        (String) obj[4], // categoryName
-                        (String) obj[5], // type
-                        (String) obj[6]  // interpretation
+                        (long) obj[1], //current balance
+                        (String) TimestampUtil.timestampToString((Timestamp) obj[2]), // date
+                        ((Number) obj[3]).longValue(), // amount
+                        (String) obj[4], // iconUrl
+                        (String) obj[5], // categoryName
+                        (String) obj[6], // type
+                        (String) obj[7]  // interpretation
                 )
         ).collect(Collectors.toList());
     }

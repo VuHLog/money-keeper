@@ -39,7 +39,7 @@ async function getData() {
       bucketPaymentId.value,
       timeOption.value,
       startDate.value,
-      endDate.value
+      endDate.value 
     );
   transactionHistory.value =
     await dictionaryBucketPaymentStore.getTransactionHistoryByBucketPaymentId(
@@ -182,24 +182,29 @@ function sumHistoryByDate(date, type) {
                     </div>
                   </div>
                   <v-timeline class="ml-5 border-t-sm" density="compact" align="start" side="end">
-                    <v-timeline-item v-for="history in item.history" :key="history.id" width="100%"
-                      dot-color="green-accent-2" size="small">
+                    <v-timeline-item v-for="history in item.history" :key="history.id" width="100%" size="small">
                       <template v-slot:icon>
                         <v-icon>
-                          <img src="https://res.cloudinary.com/cloud1412/image/upload/v1741273907/cash_ifor6b.png"
-                            alt="icon" style="width: 24px; height: 24px" />
+                          <img :src="history.iconUrl"
+                            alt="icon" style="width: 40px; height: 40px" />
                         </v-icon>
                       </template>
                       <router-link to="" class="text-decoration-none">
-                        <div class="d-flex align-center justify-space-between">
-                          <span class="text-grey-color font-weight-bold">{{
-                            history.categoryName
-                          }}</span>
+                        <div class="d-flex  justify-space-between">
+                          <div class="d-flex flex-column">
+                            <span class="text-grey-color font-weight-bold">
+                              {{history.categoryName}}
+                            </span>
+                            <span class="text-grey-darken-1 font-italic">
+                              {{history.interpretation}}
+                            </span>
+                          </div>
                           <div class="d-flex align-end justify-center flex-column">
                             <span class="text-red-accent-3" :class="history.type === 'expense' ? 'text-red-accent-3' : 'text-blue-accent-3'">{{
                               history.amount < 0 ? "(-" + formatCurrency(history.amount) + ")" :
-                                formatCurrency(history.amount) }}</span>
-                                <span class="text-grey-lighten-1">(-6.000 ₫)</span>
+                                formatCurrency(history.amount) }}
+                            </span>
+                            <span class="text-grey-lighten-1">{{ formatCurrency(history.currentBalance) }}</span>
                           </div>
                         </div>
                       </router-link>
