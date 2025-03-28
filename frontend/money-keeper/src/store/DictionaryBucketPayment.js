@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { jwtDecode } from "jwt-decode";
 import {base} from "@/apis/ApiService.js"
+import { formatDate } from "@/utils/DateUtil.js";
 import TokenService from "@/service/TokenService.js"
 
 const token = TokenService.getSessionAccessToken();
@@ -25,16 +26,28 @@ export const useDictionaryBucketPaymentStore = defineStore("dictionaryBucketPaym
       )
       return response;
     },
-    async getTotalExpenseByBucketPaymentId(id, timeOption){
+    async getTotalExpenseByBucketPaymentId(id, timeOption, startDate, endDate){
       let response = null;
-      await base.get("/dictionary-bucket-payment/"+ id + "/total-expense?timeOption=" + timeOption).then((res) => {
+      const request = {
+        bucketPaymentId: id,
+        timeOption: timeOption,
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate)
+      }
+      await base.get("/dictionary-bucket-payment/"+ id + "/total-expense", request).then((res) => {
         response = res.result;
       })
       return response;
     },
-    async getTotalRevenueByBucketPaymentId(id, timeOption){
+    async getTotalRevenueByBucketPaymentId(id, timeOption, startDate, endDate){
       let response = null;
-      await base.get("/dictionary-bucket-payment/"+ id + "/total-revenue?timeOption=" + timeOption).then((res) => {
+      const request = {
+        bucketPaymentId: id,
+        timeOption: timeOption,
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate)
+      }
+      await base.get("/dictionary-bucket-payment/"+ id + "/total-revenue", request).then((res) => {
         response = res.result;
       })
       return response;
@@ -48,7 +61,13 @@ export const useDictionaryBucketPaymentStore = defineStore("dictionaryBucketPaym
     },
     async getTransactionHistoryByBucketPaymentId(id, timeOption, startDate, endDate){
       let response = null;
-      await base.get("/dictionary-bucket-payment/"+ id + "/transaction-history?timeOption=" + timeOption + "&startDate=" + startDate + "&endDate=" + endDate).then((res) => {
+      const request = {
+        bucketPaymentId: id,
+        timeOption: timeOption,
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate)
+      }
+      await base.get("/dictionary-bucket-payment/"+ id + "/transaction-history", request).then((res) => {
         response = res.result;
       })
       return response;

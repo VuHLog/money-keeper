@@ -13,6 +13,7 @@ const router = useRouter();
 const mainFeatureList = ref(MainFeature);
 const feature = ref(mainFeatureList.value.find((value) => value.id === 2));
 const currentTime = ref(new Date());
+const formattedCurrentTime = ref("");
 const dictionaryBucketPayment = ref([]);
 const account = ref({});
 const categorySelected = ref({});
@@ -79,7 +80,7 @@ function isValid() {
     return false;
   }
 
-  if(currentTime.value === "") {
+  if(formattedCurrentTime.value === "") {
     errMsg.value = "Bạn phải chọn thời điểm chi tiêu";
     return false;
   }
@@ -109,12 +110,7 @@ async function createRevenue() {
     revenue.value.collectMoneyWhoId = collectMoneyWhoSelected.value.id;
   }
 
-  revenue.value.revenueDate = currentTime.value instanceof Date 
-    ? new Date(currentTime.value.getTime() - (currentTime.value.getTimezoneOffset() * 60000))
-        .toISOString()
-        .slice(0, 19)
-        .replace('T', ' ')
-    : currentTime.value;
+  revenue.value.revenueDate = formattedCurrentTime.value;
 
   await proxy.$api.post("/revenue-regular", revenue.value).then(() => {
     swal.fire({
@@ -125,6 +121,21 @@ async function createRevenue() {
     router.push("/revenue");
   });
 }
+
+watch(currentTime, (newValue) => {
+  if (newValue instanceof Date) {
+    const year = newValue.getFullYear();
+    const month = String(newValue.getMonth() + 1).padStart(2, '0');
+    const day = String(newValue.getDate()).padStart(2, '0');
+    const hours = String(newValue.getHours()).padStart(2, '0');
+    const minutes = String(newValue.getMinutes()).padStart(2, '0');
+    const seconds = String(newValue.getSeconds()).padStart(2, '0');
+    
+    formattedCurrentTime.value = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  } else {
+    formattedCurrentTime.value = newValue;
+  }
+}, { immediate: true });
 </script>
 
 <template>

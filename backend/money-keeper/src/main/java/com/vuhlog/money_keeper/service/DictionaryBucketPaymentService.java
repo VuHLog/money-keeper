@@ -1,15 +1,15 @@
 package com.vuhlog.money_keeper.service;
 
-import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
-import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
-import com.vuhlog.money_keeper.dto.response.ExpenseRevenueHistory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 
+import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
+import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
+import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
+import com.vuhlog.money_keeper.dto.response.ExpenseRevenueHistory;
+
 public interface DictionaryBucketPaymentService {
-    DictionaryBucketPaymentResponse createDictionaryBucketPayment(DictionaryBucketPaymentRequest request, String userId);
+    DictionaryBucketPaymentResponse createDictionaryBucketPayment(
+            DictionaryBucketPaymentRequest request, String userId);
 
     DictionaryBucketPaymentResponse updateDictionaryBucketPayment(String id, DictionaryBucketPaymentRequest request);
 
@@ -19,9 +19,12 @@ public interface DictionaryBucketPaymentService {
 
     List<DictionaryBucketPaymentResponse> getAllDictionaryBucketPayment(String userId);
 
-    List<ExpenseRevenueHistory> getAllExpenseRevenueRegularsByIdAndDate(String bucketPaymentId, Integer pageNumber, Integer pageSize, String sort, String timeOption, String startDate, String endDate);
+    List<ExpenseRevenueHistory> getAllExpenseRevenueRegularsByIdAndDate(
+            ExpenseRevenueHistoryRequest req, Integer pageNumber, Integer pageSize, String sort);
 
-    Long getTotalExpenseByBucketPaymentId(String bucketPaymentId, String timeOption);
-    Long getTotalRevenueByBucketPaymentId(String bucketPaymentId, String timeOption);
+    Long getTotalExpenseByBucketPaymentId(ExpenseRevenueHistoryRequest req);
+
+    Long getTotalRevenueByBucketPaymentId(ExpenseRevenueHistoryRequest req);
+
     Long getBalanceByBucketPaymentId(String bucketPaymentId);
 }
