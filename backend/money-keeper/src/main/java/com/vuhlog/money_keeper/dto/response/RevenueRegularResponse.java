@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class RevenueRegularResponse {
     private String id;
     private Long amount;
+    private long balance;
     private String location;
     private String interpretation;
     private String revenueDate;

@@ -41,9 +41,6 @@ public class DictionaryBucketPayment {
     private Set<RevenueRegular> revenueRegulars;
 
     @OneToMany(mappedBy = "bucketPayment")
-    private Set<BalanceHistory> balanceHistories;
-
-    @OneToMany(mappedBy = "bucketPayment")
     private Set<TransactionHistory> transactionHistories;
 
     @PrePersist

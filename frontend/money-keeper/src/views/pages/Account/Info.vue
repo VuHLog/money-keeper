@@ -192,9 +192,12 @@ function sumHistoryByDate(date, type) {
                       <router-link to="" class="text-decoration-none">
                         <div class="d-flex  justify-space-between">
                           <div class="d-flex flex-column">
-                            <span class="text-grey-color font-weight-bold">
+                            <div>
+                              <span class="text-grey-color font-weight-bold mr-2">
                               {{history.categoryName}}
-                            </span>
+                              </span>
+                              <span class="text-grey-color">{{ history.date.split(' ')[1] }}</span>
+                            </div>
                             <span class="text-grey-darken-1 font-italic">
                               {{history.interpretation}}
                             </span>

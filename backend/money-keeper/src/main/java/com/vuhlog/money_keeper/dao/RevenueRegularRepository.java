@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+
 public interface RevenueRegularRepository extends JpaRepository<RevenueRegular, String>, JpaSpecificationExecutor<RevenueRegular> {
     @Modifying
     @Transactional
@@ -28,4 +30,13 @@ public interface RevenueRegularRepository extends JpaRepository<RevenueRegular, 
     @Transactional
     @Query("UPDATE RevenueRegular e SET e.collectMoneyWho = NULL WHERE e.collectMoneyWho.id = :collectMoneyWhoId")
     void unsetCollectMoneyWhoInRevenueRegular(@Param("collectMoneyWhoId") String collectMoneyWhoId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE RevenueRegular r set r.balance = r.balance + :amount where r.dictionaryBucketPayment.id = :bucketPaymentId and r.revenueDate > :datetime")
+    void updateBalanceGreaterThanDatetime(
+            @Param("bucketPaymentId") String bucketPaymentId,
+            @Param("amount") long amount,
+            @Param("datetime") Timestamp datetime
+    );
 }

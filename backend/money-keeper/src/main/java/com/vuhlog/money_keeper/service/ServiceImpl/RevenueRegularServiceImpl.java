@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
+import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.constants.TransactionType;
 import com.vuhlog.money_keeper.dao.*;
 import com.vuhlog.money_keeper.dao.specification.RevenueRegularSpecification;
@@ -9,7 +10,9 @@ import com.vuhlog.money_keeper.entity.*;
 import com.vuhlog.money_keeper.exception.AppException;
 import com.vuhlog.money_keeper.exception.ErrorCode;
 import com.vuhlog.money_keeper.mapper.RevenueRegularMapper;
+import com.vuhlog.money_keeper.model.PeriodOfTime;
 import com.vuhlog.money_keeper.service.RevenueRegularService;
+import com.vuhlog.money_keeper.util.TimestampUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -21,12 +24,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RevenueRegularServiceImpl implements RevenueRegularService {
     private final RevenueRegularRepository revenueRegularRepository;
+    private final ExpenseRegularRepository expenseRegularRepository;
     private final DictionaryBucketPaymentRepository dictionaryBucketPaymentRepository;
     private final DictionaryRevenueRepository dictionaryRevenueRepository;
     private final TripEventRepository tripEventRepository;
     private final CollectMoneyWhoRepository collectMoneyWhoRepository;
     private final TransactionHistoryRepository transactionHistoryRepository;
-    private final BalanceHistoryRepository balanceHistoryRepository;
     private final RevenueRegularMapper revenueRegularMapper;
 
     @Override
@@ -44,6 +47,9 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
         RevenueRegular revenueRegular = revenueRegularMapper.toRevenueRegular(request);
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
         revenueRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
+        long oldBalance = dictionaryBucketPayment.getBalance();
+        long newBalance = oldBalance + request.getAmount();
+        revenueRegular.setBalance(newBalance);
         DictionaryRevenue dictionaryRevenue = dictionaryRevenueRepository.findById(request.getDictionaryRevenueId()).orElse(null);
         revenueRegular.setDictionaryRevenue(dictionaryRevenue);
         TripEvent tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
@@ -53,20 +59,8 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
         revenueRegular = revenueRegularRepository.save(revenueRegular);
 
         //update balance for account table
-        long oldBalance = dictionaryBucketPayment.getBalance();
-        long newBalance = oldBalance + request.getAmount();
         dictionaryBucketPayment.setBalance(newBalance);
         dictionaryBucketPaymentRepository.save(dictionaryBucketPayment);
-
-        //create balance history
-        BalanceHistory balanceHistory = BalanceHistory.builder()
-                .transactionId(revenueRegular.getId())
-                .transactionType(TransactionType.REVENUE.getType())
-                .prevBalance(oldBalance)
-                .newBalance(newBalance)
-                .bucketPayment(dictionaryBucketPayment)
-                .build();
-        balanceHistoryRepository.save(balanceHistory);
 
         return revenueRegularMapper.toRevenueRegularResponse(revenueRegular);
     }
@@ -81,6 +75,10 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
     @Transactional(rollbackFor = Exception.class)
     public RevenueRegularResponse updateRevenueRegular(String id, RevenueRegularRequest request) {
         RevenueRegular revenueRegular = revenueRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.REVENUE_REGULAR_NOT_EXISTED));
+        PeriodOfTime updateTimeLimit = TimestampUtil.getPeriodOfTime(TimeOptionType.LAST_30_DAYS.getType());
+        if(revenueRegular.getRevenueDate().before(updateTimeLimit.getStartDate()) || revenueRegular.getRevenueDate().after(updateTimeLimit.getEndDate())){
+            throw new AppException(ErrorCode.UPDATE_TIME_LIMIT);
+        }
         long oldAmount = revenueRegular.getAmount();
         long newAmount = request.getAmount();
         String oldCategoryId = revenueRegular.getDictionaryRevenue().getId();
@@ -110,21 +108,17 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
                 .build();
         transactionHistoryRepository.save(transactionHistory);
 
-        //update balance for account table
-        long oldBalance = dictionaryBucketPayment.getBalance();
-        long newBalance = oldBalance + (newAmount - oldAmount);
-        dictionaryBucketPayment.setBalance(newBalance);
-        dictionaryBucketPaymentRepository.save(dictionaryBucketPayment);
+        if(oldAmount != newAmount){
+            //update balance for account table
+            long oldBalance = dictionaryBucketPayment.getBalance();
+            long newBalance = oldBalance + (newAmount - oldAmount);
+            dictionaryBucketPayment.setBalance(newBalance);
+            dictionaryBucketPaymentRepository.save(dictionaryBucketPayment);
 
-        //create balance history
-        BalanceHistory balanceHistory = BalanceHistory.builder()
-                .transactionId(revenueRegular.getId())
-                .transactionType(TransactionType.REVENUE.getType())
-                .prevBalance(oldBalance)
-                .newBalance(newBalance)
-                .bucketPayment(dictionaryBucketPayment)
-                .build();
-        balanceHistoryRepository.save(balanceHistory);
+            //update expense,revenue balance after this expense
+            expenseRegularRepository.updateBalanceGreaterThanDatetime(dictionaryBucketPayment.getId(), (newAmount - oldAmount), revenueRegular.getRevenueDate());
+            revenueRegularRepository.updateBalanceGreaterThanDatetime(dictionaryBucketPayment.getId(), (newAmount - oldAmount), revenueRegular.getRevenueDate());
+        }
         return revenueRegularMapper.toRevenueRegularResponse(revenueRegular);
     }
 

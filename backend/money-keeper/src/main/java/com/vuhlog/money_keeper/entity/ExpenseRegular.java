@@ -25,6 +25,7 @@ public class ExpenseRegular {
     private Timestamp createdDate;
     private Timestamp modifiedDate;
     private String transferType;
+    private long balance;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
     @JoinColumn(name = "received_account_id")

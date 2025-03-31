@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+
 public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, String>, JpaSpecificationExecutor<ExpenseRegular> {
     @Modifying
     @Transactional
@@ -28,4 +30,13 @@ public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, 
     @Transactional
     @Query("UPDATE ExpenseRegular e SET e.beneficiary = NULL WHERE e.beneficiary.id = :beneficiaryId")
     void unsetBeneficiaryInExpenseRegular(@Param("beneficiaryId") String beneficiaryId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE ExpenseRegular e set e.balance = e.balance + :amount where e.dictionaryBucketPayment.id = :bucketPaymentId and e.expenseDate > :datetime")
+    void updateBalanceGreaterThanDatetime(
+            @Param("bucketPaymentId") String bucketPaymentId,
+            @Param("amount") long amount,
+            @Param("datetime") Timestamp datetime
+    );
 }

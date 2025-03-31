@@ -22,6 +22,7 @@ public class RevenueRegular {
     private Timestamp revenueDate;
     private Timestamp createdDate;
     private Timestamp modifiedDate;
+    private long balance;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
     @JoinColumn(name = "dictionary_bucket_payment_id")
