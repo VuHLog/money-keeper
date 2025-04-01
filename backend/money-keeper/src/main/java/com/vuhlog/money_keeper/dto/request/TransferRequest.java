@@ -14,5 +14,5 @@ public class TransferRequest {
     private String interpretation;
     private String expenseDate;
     private String dictionaryBucketPaymentId;
-    private String receivedAccountId;
+    private String beneficiaryAccountId;
 }

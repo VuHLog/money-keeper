@@ -1,6 +1,7 @@
 package com.vuhlog.money_keeper.mapper;
 
 import com.vuhlog.money_keeper.dto.request.RevenueRegularRequest;
+import com.vuhlog.money_keeper.dto.request.TransferRequest;
 import com.vuhlog.money_keeper.dto.response.RevenueRegularResponse;
 import com.vuhlog.money_keeper.entity.RevenueRegular;
 import com.vuhlog.money_keeper.util.TimestampUtil;
@@ -24,6 +25,12 @@ public interface RevenueRegularMapper {
     @Named("timestampToString")
     @Mapping(target = "revenueDate", expression = "java(timestampToString(revenueRegular.getRevenueDate()))")
     RevenueRegularResponse toRevenueRegularResponse(RevenueRegular revenueRegular);
+
+    @Named("stringToTimestamp")
+    @Mapping(target = "revenueDate", expression = "java(stringToTimestamp(request.getExpenseDate()))")
+    @Mapping(target = "dictionaryBucketPayment", ignore = true)
+    @Mapping(target = "senderAccount", ignore = true)
+    RevenueRegular toRevenueRegularFromTransferRequest(TransferRequest request);
 
     @Named("stringToTimestamp")
     @Mapping(target = "revenueDate", expression = "java(stringToTimestamp(request.getRevenueDate()))")

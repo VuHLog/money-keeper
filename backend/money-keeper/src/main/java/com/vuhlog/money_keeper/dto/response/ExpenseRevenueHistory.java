@@ -18,4 +18,5 @@ public class ExpenseRevenueHistory {
     private String categoryName;
     private String type;
     private String interpretation;
+    private String transferType;
 }

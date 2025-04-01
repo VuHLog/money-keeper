@@ -1,5 +1,5 @@
 class TransferType{
-  NORMAL = "Thông thường";
-  TRANSFER = "Chuyển khoản";
+  NORMAL = "normal";
+  TRANSFER = "transfer";
 }
 export default new TransferType();

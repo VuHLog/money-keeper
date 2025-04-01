@@ -25,7 +25,7 @@ public interface ExpenseRegularMapper {
     @Named("stringToTimestamp")
     @Mapping(target = "expenseDate", expression = "java(stringToTimestamp(request.getExpenseDate()))")
     @Mapping(target = "dictionaryBucketPayment", ignore = true)
-    @Mapping(target = "receivedAccount", ignore = true)
+    @Mapping(target = "beneficiaryAccount", ignore = true)
     ExpenseRegular toExpenseRegularFromTransferRequest(TransferRequest request);
 
     @Named("timestampToString")

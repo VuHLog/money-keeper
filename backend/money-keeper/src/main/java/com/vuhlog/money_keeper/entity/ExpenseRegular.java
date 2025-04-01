@@ -28,8 +28,8 @@ public class ExpenseRegular {
     private long balance;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name = "received_account_id")
-    private DictionaryBucketPayment receivedAccount;
+    @JoinColumn(name = "beneficiary_account_id")
+    private DictionaryBucketPayment beneficiaryAccount;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
     @JoinColumn(name = "dictionary_bucket_payment_id")

@@ -179,7 +179,8 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
                         (String) obj[4], // iconUrl
                         (String) obj[5], // categoryName
                         (String) obj[6], // type
-                        (String) obj[7]  // interpretation
+                        (String) obj[7],  // interpretation
+                        (String) obj[8] //transfer type
                 )
         ).collect(Collectors.toList());
     }

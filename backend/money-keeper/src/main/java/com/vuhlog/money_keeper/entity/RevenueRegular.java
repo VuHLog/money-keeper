@@ -22,13 +22,19 @@ public class RevenueRegular {
     private Timestamp revenueDate;
     private Timestamp createdDate;
     private Timestamp modifiedDate;
+    private String transferType;
     private long balance;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinColumn(name = "sender_account_id")
+    private DictionaryBucketPayment senderAccount;
+
+
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "dictionary_bucket_payment_id")
     private DictionaryBucketPayment dictionaryBucketPayment;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "dictionary_revenue_id")
     private DictionaryRevenue dictionaryRevenue;
 

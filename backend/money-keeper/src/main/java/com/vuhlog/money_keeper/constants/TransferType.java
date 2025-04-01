@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum TransferType {
-    NORMAL("Thông thường"),
-    TRANSFER("Chuyển khoản"),
+    NORMAL("normal"),
+    TRANSFER("transfer"),
     ;
 
     private final String type;

@@ -14,14 +14,14 @@ public interface DictionaryBucketPaymentRepository
         extends JpaRepository<DictionaryBucketPayment, String>, JpaSpecificationExecutor<DictionaryBucketPayment> {
     @Query(
             value =
-                    "SELECT er.id, er.balance, er.expense_date AS date, amount,de.icon_url, de.name AS category_name, 'expense' AS TYPE, interpretation FROM expense_regular er\n"
-                            + "JOIN dictionary_expense de ON de.id = er.dictionary_expense_id\n"
+                    "SELECT er.id, er.balance, er.expense_date AS date, amount,de.icon_url, de.name AS category_name, 'expense' AS TYPE, interpretation, transfer_type FROM expense_regular er\n"
+                            + "LEFT JOIN dictionary_expense de ON de.id = er.dictionary_expense_id\n"
                             + "WHERE er.dictionary_bucket_payment_id = :bucketPaymentId\n"
                             + "AND (:startDate IS NULL OR er.expense_date >= :startDate)\n "
                             + "AND (:endDate IS NULL OR er.expense_date <= :endDate)\n "
                             + "UNION\n"
-                            + "SELECT rr.id,rr.balance, rr.revenue_date AS date,amount, dr.icon_url, dr.name AS category_name, 'revenue' AS TYPE, interpretation FROM revenue_regular rr\n"
-                            + "JOIN dictionary_revenue dr ON dr.id = rr.dictionary_revenue_id\n"
+                            + "SELECT rr.id,rr.balance, rr.revenue_date AS date,amount, dr.icon_url, dr.name AS category_name, 'revenue' AS TYPE, interpretation, transfer_type FROM revenue_regular rr\n"
+                            + "LEFT JOIN dictionary_revenue dr ON dr.id = rr.dictionary_revenue_id\n"
                             + "WHERE rr.dictionary_bucket_payment_id = :bucketPaymentId\n"
                             + "AND (:startDate IS NULL OR rr.revenue_date >= :startDate)\n "
                             + "AND (:endDate IS NULL OR rr.revenue_date <= :endDate)\n "
@@ -34,4 +34,32 @@ public interface DictionaryBucketPaymentRepository
 
     @Query("select dbp.balance from DictionaryBucketPayment dbp where dbp.id = :bucketPaymentId")
     long getBalanceByBucketPaymentId(@Param("bucketPaymentId") String bucketPaymentId);
+
+    @Query(value = "SELECT balance\n" +
+            "FROM (\n" +
+            "\tSELECT id, balance, expense_date AS date\n" +
+            "\tFROM expense_regular\n" +
+            "\tWHERE dictionary_bucket_payment_id = :bucketPaymentId AND expense_date < :date\n" +
+            "\tUNION\n" +
+            "\tSELECT id, balance, revenue_date AS date\n" +
+            "\tFROM revenue_regular\n" +
+            "\tWHERE dictionary_bucket_payment_id = :bucketPaymentId AND revenue_date < :date\n" +
+            "\tORDER BY DATE DESC\n" +
+            "\tLIMIT 1\n" +
+            ") AS NearestTransaction", nativeQuery = true)
+    Long getNearestTransactionByBucketPaymentIdAndLessThanDate(@Param("bucketPaymentId") String bucketPaymentId, @Param("date") Timestamp date);
+
+    @Query(value = "SELECT id, balance , amount, type\n" +
+            "FROM (\n" +
+            "\tSELECT id,  balance, amount, expense_date AS DATE, 'expense' AS TYPE\n" +
+            "\tFROM expense_regular\n" +
+            "\tWHERE dictionary_bucket_payment_id = :bucketPaymentId AND expense_date > :date\n" +
+            "\tUNION\n" +
+            "\tSELECT id,  balance, amount, revenue_date AS DATE, 'revenue' AS TYPE\n" +
+            "\tFROM revenue_regular\n" +
+            "\tWHERE dictionary_bucket_payment_id = :bucketPaymentId AND revenue_date > :date\n" +
+            "\tORDER BY DATE DESC\n" +
+            "\tLIMIT 1\n" +
+            ") AS NearestTransaction", nativeQuery = true)
+    Object[] getNearestTransactionByBucketPaymentIdAndGreaterThanDate(@Param("bucketPaymentId") String bucketPaymentId, @Param("date") Timestamp date);
 }

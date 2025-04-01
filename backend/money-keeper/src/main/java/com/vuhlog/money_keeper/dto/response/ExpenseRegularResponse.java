@@ -20,7 +20,7 @@ public class ExpenseRegularResponse {
     private String createdDate;
     private String modifiedDate;
     private String transferType;
-    private DictionaryBucketPaymentResponse receivedAccount;
+    private DictionaryBucketPaymentResponse beneficiaryAccount;
     private DictionaryBucketPaymentResponse dictionaryBucketPayment;
     private DictionaryExpense dictionaryExpense;
     private TripEventResponse tripEvent;

@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,15 +33,23 @@ public class DictionaryBucketPayment {
     private Users user;
 
     @OneToMany(mappedBy = "dictionaryBucketPayment")
+    @JsonIgnore
     private Set<ExpenseRegular> expenseRegulars;
 
-    @OneToMany(mappedBy = "receivedAccount")
-    private Set<ExpenseRegular> expenseRegularsForReceivedAccount;
+    @OneToMany(mappedBy = "beneficiaryAccount")
+    @JsonIgnore
+    private Set<ExpenseRegular> expenseRegularsForBeneficiaryAccount;
+
+    @OneToMany(mappedBy = "senderAccount")
+    @JsonIgnore
+    private Set<RevenueRegular> revenueRegularsForSenderAccount;
 
     @OneToMany(mappedBy = "dictionaryBucketPayment")
+    @JsonIgnore
     private Set<RevenueRegular> revenueRegulars;
 
     @OneToMany(mappedBy = "bucketPayment")
+    @JsonIgnore
     private Set<TransactionHistory> transactionHistories;
 
     @PrePersist
