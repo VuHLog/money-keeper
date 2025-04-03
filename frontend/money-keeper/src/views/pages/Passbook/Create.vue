@@ -94,10 +94,10 @@ const myAccountList = ref([]);
 
 <template>
   <div>
-    <div class="text-primary-color position-relative mb-10">
+    <div class="text-primary position-relative mb-10">
       <router-link
         to="/passbook"
-        class="position-absolute top-0 left-0 text-primary-color text-decoration-none"
+        class="position-absolute top-0 left-0 text-primary text-decoration-none"
       >
         <font-awesome-icon
           :icon="['fas', 'angle-left']"
@@ -342,7 +342,10 @@ const myAccountList = ref([]);
       </v-col>
     </v-row>
     <div class="text-center">
-      <button class="bg-primary-color text-white py-2 px-10 rounded">
+      <button class="bg-primary-color text-white py-2 px-10 rounded d-inline-flex justify-center" @click.stop="createExpense">
+        <div class="mr-2">
+          <font-awesome-icon :icon="['fas', 'floppy-disk']" />
+        </div>
         Lưu
       </button>
     </div>

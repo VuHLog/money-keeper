@@ -14,14 +14,16 @@ public interface DictionaryBucketPaymentRepository
         extends JpaRepository<DictionaryBucketPayment, String>, JpaSpecificationExecutor<DictionaryBucketPayment> {
     @Query(
             value =
-                    "SELECT er.id, er.balance, er.expense_date AS date, amount,de.icon_url, de.name AS category_name, 'expense' AS TYPE, interpretation, transfer_type FROM expense_regular er\n"
+                    "SELECT er.id, er.balance, er.expense_date AS date, amount,de.icon_url, de.name AS category_name, 'expense' AS TYPE, er.interpretation, transfer_type, dbp.account_name FROM expense_regular er\n"
                             + "LEFT JOIN dictionary_expense de ON de.id = er.dictionary_expense_id\n"
+                            + "LEFT JOIN dictionary_bucket_payment dbp ON dbp.id = er.beneficiary_account_id\n"
                             + "WHERE er.dictionary_bucket_payment_id = :bucketPaymentId\n"
                             + "AND (:startDate IS NULL OR er.expense_date >= :startDate)\n "
                             + "AND (:endDate IS NULL OR er.expense_date <= :endDate)\n "
                             + "UNION\n"
-                            + "SELECT rr.id,rr.balance, rr.revenue_date AS date,amount, dr.icon_url, dr.name AS category_name, 'revenue' AS TYPE, interpretation, transfer_type FROM revenue_regular rr\n"
+                            + "SELECT rr.id,rr.balance, rr.revenue_date AS date,amount, dr.icon_url, dr.name AS category_name, 'revenue' AS TYPE, rr.interpretation, transfer_type, dbp.account_name FROM revenue_regular rr\n"
                             + "LEFT JOIN dictionary_revenue dr ON dr.id = rr.dictionary_revenue_id\n"
+                            + "LEFT JOIN dictionary_bucket_payment dbp ON dbp.id = rr.sender_account_id\n"
                             + "WHERE rr.dictionary_bucket_payment_id = :bucketPaymentId\n"
                             + "AND (:startDate IS NULL OR rr.revenue_date >= :startDate)\n "
                             + "AND (:endDate IS NULL OR rr.revenue_date <= :endDate)\n "

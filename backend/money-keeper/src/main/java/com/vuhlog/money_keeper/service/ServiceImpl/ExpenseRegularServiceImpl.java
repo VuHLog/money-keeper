@@ -61,9 +61,15 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
         expenseRegular.setBalance(newBalance);
         DictionaryExpense dictionaryExpense = dictionaryExpenseRepository.findById(request.getDictionaryExpenseId()).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
         expenseRegular.setDictionaryExpense(dictionaryExpense);
-        TripEvent tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        TripEvent tripEvent = null;
+        if(request.getTripEventId() != null && !request.getTripEventId().isEmpty()) {
+            tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        }
         expenseRegular.setTripEvent(tripEvent);
-        Beneficiary beneficiary = beneficiaryRepository.findById(request.getBeneficiaryId()).orElse(null);
+        Beneficiary beneficiary = null;
+        if(request.getBeneficiaryId() != null && !request.getBeneficiaryId().isEmpty()) {
+            beneficiary = beneficiaryRepository.findById(request.getBeneficiaryId()).orElse(null);
+        }
         expenseRegular.setBeneficiary(beneficiary);
         expenseRegular = expenseRegularRepository.save(expenseRegular);
 
@@ -109,12 +115,6 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     }
 
     @Override
-    public void deleteExpenseRegular(String id) {
-        ExpenseRegular expenseRegular = expenseRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.EXPENSE_REGULAR_NOT_EXISTED));
-        expenseRegularRepository.deleteById(id);
-    }
-
-    @Override
     @Transactional(rollbackFor = Exception.class)
     public ExpenseRegularResponse updateExpenseRegular(String id, ExpenseRegularRequest request) {
         //save update expense
@@ -135,9 +135,15 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
             DictionaryExpense dictionaryExpense = dictionaryExpenseRepository.findById(request.getDictionaryExpenseId()).orElse(null);
             expenseRegular.setDictionaryExpense(dictionaryExpense);
         }
-        TripEvent tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        TripEvent tripEvent = null;
+        if(request.getTripEventId() != null && !request.getTripEventId().isEmpty()) {
+            tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        }
         expenseRegular.setTripEvent(tripEvent);
-        Beneficiary beneficiary = beneficiaryRepository.findById(request.getBeneficiaryId()).orElse(null);
+        Beneficiary beneficiary = null;
+        if(request.getBeneficiaryId() != null && !request.getBeneficiaryId().isEmpty()) {
+            beneficiary = beneficiaryRepository.findById(request.getBeneficiaryId()).orElse(null);
+        }
         expenseRegular.setBeneficiary(beneficiary);
         expenseRegular = expenseRegularRepository.save(expenseRegular);
 
@@ -177,6 +183,20 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
         //update expense,revenue balance after this expense
         expenseRegularRepository.updateBalanceGreaterThanDatetime(dictionaryBucketPayment.getId(), -amount, date);
         revenueRegularRepository.updateBalanceGreaterThanDatetime(dictionaryBucketPayment.getId(), -amount, date);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteExpenseRegular(String id) {
+        ExpenseRegular expenseRegular = expenseRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.EXPENSE_REGULAR_NOT_EXISTED));
+        //delete record in transaction history table
+        transactionHistoryRepository.deleteAllByTransactionId(expenseRegular.getId());
+
+        expenseRegularRepository.deleteById(id);
+
+        //update balance
+        DictionaryBucketPayment dictionaryBucketPayment = expenseRegular.getDictionaryBucketPayment();
+        updateBalance(dictionaryBucketPayment, -expenseRegular.getAmount(), expenseRegular.getExpenseDate());
     }
 
     private long getOldBalanceWhenCreate(DictionaryBucketPayment dictionaryBucketPayment, Timestamp date) {

@@ -31,7 +31,7 @@ onMounted(() => {
 
 <template>
   <div class="h">
-    <h1 class="text-center text-primary-color mb-10">Tài khoản</h1>
+    <h1 class="text-center text-primary mb-10">Tài khoản</h1>
     <div>
       <router-link
         to="/account/create"
@@ -308,7 +308,7 @@ onMounted(() => {
       <p class="text-20 text-disable mb-3">Bạn chưa có tài khoản nào</p>
       <router-link
         to="/account/create"
-        class="text-decoration-none text-primary-color text-20 hover-opacity-06"
+        class="text-decoration-none text-primary text-20 hover-opacity-06"
       >
         <font-awesome-icon class="mr-2" :icon="['fas', 'plus']" />
         <span>Thêm tài khoản</span>

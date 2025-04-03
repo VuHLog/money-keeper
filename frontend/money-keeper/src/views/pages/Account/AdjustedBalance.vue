@@ -21,11 +21,11 @@ const categorySelected = ref();
 <template>
   <div class="account-info text-grey-color">
     <div
-      class="text-primary-color d-flex justify-center position-relative mb-10"
+      class="text-primary d-flex justify-center position-relative mb-10"
     >
       <router-link
         to="/account"
-        class="position-absolute top-0 left-0 text-primary-color text-decoration-none"
+        class="position-absolute top-0 left-0 text-primary text-decoration-none"
       >
         <font-awesome-icon
           :icon="['fas', 'clock-rotate-left']"
@@ -49,7 +49,7 @@ const categorySelected = ref();
             <template v-slot:prepend>
               <v-avatar start>
                 <font-awesome-icon
-                  class="text-primary-color"
+                  class="text-primary"
                   :icon="item.raw.icon"
                 />
               </v-avatar>
@@ -60,11 +60,11 @@ const categorySelected = ref();
           <div>
             <v-avatar start>
               <font-awesome-icon
-                class="text-primary-color"
+                class="text-primary"
                 :icon="item.raw.icon"
               />
             </v-avatar>
-            <span class="text-primary-color text-20">{{ item.raw.name }}</span>
+            <span class="text-primary text-20">{{ item.raw.name }}</span>
           </div>
         </template>
       </v-select>
@@ -173,7 +173,10 @@ const categorySelected = ref();
       </v-row>
     </div>
     <div class="text-center">
-      <button class="bg-primary-color text-white py-2 px-10 rounded">
+      <button class="bg-primary-color text-white py-2 px-10 rounded d-inline-flex justify-center" @click.stop="createExpense">
+        <div class="mr-2">
+          <font-awesome-icon :icon="['fas', 'floppy-disk']" />
+        </div>
         Lưu
       </button>
     </div>

@@ -26,7 +26,7 @@ const expense = ref({
   amount: 0,
   dictionaryBucketPaymentId: "",
   expenseDate: "",
-  receivedAccountId: "",
+  beneficiaryAccountId: "",
   interpretation: "",
 });
 
@@ -71,7 +71,7 @@ async function handleClickSave() {
   }
 
   expense.value.dictionaryBucketPaymentId = fromAccount.value.id;
-  expense.value.receivedAccountId = toAccount.value.id;
+  expense.value.beneficiaryAccountId = toAccount.value.id;
 
   expense.value.expenseDate = currentTime.value instanceof Date
     ? new Date(currentTime.value.getTime() - (currentTime.value.getTimezoneOffset() * 60000))
@@ -97,8 +97,8 @@ async function handleClickSave() {
 
 <template>
   <div class="account-info text-grey-color">
-    <div class="text-primary-color d-flex justify-center position-relative mb-10">
-      <router-link to="/account" class="position-absolute top-0 left-0 text-primary-color text-decoration-none">
+    <div class="text-primary d-flex justify-center position-relative mb-10">
+      <router-link to="/account" class="position-absolute top-0 left-0 text-primary text-decoration-none">
         <font-awesome-icon :icon="['fas', 'clock-rotate-left']" style="font-size: 32px" />
       </router-link>
       <v-select variant="solo" rounded v-model="feature" :items="mainFeatureList" item-title="name"
@@ -107,7 +107,7 @@ async function handleClickSave() {
           <v-list-item v-bind="props" :to="item.raw.href">
             <template v-slot:prepend>
               <v-avatar start>
-                <font-awesome-icon class="text-primary-color" :icon="item.raw.icon" />
+                <font-awesome-icon class="text-primary" :icon="item.raw.icon" />
               </v-avatar>
             </template>
           </v-list-item>
@@ -115,9 +115,9 @@ async function handleClickSave() {
         <template v-slot:selection="{ item }">
           <div>
             <v-avatar start>
-              <font-awesome-icon class="text-primary-color" :icon="item.raw.icon" />
+              <font-awesome-icon class="text-primary" :icon="item.raw.icon" />
             </v-avatar>
-            <span class="text-primary-color text-20">{{ item.raw.name }}</span>
+            <span class="text-primary text-20">{{ item.raw.name }}</span>
           </div>
         </template>
       </v-select>
@@ -133,7 +133,7 @@ async function handleClickSave() {
           <div class="flex-center flex-column text-20">
             <div class="flex-center w-100">
               <v-text-field v-model="expense.amount" label="Số tiền" hide-details="auto"
-                class="text-blue-accent-3 font-weight-bold text-end" bg-color="bg-white" hide-spin-buttons>
+                class="text-red-accent-3 font-weight-bold text-end" bg-color="bg-white" hide-spin-buttons>
                 <template v-slot:prepend>
                   <v-avatar class="flex-center">
                     <font-awesome-icon :icon="['fas', 'money-bill']" />
@@ -198,7 +198,10 @@ async function handleClickSave() {
       </v-row>
     </div>
     <div class="text-center">
-      <button class="bg-primary-color text-white py-2 px-10 rounded" @click.stop="handleClickSave()">
+      <button class="bg-primary-color text-white py-2 px-10 rounded d-inline-flex justify-center" @click.stop="handleClickSave()">
+        <div class="mr-2">
+          <font-awesome-icon :icon="['fas', 'floppy-disk']" />
+        </div>
         Lưu
       </button>
     </div>

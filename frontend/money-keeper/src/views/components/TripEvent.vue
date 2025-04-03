@@ -59,7 +59,7 @@ async function handleClickDeleteTripEvent(tripEvent) {
 
 <template>
   <div class="bg-white rounded-lg pa-3 position-relative container-box overflow-y-auto overflow-hidden">
-    <h1 class="text-center text-primary-color mb-8">Chuyến đi/Sự kiện</h1>
+    <h1 class="text-center text-primary mb-8">Chuyến đi/Sự kiện</h1>
 
     <div class="d-flex justify-end">
       <v-expand-x-transition>

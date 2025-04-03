@@ -56,9 +56,15 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
         revenueRegular.setBalance(newBalance);
         DictionaryRevenue dictionaryRevenue = dictionaryRevenueRepository.findById(request.getDictionaryRevenueId()).orElse(null);
         revenueRegular.setDictionaryRevenue(dictionaryRevenue);
-        TripEvent tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        TripEvent tripEvent = null;
+        if(request.getTripEventId() != null && !request.getTripEventId().isEmpty()) {
+            tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        }
         revenueRegular.setTripEvent(tripEvent);
-        CollectMoneyWho collectMoneyWho = collectMoneyWhoRepository.findById(request.getCollectMoneyWhoId()).orElse(null);
+        CollectMoneyWho collectMoneyWho = null;
+        if(request.getCollectMoneyWhoId() != null && !request.getCollectMoneyWhoId().isEmpty()) {
+            collectMoneyWho = collectMoneyWhoRepository.findById(request.getCollectMoneyWhoId()).orElse(null);
+        }
         revenueRegular.setCollectMoneyWho(collectMoneyWho);
         revenueRegular = revenueRegularRepository.save(revenueRegular);
 
@@ -68,11 +74,6 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
         return revenueRegularMapper.toRevenueRegularResponse(revenueRegular);
     }
 
-    @Override
-    public void deleteRevenueRegular(String id) {
-        RevenueRegular revenueRegular = revenueRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.REVENUE_REGULAR_NOT_EXISTED));
-        revenueRegularRepository.deleteById(id);
-    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -93,10 +94,17 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
             DictionaryRevenue dictionaryRevenue = dictionaryRevenueRepository.findById(request.getDictionaryRevenueId()).orElse(null);
             revenueRegular.setDictionaryRevenue(dictionaryRevenue);
         }
-        TripEvent tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        TripEvent tripEvent = null;
+        if(request.getTripEventId() != null && !request.getTripEventId().isEmpty()) {
+            tripEvent = tripEventRepository.findById(request.getTripEventId()).orElse(null);
+        }
         revenueRegular.setTripEvent(tripEvent);
-        CollectMoneyWho collectMoneyWho = collectMoneyWhoRepository.findById(request.getCollectMoneyWhoId()).orElse(null);
+        CollectMoneyWho collectMoneyWho = null;
+        if(request.getCollectMoneyWhoId() != null && !request.getCollectMoneyWhoId().isEmpty()) {
+            collectMoneyWho = collectMoneyWhoRepository.findById(request.getCollectMoneyWhoId()).orElse(null);
+        }
         revenueRegular.setCollectMoneyWho(collectMoneyWho);
+
         revenueRegular = revenueRegularRepository.save(revenueRegular);
 
         //create transaction history
@@ -121,6 +129,19 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
     public RevenueRegularResponse getRevenueRegularById(String id) {
         RevenueRegular revenueRegular = revenueRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.REVENUE_REGULAR_NOT_EXISTED));
         return revenueRegularMapper.toRevenueRegularResponse(revenueRegular);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRevenueRegular(String id) {
+        RevenueRegular revenueRegular = revenueRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.REVENUE_REGULAR_NOT_EXISTED));
+        transactionHistoryRepository.deleteAllByTransactionId(revenueRegular.getId());
+
+        revenueRegularRepository.deleteById(id);
+
+        //update balance
+        DictionaryBucketPayment dictionaryBucketPayment = revenueRegular.getDictionaryBucketPayment();
+        updateBalance(dictionaryBucketPayment, - revenueRegular.getAmount(), revenueRegular.getRevenueDate());
     }
 
     @Transactional(rollbackFor = Exception.class)

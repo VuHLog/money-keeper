@@ -62,7 +62,7 @@ async function handleClickChangePassword() {
 
 <template>
   <div class="bg-white rounded-lg pa-3 position-relative container-box overflow-y-auto overflow-hidden">
-    <h1 class="text-center text-primary-color mb-8">Mật khẩu</h1>
+    <h1 class="text-center text-primary mb-8">Mật khẩu</h1>
 
     <v-row justify="center">
       <v-col cols="7">
@@ -86,7 +86,10 @@ async function handleClickChangePassword() {
     </v-row>
 
     <div class="text-center">
-      <button class="bg-primary-color text-white py-2 px-10 rounded" @click.stop="handleClickChangePassword">
+      <button class="bg-primary-color text-white py-2 px-10 rounded d-inline-flex justify-center" @click.stop="handleClickChangePassword">
+        <div class="mr-2">
+          <font-awesome-icon :icon="['fas', 'floppy-disk']" />
+        </div>
         Lưu
       </button>
     </div>

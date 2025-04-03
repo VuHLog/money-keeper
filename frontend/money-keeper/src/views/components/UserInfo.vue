@@ -8,6 +8,7 @@ const { proxy } = getCurrentInstance();
 const swal = inject("$swal");
 const file = ref(null);
 const errMsg = ref("");
+const previewImage = ref("");
 
 const props = defineProps({
   modelValue: {
@@ -37,8 +38,9 @@ onMounted(() => {
 
 async function handleFileUpload(event) {
   file.value = event.target.files[0];
-  if (file.value !== null) {
-    await submitFile();
+  if (file.value) {
+    // Tạo URL tạm thời cho ảnh vừa chọn
+    previewImage.value = URL.createObjectURL(file.value);
   }
 }
 
@@ -71,6 +73,10 @@ function isValid() {
 async function updateUser() {
   if (!isValid()) return;
 
+  if (file.value !== null) {
+    await submitFile();
+  }
+
   await proxy.$api
     .put("/users/" + user.value.id, user.value)
     .then((res) => {
@@ -87,7 +93,7 @@ async function updateUser() {
 
 <template>
   <div class="bg-white rounded-lg pa-3 position-relative container-box overflow-y-auto overflow-hidden">
-    <h1 class="text-center text-primary-color mb-8">Thông tin tài khoản</h1>
+    <h1 class="text-center text-primary mb-8">Thông tin tài khoản</h1>
 
     <div>
       <v-row justify="center">
@@ -110,7 +116,7 @@ async function updateUser() {
           <div class="d-flex align-center flex-column">
             <div class="py-4">
               <img class="height-avatar-thumbnail width-avatar-thumbnail rounded-circle object-cover object-center"
-                :src="user.avatarUrl" alt="avatar" />
+                :src="previewImage || user.avatarUrl" alt="avatar" />
             </div>
             <input id="input-image" class="d-none" type="file" accept=".jpg,.jpeg,.png"
               @change="handleFileUpload($event)" />
@@ -129,9 +135,12 @@ async function updateUser() {
         </v-col>
       </v-row>
       <div class="text-center mt-2">
-        <button class="bg-primary-color text-white py-2 px-10 rounded" @click.stop="updateUser">
-          Lưu
-        </button>
+        <button class="bg-primary-color text-white py-2 px-10 rounded d-inline-flex justify-center" @click.stop="updateUser">
+        <div class="mr-2">
+          <font-awesome-icon :icon="['fas', 'floppy-disk']" />
+        </div>
+        Lưu
+      </button>
       </div>
     </div>
   </div>

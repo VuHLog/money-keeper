@@ -89,10 +89,10 @@ async function createAccount() {
 
 <template>
   <div>
-    <div class="text-primary-color position-relative mb-10">
+    <div class="text-primary position-relative mb-10">
       <router-link
         to="/account"
-        class="position-absolute top-0 left-0 text-primary-color text-decoration-none"
+        class="position-absolute top-0 left-0 text-primary text-decoration-none"
       >
         <font-awesome-icon
           :icon="['fas', 'angle-left']"
@@ -212,7 +212,7 @@ async function createAccount() {
           </template>
         </v-autocomplete>
       </v-col>
-      <v-col cols="6">
+      <!-- <v-col cols="6">
         <v-autocomplete
           v-model="accountType"
           :items="accountTypeList"
@@ -240,7 +240,7 @@ async function createAccount() {
             </div>
           </template>
         </v-autocomplete>
-      </v-col>
+      </v-col> -->
       <v-col cols="12">
         <v-textarea
           v-model="bucketPayment.interpretation"
@@ -264,10 +264,10 @@ async function createAccount() {
       </v-col>
     </v-row>
     <div class="text-center">
-      <button
-        class="bg-primary-color text-white py-2 px-10 rounded"
-        @click="createAccount"
-      >
+      <button class="bg-primary-color text-white py-2 px-10 rounded d-inline-flex justify-center" @click.stop="createAccount">
+        <div class="mr-2">
+          <font-awesome-icon :icon="['fas', 'floppy-disk']" />
+        </div>
         Lưu
       </button>
     </div>

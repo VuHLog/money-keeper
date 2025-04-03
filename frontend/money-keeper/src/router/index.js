@@ -7,14 +7,16 @@ import SignIn from "@pages/SignIn.vue";
 import SignUp from "@pages/SignUp.vue";
 import Home from "@pages/Home.vue";
 import Account from "@pages/Account/Account.vue";
-import AccountInfo from "@pages/Account/Info.vue";
-import CreateAccount from "@pages/Account/Create.vue";
+import AccountInfo from "@pages/Account/AccountInfo.vue";
+import CreateAccount from "@pages/Account/CreateAccount.vue";
 import AdjustedBalance from "@pages/Account/AdjustedBalance.vue";
 import Transfer from "@pages/Account/Transfer.vue";
 import Passbook from "@pages/Passbook/Passbook.vue";
 import CreatePassbook from "@pages/Passbook/Create.vue";
-import CreateExpense from "@pages/Expense/Create.vue";
-import CreateRevenue from "@pages/Revenue/Create.vue";
+import CreateExpense from "@pages/Expense/CreateExpense.vue";
+import ExpenseInfo from "@pages/Expense/ExpenseInfo.vue";
+import CreateRevenue from "@pages/Revenue/CreateRevenue.vue";
+import RevenueInfo from "@pages/Revenue/RevenueInfo.vue";
 
 const routes = [
   {
@@ -70,10 +72,20 @@ const routes = [
         component: CreateExpense
       },
       {
+        path: "/expense/:expenseId",
+        name: "Expense info",
+        component: ExpenseInfo
+      },
+      {
         path: "/revenue/create",
         name: "Create revenue",
         component: CreateRevenue
-      }
+      },
+      {
+        path: "/revenue/:revenueId",
+        name: "Revenue info",
+        component: RevenueInfo
+      },
     ],
   },
   {
