@@ -36,6 +36,11 @@ public class ExpenseRegularController {
         return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.createExpenseRegularFromTransferRequest(req)).build();
     }
 
+    @PutMapping("/{id}/transfer")
+    public ApiResponse<ExpenseRegularResponse> updateTransfer(@PathVariable String id, @RequestBody TransferRequest req) {
+        return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.updateExpenseRegularFromTransferRequest(id, req)).build();
+    }
+
     @PutMapping("/{id}")
     public ApiResponse<ExpenseRegularResponse> updateExpenseRegular(@PathVariable String id, @RequestBody ExpenseRegularRequest req) {
         return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.updateExpenseRegular(id, req)).build();

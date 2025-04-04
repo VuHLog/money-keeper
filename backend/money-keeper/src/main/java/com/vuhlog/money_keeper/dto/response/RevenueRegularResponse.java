@@ -24,4 +24,5 @@ public class RevenueRegularResponse {
     private DictionaryRevenue dictionaryRevenue;
     private TripEventResponse tripEvent;
     private CollectMoneyWhoResponse collectMoneyWho;
+    private String expenseRegularId;
 }

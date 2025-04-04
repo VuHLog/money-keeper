@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -100,6 +101,7 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
         revenueRegular.setDictionaryBucketPayment(beneficiaryAccount);
         revenueRegular.setSenderAccount(dictionaryBucketPayment);
         revenueRegular.setTransferType(TransferType.TRANSFER.getType());
+        revenueRegular.setExpenseRegularId(expenseRegular.getId());
         long oldBalanceRevenue =  getOldBalanceWhenCreate(beneficiaryAccount, expenseRegular.getExpenseDate());
         long newBalanceRevenue = oldBalanceRevenue + request.getAmount();
         revenueRegular.setBalance(newBalanceRevenue);
@@ -110,6 +112,67 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
 
         //update balance for beneficiary account
         updateBalance(beneficiaryAccount, -request.getAmount(), expenseRegular.getExpenseDate());
+
+        return expenseRegularMapper.toExpenseRegularResponse(expenseRegular);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ExpenseRegularResponse updateExpenseRegularFromTransferRequest(String id, TransferRequest request) {
+        //update expense
+        ExpenseRegular expenseRegular = expenseRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.EXPENSE_REGULAR_NOT_EXISTED));
+        PeriodOfTime updateTimeLimit = TimestampUtil.getPeriodOfTime(TimeOptionType.LAST_30_DAYS.getType());
+        if(expenseRegular.getExpenseDate().before(updateTimeLimit.getStartDate()) || expenseRegular.getExpenseDate().after(updateTimeLimit.getEndDate())){
+            throw new AppException(ErrorCode.UPDATE_TIME_LIMIT);
+        }
+        long oldAmount = expenseRegular.getAmount();
+        long newAmount = request.getAmount();
+        expenseRegularMapper.updateExpenseRegularFromTransferRequest(request, expenseRegular);
+        expenseRegular.setBalance(expenseRegular.getBalance() - (newAmount - oldAmount));
+        DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
+        expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
+
+        DictionaryBucketPayment beneficiaryAccount = dictionaryBucketPaymentRepository.findById(request.getBeneficiaryAccountId()).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
+        expenseRegular.setBeneficiaryAccount(beneficiaryAccount);
+
+        expenseRegular = expenseRegularRepository.save(expenseRegular);
+
+        //update for beneficiary account
+        RevenueRegular revenueRegular = revenueRegularRepository.findByExpenseRegularId(expenseRegular.getId());
+        if(revenueRegular == null){
+            throw new AppException(ErrorCode.REVENUE_REGULAR_NOT_EXISTED);
+        }
+        revenueRegularMapper.updateRevenueRegularFromTransferRequest(request, revenueRegular);
+        revenueRegular.setDictionaryBucketPayment(beneficiaryAccount);
+        revenueRegular.setSenderAccount(dictionaryBucketPayment);
+        revenueRegular.setBalance(revenueRegular.getBalance() + newAmount - oldAmount);
+        revenueRegularRepository.save(revenueRegular);
+
+        //create transaction history
+        TransactionHistory transactionHistoryExpense = TransactionHistory.builder()
+                .transactionId(expenseRegular.getId())
+                .transactionType(TransactionType.EXPENSE.getType())
+                .oldAmount(oldAmount)
+                .newAmount(newAmount)
+                .senderAccountId(dictionaryBucketPayment.getId())
+                .beneficiaryAccountId(beneficiaryAccount.getId())
+                .build();
+
+        TransactionHistory transactionHistoryRevenue = TransactionHistory.builder()
+                .transactionId(expenseRegular.getBeneficiaryAccount().getId())
+                .transactionType(TransactionType.REVENUE.getType())
+                .oldAmount(oldAmount)
+                .newAmount(newAmount)
+                .senderAccountId(dictionaryBucketPayment.getId())
+                .beneficiaryAccountId(beneficiaryAccount.getId())
+                .build();
+        transactionHistoryRepository.saveAll(List.of(transactionHistoryExpense, transactionHistoryRevenue));
+
+        //update balance greater than date
+        if(oldAmount != newAmount){
+            updateBalance(dictionaryBucketPayment, (newAmount - oldAmount), expenseRegular.getExpenseDate());
+            updateBalance(beneficiaryAccount, -(newAmount - oldAmount), revenueRegular.getRevenueDate());
+        }
 
         return expenseRegularMapper.toExpenseRegularResponse(expenseRegular);
     }

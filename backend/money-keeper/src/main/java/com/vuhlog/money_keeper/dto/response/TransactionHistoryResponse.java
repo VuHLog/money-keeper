@@ -17,6 +17,8 @@ public class TransactionHistoryResponse {
     private long newAmount;
     private String oldCategoryId;
     private String newCategoryId;
+    private String beneficiaryAccountId;
+    private String senderAccountId;
     private String updatedAt;
     private DictionaryBucketPaymentResponse bucketPayment;
 }

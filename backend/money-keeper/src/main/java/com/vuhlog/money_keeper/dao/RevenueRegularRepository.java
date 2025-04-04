@@ -39,4 +39,6 @@ public interface RevenueRegularRepository extends JpaRepository<RevenueRegular, 
             @Param("amount") long amount,
             @Param("datetime") Timestamp datetime
     );
+
+    RevenueRegular findByExpenseRegularId(String expenseRegularId);
 }

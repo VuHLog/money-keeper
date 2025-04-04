@@ -24,6 +24,8 @@ public class TransactionHistory {
     private String oldCategoryId;
     private String newCategoryId;
     private Timestamp updatedAt;
+    private String beneficiaryAccountId;
+    private String senderAccountId;
 
     @ManyToOne
     @JoinColumn(name = "bucket_payment_id")
