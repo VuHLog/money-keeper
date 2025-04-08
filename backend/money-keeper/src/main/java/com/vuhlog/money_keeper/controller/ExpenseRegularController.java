@@ -36,10 +36,10 @@ public class ExpenseRegularController {
         return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.createExpenseRegularFromTransferRequest(req)).build();
     }
 
-    @PutMapping("/{id}/transfer")
-    public ApiResponse<ExpenseRegularResponse> updateTransfer(@PathVariable String id, @RequestBody TransferRequest req) {
-        return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.updateExpenseRegularFromTransferRequest(id, req)).build();
-    }
+//    @PutMapping("/{id}/transfer")
+//    public ApiResponse<ExpenseRegularResponse> updateTransfer(@PathVariable String id, @RequestBody TransferRequest req) {
+//        return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.updateExpenseRegularFromTransferRequest(id, req)).build();
+//    }
 
     @PutMapping("/{id}")
     public ApiResponse<ExpenseRegularResponse> updateExpenseRegular(@PathVariable String id, @RequestBody ExpenseRegularRequest req) {
@@ -50,5 +50,11 @@ public class ExpenseRegularController {
     public ApiResponse<String> deleteExpenseRegularById(@PathVariable String id) {
         expenseRegularService.deleteExpenseRegular(id);
         return ApiResponse.<String>builder().result("delete expense regular successfully").build();
+    }
+
+    @RequestMapping(value = "/transfer/{id}", method = RequestMethod.DELETE)
+    public ApiResponse<String> deleteExpenseRegularByIdAndTransferType(@PathVariable String id) {
+        expenseRegularService.deleteExpenseRegularByTransferType(id);
+        return ApiResponse.<String>builder().result("delete expense regular is transfer type successfully").build();
     }
 }

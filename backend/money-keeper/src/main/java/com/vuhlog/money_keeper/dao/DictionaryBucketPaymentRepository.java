@@ -60,7 +60,7 @@ public interface DictionaryBucketPaymentRepository
             "\tSELECT id,  balance, amount, revenue_date AS DATE, 'revenue' AS TYPE\n" +
             "\tFROM revenue_regular\n" +
             "\tWHERE dictionary_bucket_payment_id = :bucketPaymentId AND revenue_date > :date\n" +
-            "\tORDER BY DATE DESC\n" +
+            "\tORDER BY DATE ASC\n" +
             "\tLIMIT 1\n" +
             ") AS NearestTransaction", nativeQuery = true)
     Object[] getNearestTransactionByBucketPaymentIdAndGreaterThanDate(@Param("bucketPaymentId") String bucketPaymentId, @Param("date") Timestamp date);

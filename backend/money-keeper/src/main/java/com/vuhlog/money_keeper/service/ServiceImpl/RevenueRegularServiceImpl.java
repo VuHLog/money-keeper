@@ -51,9 +51,6 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
         revenueRegular.setTransferType(TransferType.NORMAL.getType());
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
         revenueRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
-        long oldBalance =  getOldBalanceWhenCreate(dictionaryBucketPayment, revenueRegular.getRevenueDate());
-        long newBalance = oldBalance + request.getAmount();
-        revenueRegular.setBalance(newBalance);
         DictionaryRevenue dictionaryRevenue = dictionaryRevenueRepository.findById(request.getDictionaryRevenueId()).orElse(null);
         revenueRegular.setDictionaryRevenue(dictionaryRevenue);
         TripEvent tripEvent = null;
@@ -66,11 +63,13 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
             collectMoneyWho = collectMoneyWhoRepository.findById(request.getCollectMoneyWhoId()).orElse(null);
         }
         revenueRegular.setCollectMoneyWho(collectMoneyWho);
-        revenueRegular = revenueRegularRepository.save(revenueRegular);
 
         //update balance
-        updateBalance(dictionaryBucketPayment, request.getAmount(), revenueRegular.getRevenueDate());
+        updateBalance(dictionaryBucketPayment, request.getAmount(), revenueRegular.getRevenueDate(), null, true);
 
+        long balance =  getBalanceWhenCreate(dictionaryBucketPayment, revenueRegular.getRevenueDate(), request.getAmount());
+        revenueRegular.setBalance(balance);
+        revenueRegular = revenueRegularRepository.save(revenueRegular);
         return revenueRegularMapper.toRevenueRegularResponse(revenueRegular);
     }
 
@@ -80,13 +79,20 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
     public RevenueRegularResponse updateRevenueRegular(String id, RevenueRegularRequest request) {
         RevenueRegular revenueRegular = revenueRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.REVENUE_REGULAR_NOT_EXISTED));
         PeriodOfTime updateTimeLimit = TimestampUtil.getPeriodOfTime(TimeOptionType.LAST_30_DAYS.getType());
-        if(revenueRegular.getRevenueDate().before(updateTimeLimit.getStartDate()) || revenueRegular.getRevenueDate().after(updateTimeLimit.getEndDate())){
-            throw new AppException(ErrorCode.UPDATE_TIME_LIMIT);
-        }
         long oldAmount = revenueRegular.getAmount();
         long newAmount = request.getAmount();
         String oldCategoryId = revenueRegular.getDictionaryRevenue().getId();
         String newCategoryId = request.getDictionaryRevenueId();
+        String oldBucketPaymentId = revenueRegular.getDictionaryBucketPayment().getId();
+        String newBucketPaymentId = request.getDictionaryBucketPaymentId();
+        Timestamp oldRevenueDate = revenueRegular.getRevenueDate();
+        Timestamp newRevenueDate = TimestampUtil.stringToTimestamp(request.getRevenueDate());
+        if(oldRevenueDate.before(updateTimeLimit.getStartDate()) || oldRevenueDate.after(updateTimeLimit.getEndDate())){
+            throw new AppException(ErrorCode.UPDATE_TIME_LIMIT);
+        }
+        if(newRevenueDate.before(updateTimeLimit.getStartDate()) || newRevenueDate.after(updateTimeLimit.getEndDate())){
+            throw new AppException(ErrorCode.UPDATE_TIME_LIMIT);
+        }
         revenueRegularMapper.updateRevenueRegularFromRequest(request, revenueRegular);
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
         revenueRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
@@ -105,8 +111,6 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
         }
         revenueRegular.setCollectMoneyWho(collectMoneyWho);
 
-        revenueRegular = revenueRegularRepository.save(revenueRegular);
-
         //create transaction history
         TransactionHistory transactionHistory = TransactionHistory.builder()
                 .transactionId(revenueRegular.getId())
@@ -119,9 +123,30 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
                 .build();
         transactionHistoryRepository.save(transactionHistory);
 
-        if(oldAmount != newAmount){
-            updateBalance(dictionaryBucketPayment, newAmount - oldAmount, revenueRegular.getRevenueDate());
+        if(!oldBucketPaymentId.equals(newBucketPaymentId)){
+            DictionaryBucketPayment old =  dictionaryBucketPaymentRepository.findById(oldBucketPaymentId).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
+            updateBalance(old, -oldAmount, oldRevenueDate, null, true);
+            updateBalance(dictionaryBucketPayment, oldAmount, oldRevenueDate, null, true);
         }
+
+        if(newRevenueDate.after(oldRevenueDate)){
+            //update balance for all expense, revenue greater than old date, less than new date
+            updateBalance(dictionaryBucketPayment, - oldAmount, oldRevenueDate, newRevenueDate, false);
+
+            revenueRegular.setBalance(getBalanceWhenCreate(dictionaryBucketPayment, newRevenueDate, oldAmount));
+        }else {
+            //update balance for all expense, revenue greater than new date, less than old date
+            updateBalance(dictionaryBucketPayment, oldAmount, newRevenueDate, oldRevenueDate, false);
+
+            revenueRegular.setBalance(getBalanceWhenCreate(dictionaryBucketPayment, newRevenueDate, oldAmount));
+        }
+
+        if(oldAmount != newAmount){
+            revenueRegular.setBalance(revenueRegular.getBalance() + (newAmount - oldAmount));
+            updateBalance(dictionaryBucketPayment, newAmount - oldAmount, revenueRegular.getRevenueDate(), null, true);
+        }
+
+        revenueRegular = revenueRegularRepository.save(revenueRegular);
         return revenueRegularMapper.toRevenueRegularResponse(revenueRegular);
     }
 
@@ -141,27 +166,29 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
 
         //update balance
         DictionaryBucketPayment dictionaryBucketPayment = revenueRegular.getDictionaryBucketPayment();
-        updateBalance(dictionaryBucketPayment, - revenueRegular.getAmount(), revenueRegular.getRevenueDate());
+        updateBalance(dictionaryBucketPayment, - revenueRegular.getAmount(), revenueRegular.getRevenueDate(), null, true);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    protected void updateBalance(DictionaryBucketPayment dictionaryBucketPayment, long amount, Timestamp date) {
-        //update balance for account table
-        long oldBalance = dictionaryBucketPayment.getBalance();
-        long newBalance = oldBalance + amount;
-        dictionaryBucketPayment.setBalance(newBalance);
-        dictionaryBucketPaymentRepository.save(dictionaryBucketPayment);
+    protected void updateBalance(DictionaryBucketPayment dictionaryBucketPayment, long amount, Timestamp startDate, Timestamp endDate, boolean isUpdateBucketPayment) {
+        if(isUpdateBucketPayment){
+            //update balance for account table
+            long oldBalance = dictionaryBucketPayment.getBalance();
+            long newBalance = oldBalance + amount;
+            dictionaryBucketPayment.setBalance(newBalance);
+            dictionaryBucketPaymentRepository.save(dictionaryBucketPayment);
+        }
 
         //update expense,revenue balance after this expense
-        expenseRegularRepository.updateBalanceGreaterThanDatetime(dictionaryBucketPayment.getId(), amount, date);
-        revenueRegularRepository.updateBalanceGreaterThanDatetime(dictionaryBucketPayment.getId(), amount, date);
+        expenseRegularRepository.updateBalanceByDatetime(dictionaryBucketPayment.getId(), amount, startDate, endDate);
+        revenueRegularRepository.updateBalanceByDatetime(dictionaryBucketPayment.getId(), amount, startDate, endDate);
 
     }
 
-    private long getOldBalanceWhenCreate(DictionaryBucketPayment dictionaryBucketPayment, Timestamp date) {
+    private long getBalanceWhenCreate(DictionaryBucketPayment dictionaryBucketPayment, Timestamp date, long amount) {
         Long oldBalance = dictionaryBucketPaymentRepository.getNearestTransactionByBucketPaymentIdAndLessThanDate(dictionaryBucketPayment.getId(), date);
         if(oldBalance != null){
-            return oldBalance;
+            return oldBalance + amount;
         }else{
             Object[] result = dictionaryBucketPaymentRepository.getNearestTransactionByBucketPaymentIdAndGreaterThanDate(dictionaryBucketPayment.getId(), date);
             if(result != null && result.length > 0){
@@ -180,7 +207,7 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
                     }
                 }
             }else
-                return dictionaryBucketPayment.getBalance();
+                return dictionaryBucketPayment.getBalance() + amount;
         }
         return 0;
     }

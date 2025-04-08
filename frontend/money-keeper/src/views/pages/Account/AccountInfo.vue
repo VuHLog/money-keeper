@@ -227,8 +227,8 @@ function sumHistoryByDate(date, type) {
                       </v-icon>
                     </template>
                     <router-link :to="{path:history.type === 'expense' ?
-                    (history.transferType === TransferType.NORMAL ? '/expense/' + history.id: '/transfer/'+ history.id)
-                    : (history.transferType === TransferType.NORMAL ? '/revenue/' + history.id : '/transfer/'+ history.id),
+                    (history.transferType === TransferType.NORMAL ? '/expense/' + history.id: '/transfer/info/'+ history.id)
+                    : (history.transferType === TransferType.NORMAL ? '/revenue/' + history.id : '/transfer/info/'+ history.id),
                     query: { redirect: route.fullPath }}"
                     class="text-decoration-none">
                       <div class="d-flex justify-space-between">

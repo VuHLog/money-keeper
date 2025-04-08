@@ -33,10 +33,12 @@ public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, 
 
     @Modifying
     @Transactional
-    @Query("UPDATE ExpenseRegular e set e.balance = e.balance + :amount where e.dictionaryBucketPayment.id = :bucketPaymentId and e.expenseDate > :datetime")
-    void updateBalanceGreaterThanDatetime(
+    @Query("UPDATE ExpenseRegular e set e.balance = e.balance + :amount\n" +
+            "where e.dictionaryBucketPayment.id = :bucketPaymentId and (:startDate IS NULL OR e.expenseDate > :startDate) and (:endDate IS NULL OR e.expenseDate < :endDate)")
+    void updateBalanceByDatetime(
             @Param("bucketPaymentId") String bucketPaymentId,
             @Param("amount") long amount,
-            @Param("datetime") Timestamp datetime
+            @Param("startDate") Timestamp startDate,
+            @Param("endDate") Timestamp endDate
     );
 }

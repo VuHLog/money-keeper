@@ -10,8 +10,9 @@ public interface ExpenseRegularService {
     List<ExpenseRegularResponse> getAllMyExpenseRegular(String dictionaryBucketPaymentId);
     ExpenseRegularResponse createExpenseRegular(ExpenseRegularRequest request);
     ExpenseRegularResponse createExpenseRegularFromTransferRequest(TransferRequest request);
-    ExpenseRegularResponse updateExpenseRegularFromTransferRequest(String id, TransferRequest request);
+//    ExpenseRegularResponse updateExpenseRegularFromTransferRequest(String id, TransferRequest request);
     void deleteExpenseRegular(String id);
+    void deleteExpenseRegularByTransferType(String id);
     ExpenseRegularResponse updateExpenseRegular(String id, ExpenseRegularRequest request);
     ExpenseRegularResponse getExpenseRegularById(String id);
 }

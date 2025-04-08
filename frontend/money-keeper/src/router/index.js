@@ -10,7 +10,8 @@ import Account from "@pages/Account/Account.vue";
 import AccountInfo from "@pages/Account/AccountInfo.vue";
 import CreateAccount from "@pages/Account/CreateAccount.vue";
 import AdjustedBalance from "@pages/Account/AdjustedBalance.vue";
-import Transfer from "@pages/Account/Transfer.vue";
+import Transfer from "@pages/Transfer/Transfer.vue";
+import TransferInfo from "@pages/Transfer/TransferInfo.vue";
 import Passbook from "@pages/Passbook/Passbook.vue";
 import CreatePassbook from "@pages/Passbook/Create.vue";
 import CreateExpense from "@pages/Expense/CreateExpense.vue";
@@ -55,6 +56,11 @@ const routes = [
         path: "/account/transfer/:accountId",
         name: "Transfer",
         component: Transfer
+      },
+      { 
+        path: "/transfer/info/:transferId",
+        name: "Transfer info",
+        component: TransferInfo
       },
       { 
         path: "/passbook",
