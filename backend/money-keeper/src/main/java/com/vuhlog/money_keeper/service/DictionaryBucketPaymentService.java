@@ -2,6 +2,7 @@ package com.vuhlog.money_keeper.service;
 
 import java.util.List;
 
+import com.vuhlog.money_keeper.dto.request.BucketPaymentUsageStatus;
 import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
 import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
@@ -12,6 +13,8 @@ public interface DictionaryBucketPaymentService {
             DictionaryBucketPaymentRequest request, String userId);
 
     DictionaryBucketPaymentResponse updateDictionaryBucketPayment(String id, DictionaryBucketPaymentRequest request);
+
+    DictionaryBucketPaymentResponse updateUsageStatus(String id, BucketPaymentUsageStatus status);
 
     void deleteDictionaryBucketPayment(String id);
 

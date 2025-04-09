@@ -9,6 +9,7 @@ import Home from "@pages/Home.vue";
 import Account from "@pages/Account/Account.vue";
 import AccountInfo from "@pages/Account/AccountInfo.vue";
 import CreateAccount from "@pages/Account/CreateAccount.vue";
+import AccountEdit from "@pages/Account/AccountEdit.vue";
 import AdjustedBalance from "@pages/Account/AdjustedBalance.vue";
 import Transfer from "@pages/Transfer/Transfer.vue";
 import TransferInfo from "@pages/Transfer/TransferInfo.vue";
@@ -47,6 +48,11 @@ const routes = [
         path: "/account/create",
         name: "Create account",
         component: CreateAccount
+      },
+      { 
+        path: "/account/edit/:accountId",
+        name: "Edit account",
+        component: AccountEdit
       },
       { 
         path: "/account/adjusted-balance/:accountId",

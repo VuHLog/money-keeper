@@ -2,6 +2,7 @@ package com.vuhlog.money_keeper.controller;
 
 import java.util.List;
 
+import com.vuhlog.money_keeper.dto.request.BucketPaymentUsageStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
@@ -84,6 +85,33 @@ public class DictionaryBucketPaymentController {
         Users user = usersService.getMyUserInfo();
         return ApiResponse.<DictionaryBucketPaymentResponse>builder()
                 .result(dictionaryBucketPaymentService.createDictionaryBucketPayment(request, user.getId()))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<DictionaryBucketPaymentResponse> updateDictionaryBucketPayment(
+            @PathVariable(name = "id") String id,
+            @RequestBody DictionaryBucketPaymentRequest request) {
+        return ApiResponse.<DictionaryBucketPaymentResponse>builder()
+                .result(dictionaryBucketPaymentService.updateDictionaryBucketPayment(id, request))
+                .build();
+    }
+
+    @PatchMapping("/{id}/usage-status")
+    public ApiResponse<DictionaryBucketPaymentResponse> updateUsageStatus(
+            @PathVariable(name = "id") String id,
+            @RequestBody BucketPaymentUsageStatus request) {
+        return ApiResponse.<DictionaryBucketPaymentResponse>builder()
+                .result(dictionaryBucketPaymentService.updateUsageStatus(id, request))
+                .build();
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    public ApiResponse<String> deleteDictionaryBucketPayment(
+            @PathVariable(name = "id") String id) {
+        dictionaryBucketPaymentService.deleteDictionaryBucketPayment(id);
+        return ApiResponse.<String>builder()
+                .result("Delete bucket payment successfully")
                 .build();
     }
 }

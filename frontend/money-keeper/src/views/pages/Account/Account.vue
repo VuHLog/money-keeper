@@ -27,6 +27,16 @@ onMounted(() => {
     console.log(err);
   });
 });
+
+async function updateUsageStatus(id, status){
+  proxy.$api.patch("/dictionary-bucket-payment/" + id + "/usage-status", {status})
+  .then((res) => {
+    console.log(res.result.haveUse? "Đang sử dụng": "Ngừng sử dụng")
+    dictionaryBucketPayment.value.find(value => value.id === id).haveUse = res.result.haveUse;
+  }).catch((err) => {
+    console.log(err);
+  });
+}
 </script>
 
 <template>
@@ -168,7 +178,7 @@ onMounted(() => {
                         </div>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item class="hover-bg-grey">
+                    <v-list-item class="hover-bg-grey" @click="updateUsageStatus(item.id, false)">
                       <v-list-item-title>
                         <div
                           class="text-12 d-flex text-grey-darken-4 cursor-pointer"
@@ -274,7 +284,7 @@ onMounted(() => {
                         </div>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item class="hover-bg-grey">
+                    <v-list-item class="hover-bg-grey" @click="updateUsageStatus(item.id, true)">
                       <v-list-item-title>
                         <div
                           class="text-12 d-flex text-grey-darken-4 cursor-pointer"

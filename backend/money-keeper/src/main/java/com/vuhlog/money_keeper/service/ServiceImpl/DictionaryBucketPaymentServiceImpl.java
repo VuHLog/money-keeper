@@ -7,6 +7,7 @@ import com.vuhlog.money_keeper.dao.BankRepository;
 import com.vuhlog.money_keeper.dao.DictionaryBucketPaymentRepository;
 import com.vuhlog.money_keeper.dao.UsersRepository;
 import com.vuhlog.money_keeper.dao.specification.DictionaryBucketPaymentSpecification;
+import com.vuhlog.money_keeper.dto.request.BucketPaymentUsageStatus;
 import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
 import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
@@ -59,7 +60,20 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
 
     @Override
     public DictionaryBucketPaymentResponse updateDictionaryBucketPayment(String id, DictionaryBucketPaymentRequest request) {
-        return null;
+        DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
+        dictionaryBucketPaymentMapper.updateDictionaryBucketPaymentFromRequest(request, dictionaryBucketPayment);
+        if(dictionaryBucketPayment.getAccountType().equalsIgnoreCase(DictionaryBucketPaymentType.BANK.getType())
+                || dictionaryBucketPayment.getAccountType().equalsIgnoreCase(DictionaryBucketPaymentType.CREDIT_DEBIT_CARD.getType())){
+            dictionaryBucketPayment.setBank(bankRepository.findById(request.getBankId()).orElseThrow(() -> new AppException(ErrorCode.BANK_NOT_EXISTED)));
+        }
+        return dictionaryBucketPaymentMapper.toDictionaryBucketResponse(dictionaryBucketPaymentRepository.save(dictionaryBucketPayment));
+    }
+
+    @Override
+    public DictionaryBucketPaymentResponse updateUsageStatus(String id, BucketPaymentUsageStatus status) {
+        DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
+        dictionaryBucketPayment.setHaveUse(status.isStatus());
+        return dictionaryBucketPaymentMapper.toDictionaryBucketResponse(dictionaryBucketPaymentRepository.save(dictionaryBucketPayment));
     }
 
     @Override

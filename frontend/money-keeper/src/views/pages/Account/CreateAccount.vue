@@ -55,7 +55,7 @@ function isValid() {
   }
 
   if (
-    accountType.value.id === 2 ||
+    (accountType.value.id === 2 && Object.keys(bank.value).length === 0) ||
     (accountType.value.id === 3 && Object.keys(bank.value).length === 0)
   ) {
     errMsg.value = "Ngân hàng không được để trống";
