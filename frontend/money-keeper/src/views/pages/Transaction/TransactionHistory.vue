@@ -108,7 +108,7 @@ function sumHistoryByDate(date, type) {
           </v-btn>
         </v-col>
         <v-col>
-          <h1 class="text-h4 text-center text-primary mb-0">Chi tiết ví</h1>
+          <h1 class="text-h4 text-center text-primary mb-0">Lịch sử ghi chép</h1>
         </v-col>
       </v-row>
     </v-container>
