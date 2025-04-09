@@ -1,50 +1,42 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { TimeOption } from "@/constants/TimeOption.js";
-import { useDictionaryBucketPaymentStore } from "@/store/DictionaryBucketPayment.js";
+import { useTransactionStore } from "@/store/TransactionStore.js";
 import { useRoute } from "vue-router";
 import { formatCurrency } from "@/utils/format.js";
 import { getWeekday, formatDate } from "@/utils/DateUtil.js";
 import { TransferType, TransferTypeIcon } from "@/constants/TransferType.js";
 
-const dictionaryBucketPaymentStore = useDictionaryBucketPaymentStore();
+const transactionStore = useTransactionStore();
 const route = useRoute();
-const bucketPaymentId = ref(route.params.accountId);
 const timeOptions = ref(TimeOption);
 const timeOption = ref("Toàn bộ thời gian");
 const startDate = ref("");
 const endDate = ref("");
 
-const bucketPayment = ref();
 const transactionHistory = ref([]);
 const totalExpense = ref();
 const totalRevenue = ref();
 
 onMounted(async () => {
-  bucketPayment.value = await dictionaryBucketPaymentStore.getBucketPaymentById(
-    bucketPaymentId.value
-  );
   await getData();
 });
 
 async function getData() {
   totalExpense.value =
-    await dictionaryBucketPaymentStore.getTotalExpenseByBucketPaymentId(
-      bucketPaymentId.value,
+    await transactionStore.getTotalExpense(
       timeOption.value,
       startDate.value,
       endDate.value
     );
   totalRevenue.value =
-    await dictionaryBucketPaymentStore.getTotalRevenueByBucketPaymentId(
-      bucketPaymentId.value,
+    await transactionStore.getTotalRevenue(
       timeOption.value,
       startDate.value,
       endDate.value 
     );
   transactionHistory.value =
-    await dictionaryBucketPaymentStore.getTransactionHistoryByBucketPaymentId(
-      bucketPaymentId.value,
+    await transactionStore.getTransactionHistory(
       timeOption.value,
       startDate.value,
       endDate.value
@@ -150,7 +142,7 @@ function sumHistoryByDate(date, type) {
     <!-- Summary Cards -->
     <v-container fluid class="summary-section">
       <v-row no-gutters>
-        <v-col :cols="timeOption === 'Toàn bộ thời gian' ? 4 : 6">
+        <v-col :cols="6">
           <v-card class="summary-card revenue-card" elevation="2">
             <v-card-item>
               <v-card-title class="text-subtitle-1 text-medium-emphasis">
@@ -162,7 +154,7 @@ function sumHistoryByDate(date, type) {
             </v-card-item>
           </v-card>
         </v-col>
-        <v-col :cols="timeOption === 'Toàn bộ thời gian' ? 4 : 6">
+        <v-col :cols="6">
           <v-card class="summary-card expense-card" elevation="2">
             <v-card-item>
               <v-card-title class="text-subtitle-1 text-medium-emphasis">
@@ -170,18 +162,6 @@ function sumHistoryByDate(date, type) {
               </v-card-title>
               <v-card-text class="text-h5 text-red-accent-3">
                 {{ formatCurrency(totalExpense) }}
-              </v-card-text>
-            </v-card-item>
-          </v-card>
-        </v-col>
-        <v-col cols="4" v-if="timeOption === 'Toàn bộ thời gian'">
-          <v-card class="summary-card balance-card" elevation="2">
-            <v-card-item>
-              <v-card-title class="text-subtitle-1 text-medium-emphasis">
-                Số dư hiện tại
-              </v-card-title>
-              <v-card-text class="text-h5 text-grey-color">
-                {{ formatCurrency(bucketPayment?.balance) }}
               </v-card-text>
             </v-card-item>
           </v-card>
@@ -275,6 +255,13 @@ function sumHistoryByDate(date, type) {
     background-color: rgb(var(--v-theme-surface));
     border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
     padding: 16px 0;
+
+    .back-button {
+      transition: transform 0.3s ease;
+      &:hover {
+        transform: translateX(-4px);
+      }
+    }
   }
 
   .filter-section {

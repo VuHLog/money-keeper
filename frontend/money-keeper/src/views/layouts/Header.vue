@@ -126,12 +126,12 @@ async function logOut() {
         </div>
       </div>
       <div class="d-flex align-center">
-        <span class="font-weight-bold text-grey-darken-4">Chào {{ name }}!</span>
+        <span class="font-weight-bold text-grey-darken-4">{{ name }}</span>
         <v-menu v-if="isLoggedIn">
           <template v-slot:activator="{ props }">
             <div class="d-flex align-center cursor-pointer h-100 pa-3 user-none" @click="showUserMenu = !showUserMenu"
               v-bind="props">
-              <img class="rounded-circle h-100" :src="avatarUrl" alt="avatar" />
+              <img class="rounded-circle icon-size-thumbnail object-cover" :src="avatarUrl" alt="avatar" />
               <font-awesome-icon style="color: #bdc3c7; font-size: 0.8rem" :icon="['fas', 'angle-down']" />
             </div>
           </template>

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, getCurrentInstance, onMounted, inject } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { MainFeature } from "@/constants/MainFeature.js";
 import DictionaryExpense from "@components/DictionaryExpense.vue";
 import TripEvent from "@components/TripEvent.vue";
@@ -10,6 +10,7 @@ import { AccountType } from "@/constants/AccountType.js";
 const { proxy } = getCurrentInstance();
 const router = useRouter();
 const swal = inject("$swal");
+const route = useRoute();
 
 const mainFeatureList = ref(MainFeature);
 const feature = ref(mainFeatureList.value.find((value) => value.id === 1));
@@ -133,17 +134,16 @@ async function createExpense() {
 <template>
   <div class="account-info text-grey-color">
     <div
-      class="text-primary d-flex justify-center position-relative mb-10"
+      class="text-primary d-flex justify-space-between position-relative mb-10"
     >
-      <router-link
-        to="/account"
-        class="position-absolute top-0 left-0 text-primary text-decoration-none"
+    <v-btn
+        icon
+        variant="text"
+        class="back-button d-flex align-center text-primary"
+        :to="route.query.redirect ? route.query.redirect : '/home'"
       >
-        <font-awesome-icon
-          :icon="['fas', 'clock-rotate-left']"
-          style="font-size: 32px"
-        />
-      </router-link>
+        <font-awesome-icon :icon="['fas', 'angle-left']" style="font-size: 32px" />
+      </v-btn>
       <v-select
         variant="solo"
         rounded
@@ -180,6 +180,18 @@ async function createExpense() {
           </div>
         </template>
       </v-select>
+      <router-link
+        :to="{path: '/transaction-history', query: { redirect: route.fullPath }}"
+        class="text-primary d-flex align-center text-decoration-none"
+      >
+        <font-awesome-icon
+          :icon="['fas', 'clock-rotate-left']"
+          style="font-size: 32px"
+        />
+        <v-tooltip activator="parent" location="bottom"
+          >Lịch sử ghi chép</v-tooltip
+        >
+      </router-link>
     </div>
     <div class="mb-10">
       <v-row justify="end">

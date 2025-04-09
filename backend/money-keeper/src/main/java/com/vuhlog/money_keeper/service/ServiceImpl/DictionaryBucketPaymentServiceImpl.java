@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
+import com.vuhlog.money_keeper.common.UserCommon;
 import com.vuhlog.money_keeper.constants.DictionaryBucketPaymentType;
 import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.dao.BankRepository;
@@ -39,6 +40,7 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
     private final DictionaryBucketPaymentRepository dictionaryBucketPaymentRepository;
     private final BankRepository bankRepository;
     private final UsersRepository usersRepository;
+    private final UserCommon userCommon;
     private final DictionaryBucketPaymentMapper dictionaryBucketPaymentMapper;
 
     @PersistenceContext
@@ -117,8 +119,13 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
                 predicates.add(lessThanDate);
             }
         }
-        Predicate equalToBucketPaymentId = cb.equal(root.get("id"), bucketPaymentId);
-        predicates.add(equalToBucketPaymentId);
+        if(bucketPaymentId != null){
+            Predicate equalToBucketPaymentId = cb.equal(root.get("id"), bucketPaymentId);
+            predicates.add(equalToBucketPaymentId);
+        }else{
+            Predicate equalToUserId = cb.equal(root.get("user").get("id"), userCommon.getMyUserInfo().getId());
+            predicates.add(equalToUserId);
+        }
         cq.where(cb.and(predicates.toArray(new Predicate[0])));
 
         Long result = em.createQuery(cq).getSingleResult();
@@ -150,8 +157,13 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
                 predicates.add(lessThanDate);
             }
         }
-        Predicate equalToBucketPaymentId = cb.equal(root.get("id"), bucketPaymentId);
-        predicates.add(equalToBucketPaymentId);
+        if(bucketPaymentId != null){
+            Predicate equalToBucketPaymentId = cb.equal(root.get("id"), bucketPaymentId);
+            predicates.add(equalToBucketPaymentId);
+        }else{
+            Predicate equalToUserId = cb.equal(root.get("user").get("id"), userCommon.getMyUserInfo().getId());
+            predicates.add(equalToUserId);
+        }
         cq.where(cb.and(predicates.toArray(new Predicate[0])));
 
         Long result = em.createQuery(cq).getSingleResult();

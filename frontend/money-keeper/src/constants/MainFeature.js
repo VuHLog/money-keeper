@@ -26,7 +26,7 @@ export const MainFeature = [
     id: 5,
     name: "Chuyển khoản",
     icon: ['fas', 'right-left'],
-    href: "/account/transfer/id"
+    href: "/transfer"
   },
   {
     id: 6,

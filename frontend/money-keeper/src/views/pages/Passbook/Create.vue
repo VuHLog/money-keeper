@@ -97,7 +97,7 @@ const myAccountList = ref([]);
     <div class="text-primary position-relative mb-10">
       <router-link
         to="/passbook"
-        class="position-absolute top-0 left-0 text-primary text-decoration-none"
+        class="position-absolute back-button top-0 left-0 text-primary text-decoration-none"
       >
         <font-awesome-icon
           :icon="['fas', 'angle-left']"

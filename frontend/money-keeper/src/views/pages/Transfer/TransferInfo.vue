@@ -84,190 +84,186 @@ async function handleDeleteExpense() {
 </script>
 
 <template>
-  <div class="account-info text-grey-color">
-    <div class="text-primary d-flex justify-center position-relative mb-10">
-      <router-link
-        to="/account"
-        class="position-absolute top-0 left-0 text-primary text-decoration-none"
-      >
-        <font-awesome-icon
-          :icon="['fas', 'clock-rotate-left']"
-          style="font-size: 32px"
+  <div class="transfer-info">
+    <div class="transfer-header">
+      <h2 class="text-primary">Thông tin chuyển khoản</h2>
+      <div class="transfer-time">
+        <el-date-picker
+          v-model="currentTime"
+          type="datetime"
+          disabled
         />
-      </router-link>
-      <v-select
-        variant="solo"
-        rounded
-        v-model="feature"
-        :items="mainFeatureList"
-        item-title="name"
-        :return-object="true"
-        class="text-grey-color d-inline-block"
-        width="20%"
-        max-width="20%"
-        hide-details="true"
-      >
-        <template v-slot:item="{ props, item }">
-          <v-list-item v-bind="props" :to="item.raw.href">
-            <template v-slot:prepend>
-              <v-avatar start>
-                <font-awesome-icon class="text-primary" :icon="item.raw.icon" />
-              </v-avatar>
-            </template>
-          </v-list-item>
-        </template>
-        <template v-slot:selection="{ item }">
-          <div>
-            <v-avatar start>
-              <font-awesome-icon class="text-primary" :icon="item.raw.icon" />
-            </v-avatar>
-            <span class="text-primary text-20">{{ item.raw.name }}</span>
-          </div>
-        </template>
-      </v-select>
-    </div>
-    <div class="mb-10">
-      <v-row justify="end">
-        <v-col cols="2" class="d-flex align-center">
-          <el-date-picker
-            v-model="currentTime"
-            type="datetime"
-            placeholder="Select date and time"
-          />
-        </v-col>
-      </v-row>
-      <v-row class="mb-2 align-center" justify="space-between">
-        <v-col cols="3">
-          <div class="flex-center flex-column text-20">
-            <div class="flex-center w-100">
-              <v-text-field
-                v-model="expense.amount"
-                label="Số tiền"
-                hide-details="auto"
-                class="text-red-accent-3 font-weight-bold text-end"
-                bg-color="bg-white"
-                hide-spin-buttons
-              >
-                <template v-slot:prepend>
-                  <v-avatar class="flex-center">
-                    <font-awesome-icon :icon="['fas', 'money-bill']" />
-                  </v-avatar>
-                </template>
-              </v-text-field>
-              <span class="font-weight-bold text-20">₫</span>
-            </div>
-          </div>
-        </v-col>
-        <v-col cols="3">
-          <v-select
-            label="Từ tài khoản"
-            variant="solo"
-            rounded
-            v-model="fromAccount"
-            :items="dictionaryBucketPayment"
-            item-title="name"
-            :return-object="true"
-            class="text-grey-color d-inline-block"
-            width="100%"
-            hide-details="true"
-            no-data-text="Không tìm thấy"
-          >
-            <template v-slot:item="{ props, item }">
-              <v-list-item
-                v-bind="props"
-                :prepend-avatar="item.raw.accountType.icon"
-                :title="item.raw.accountName"
-              ></v-list-item>
-            </template>
-            <template v-slot:selection="{ item }">
-              <div>
-                <v-avatar start>
-                  <img
-                    class="icon-size"
-                    :src="item.raw.accountType.icon"
-                    alt="icon"
-                  />
-                </v-avatar>
-                <span class="text-grey-color">{{ item.raw.accountName }}</span>
-              </div>
-            </template>
-          </v-select>
-        </v-col>
-        <v-col cols="3">
-          <v-select
-            label="Tới tài khoản"
-            variant="solo"
-            rounded
-            v-model="toAccount"
-            :items="dictionaryBucketPayment"
-            item-title="name"
-            :return-object="true"
-            class="text-grey-color d-inline-block"
-            width="100%"
-            hide-details="true"
-            no-data-text="Không tìm thấy"
-          >
-            <template v-slot:item="{ props, item }">
-              <v-list-item
-                v-bind="props"
-                :prepend-avatar="item.raw.accountType.icon"
-                :title="item.raw.accountName"
-              ></v-list-item>
-            </template>
-            <template v-slot:selection="{ item }">
-              <div>
-                <v-avatar start>
-                  <img
-                    class="icon-size"
-                    :src="item.raw.accountType.icon"
-                    alt="icon"
-                  />
-                </v-avatar>
-                <span class="text-grey-color">{{ item.raw.accountName }}</span>
-              </div>
-            </template>
-          </v-select>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col cols="3">
-          <v-textarea
-            v-model="expense.interpretation"
-            class="text-grey-color"
-            label="Diễn giải"
-            bg-color="bg-white"
-            rows="1"
-            auto-grow
-            hide-details="auto"
-            clearable
-          >
-            <template v-slot:prepend>
-              <v-avatar class="flex-center">
-                <font-awesome-icon :icon="['far', 'rectangle-list']" />
-              </v-avatar>
-            </template>
-          </v-textarea>
-        </v-col>
-        <v-col cols="12">
-          <p class="text-red-accent-3 text-center">{{ errMsg }}</p>
-        </v-col>
-      </v-row>
-    </div>
-    <div class="text-center">
-      <div>
-        <button
-          class="bg-white text-red-accent-3 border-sm py-2 px-10 rounded d-inline-flex justify-center mr-10 hover-bg-grey-darken"
-          style="border-color: #ff1744 !important"
-          @click.stop="handleDeleteExpense"
-        >
-          <div class="mr-2">
-            <font-awesome-icon :icon="['far', 'trash-can']" />
-          </div>
-          Xóa
-        </button>
       </div>
+    </div>
+
+    <div class="transfer-content">
+      <div class="transfer-amount">
+        <div class="amount-label">Số tiền</div>
+        <div class="amount-value text-red-accent-3">
+          {{ expense.amount.toLocaleString() }} ₫
+        </div>
+      </div>
+
+      <div class="transfer-accounts">
+        <div class="account-info from-account">
+          <div class="account-label">Từ tài khoản</div>
+          <div class="account-detail">
+            <v-avatar>
+              <img class="icon-size" :src="fromAccount?.accountType?.icon" alt="icon" />
+            </v-avatar>
+            <div class="account-name">{{ fromAccount?.accountName }}</div>
+          </div>
+        </div>
+
+        <div class="transfer-icon">
+          <font-awesome-icon :icon="['fas', 'arrow-right']" />
+        </div>
+
+        <div class="account-info to-account">
+          <div class="account-label">Tới tài khoản</div>
+          <div class="account-detail">
+            <v-avatar>
+              <img class="icon-size" :src="toAccount?.accountType?.icon" alt="icon" />
+            </v-avatar>
+            <div class="account-name">{{ toAccount?.accountName }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="expense.interpretation" class="transfer-note">
+        <div class="note-label">Diễn giải</div>
+        <div class="note-content">{{ expense.interpretation }}</div>
+      </div>
+    </div>
+
+    <div class="transfer-actions">
+      <v-btn
+        class="bg-white text-red-accent-3 border-sm mr-4"
+        style="border-color: #ff1744 !important"
+        @click="handleDeleteExpense"
+      >
+        <template v-slot:prepend>
+          <font-awesome-icon :icon="['far', 'trash-can']" />
+        </template>
+        Xóa
+      </v-btn>
+      <v-btn
+        color="primary"
+        @click="router.push(route.query.redirect ? route.query.redirect : '/home')"
+      >
+        <template v-slot:prepend>
+          <font-awesome-icon :icon="['fas', 'arrow-left']" />
+        </template>
+        Quay lại
+      </v-btn>
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.transfer-info {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.transfer-header {
+  text-align: center;
+  margin-bottom: 32px;
+
+  h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .transfer-time {
+    color: #666;
+  }
+}
+
+.transfer-content {
+  margin-bottom: 32px;
+}
+
+.transfer-amount {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #f8f9fa;
+  border-radius: 8px;
+
+  .amount-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .amount-value {
+    font-size: 32px;
+    font-weight: bold;
+  }
+}
+
+.transfer-accounts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #f8f9fa;
+  border-radius: 8px;
+
+  .account-info {
+    flex: 1;
+    
+    .account-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .account-detail {
+      display: flex;
+      align-items: center;
+    }
+
+    .account-name {
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+
+  .transfer-icon {
+    margin: 0 24px;
+    color: #666;
+    font-size: 20px;
+  }
+}
+
+.transfer-note {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+
+  .note-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .note-content {
+    font-size: 16px;
+  }
+}
+
+.transfer-actions {
+  text-align: center;
+
+  .v-btn {
+    min-width: 120px;
+  }
+}
+</style>

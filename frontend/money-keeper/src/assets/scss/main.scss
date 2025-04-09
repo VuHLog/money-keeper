@@ -52,6 +52,9 @@ ol {
 .width-form-login {
   width: 600px;
 }
+.width-avatar {
+  width: 56px;
+}
 
 .width-avatar-thumbnail {
   width: 70px;
@@ -214,6 +217,14 @@ ol {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+//button
+.back-button {
+  transition: transform 0.3s ease;
+  &:hover {
+    transform: translateX(-4px);
+  }
 }
 
 //css google

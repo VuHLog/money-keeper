@@ -1,7 +1,6 @@
 <script setup>
 import { ref, watch, inject, onMounted, getCurrentInstance } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { MainFeature } from "@/constants/MainFeature.js";
 import DictionaryRevenue from "@components/DictionaryRevenue.vue";
 import TripEvent from "@components/TripEvent.vue";
 import CollectMoneyWho from "@components/CollectMoneyWho.vue";
@@ -12,9 +11,6 @@ const swal = inject("$swal");
 const router = useRouter();
 const route = useRoute();
 const revenueId = route.params.revenueId;
-
-const mainFeatureList = ref(MainFeature);
-const feature = ref(mainFeatureList.value.find((value) => value.id === 2));
 const currentTime = ref(new Date());
 const dictionaryBucketPayment = ref([]);
 const account = ref({});
@@ -185,44 +181,15 @@ async function handleDeleteRevenue() {
   <div class="account-info text-grey-color">
     <div class="text-primary d-flex justify-center position-relative mb-10">
       <router-link
-        to="/account"
-        class="position-absolute top-0 left-0 text-primary text-decoration-none"
+        :to="route.query.redirect ? route.query.redirect : '/home'"
+        class="position-absolute back-button top-0 left-0 text-primary text-decoration-none"
       >
         <font-awesome-icon
-          :icon="['fas', 'clock-rotate-left']"
+          :icon="['fas', 'angle-left']"
           style="font-size: 32px"
         />
       </router-link>
-      <v-select
-        variant="solo"
-        rounded
-        v-model="feature"
-        :items="mainFeatureList"
-        item-title="name"
-        :return-object="true"
-        class="text-grey-color d-inline-block"
-        width="20%"
-        max-width="20%"
-        hide-details="true"
-      >
-        <template v-slot:item="{ props, item }">
-          <v-list-item v-bind="props" :to="item.raw.href">
-            <template v-slot:prepend>
-              <v-avatar start>
-                <font-awesome-icon class="text-primary" :icon="item.raw.icon" />
-              </v-avatar>
-            </template>
-          </v-list-item>
-        </template>
-        <template v-slot:selection="{ item }">
-          <div>
-            <v-avatar start>
-              <font-awesome-icon class="text-primary" :icon="item.raw.icon" />
-            </v-avatar>
-            <span class="text-primary text-20">{{ item.raw.name }}</span>
-          </div>
-        </template>
-      </v-select>
+      <h2 class="text-primary">Thông tin khoản thu</h2>
     </div>
     <div class="mb-10">
       <v-row justify="end">

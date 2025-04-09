@@ -18,6 +18,7 @@ import CreateExpense from "@pages/Expense/CreateExpense.vue";
 import ExpenseInfo from "@pages/Expense/ExpenseInfo.vue";
 import CreateRevenue from "@pages/Revenue/CreateRevenue.vue";
 import RevenueInfo from "@pages/Revenue/RevenueInfo.vue";
+import TransactionHistory from "@pages/Transaction/TransactionHistory.vue";
 
 const routes = [
   {
@@ -51,6 +52,11 @@ const routes = [
         path: "/account/adjusted-balance/:accountId",
         name: "Adjusted balance",
         component: AdjustedBalance
+      },
+      { 
+        path: "/transfer",
+        name: "Create transfer",
+        component: Transfer
       },
       { 
         path: "/account/transfer/:accountId",
@@ -91,6 +97,11 @@ const routes = [
         path: "/revenue/:revenueId",
         name: "Revenue info",
         component: RevenueInfo
+      },
+      {
+        path: "/transaction-history",
+        name: "Transaction history",
+        component: TransactionHistory
       },
     ],
   },
