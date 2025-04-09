@@ -15,6 +15,8 @@ const getRoute = computed(() => {
   return routeArr[1];
 });
 
+const fullPath = computed(() => route.fullPath)
+
 const showUserMenu = ref(false);
 
 const username = computed(() => store.username);
@@ -109,6 +111,32 @@ async function logOut() {
                   <v-list-item class="hover-bg-grey">
                     <v-list-item-title>
                       <router-link class="text-decoration-none text-grey-darken-4" to="/passbook">Sổ tiết kiệm
+                      </router-link>
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </li>
+            <li class="nav-item">
+              <v-menu open-on-hover>
+                <template v-slot:activator="{ props }">
+                  <div :class="fullPath === '/expense/create' || fullPath === '/revenue/create' ? 'border-b-active' : ''"
+                    class="nav-link user-select-none d-flex h-100 align-center text-decoration-none text-grey-darken-1 font-weight-bold text-14 text-uppercase hover-green-lighten px-2"
+                    to="/account" v-bind="props">
+                    Ghi thu chi
+                    <font-awesome-icon style="color: #bdc3c7; font-size: 0.8rem" :icon="['fas', 'angle-down']" />
+                  </div>
+                </template>
+                <v-list>
+                  <v-list-item class="hover-bg-grey">
+                    <v-list-item-title>
+                      <router-link class="text-decoration-none text-grey-darken-4" to="/expense/create">Khoản chi
+                      </router-link>
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item class="hover-bg-grey">
+                    <v-list-item-title>
+                      <router-link class="text-decoration-none text-grey-darken-4" to="/revenue/create">Khoản thu
                       </router-link>
                     </v-list-item-title>
                   </v-list-item>

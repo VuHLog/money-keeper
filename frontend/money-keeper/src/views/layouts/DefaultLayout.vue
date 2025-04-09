@@ -8,6 +8,8 @@ const getRoute = computed(() => {
   const routeArr = route.path.split("/");
   return routeArr[1];
 });
+
+const fullPath = computed(() => route.fullPath)
 </script>
 <template>
   <div class="app min-h-100vh">
@@ -25,9 +27,15 @@ const getRoute = computed(() => {
       </div>
     </div>
     <div class="position-fixed z-index-99 feature-list user-select-none">
-      <router-link :to="{path: '/expense/create', query: { redirect: route.fullPath }}" class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
+      <router-link v-if="fullPath !== '/account'" :to="{path: '/expense/create', query: { redirect: route.fullPath }}"
+      class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
         <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
         <v-tooltip activator="parent" location="start">Ghi thu chi</v-tooltip>
+      </router-link>
+      <router-link v-else-if="fullPath === '/account'" :to="{path: '/account/create', query: { redirect: route.fullPath }}"
+      class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
+        <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
+        <v-tooltip activator="parent" location="start">Thêm tài khoản</v-tooltip>
       </router-link>
     </div>
   </div>

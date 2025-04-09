@@ -210,7 +210,7 @@ async function handleClickSave() {
         <div class="mr-2">
           <font-awesome-icon :icon="['fas', 'floppy-disk']" />
         </div>
-        Lưu
+        Ghi
       </button>
     </div>
   </div>
