@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
+import com.vuhlog.money_keeper.common.UserCommon;
 import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.constants.TransactionType;
 import com.vuhlog.money_keeper.constants.TransferType;
@@ -22,15 +23,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ExpenseRegularServiceImpl implements ExpenseRegularService {
+    private final UserCommon userCommon;
+    private final ReportExpenseRevenueRepository reportExpenseRevenueRepository;
     private final ExpenseRegularRepository expenseRegularRepository;
     private final DictionaryBucketPaymentRepository dictionaryBucketPaymentRepository;
     private final DictionaryExpenseRepository dictionaryExpenseRepository;
@@ -73,6 +75,9 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
         //update balance
         updateBalance(dictionaryBucketPayment, request.getAmount(), expenseRegular.getExpenseDate(), null, true);
 
+        //update report expense revenue
+        updateTotalExpenseForReportExpenseRevenue(expenseRegular.getExpenseDate(), request.getDictionaryBucketPaymentId(), request.getAmount());
+
         long balance =  getBalanceWhenCreate(dictionaryBucketPayment, expenseRegular.getExpenseDate(), request.getAmount());
         expenseRegular.setBalance(balance);
         expenseRegular = expenseRegularRepository.save(expenseRegular);
@@ -103,6 +108,13 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
 
         //update balance for beneficiary account
         updateBalance(beneficiaryAccount, -request.getAmount(), expenseRegular.getExpenseDate(), null, true);
+
+        //save report for sender account
+        updateTotalExpenseForReportExpenseRevenue(expenseRegular.getExpenseDate(), request.getDictionaryBucketPaymentId(), request.getAmount());
+
+        //save report for beneficiary account
+        updateTotalRevenueForReportExpenseRevenue(expenseRegular.getExpenseDate(), request.getDictionaryBucketPaymentId(), request.getAmount());
+
 
         long balance =  getBalanceWhenCreate(dictionaryBucketPayment, expenseRegular.getExpenseDate(), request.getAmount());
         expenseRegular.setBalance(balance);
@@ -235,6 +247,10 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
             DictionaryBucketPayment old =  dictionaryBucketPaymentRepository.findById(oldBucketPaymentId).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
             updateBalance(old, -oldAmount, oldExpenseDate, null, true);
             updateBalance(dictionaryBucketPayment, oldAmount, oldExpenseDate, null, true);
+
+            //update report expense revenue
+            updateTotalExpenseForReportExpenseRevenue(oldExpenseDate, oldBucketPaymentId, - oldAmount);
+            updateTotalExpenseForReportExpenseRevenue(oldExpenseDate, newBucketPaymentId, oldAmount);
         }
 
         if(newExpenseDate.after(oldExpenseDate)){
@@ -249,9 +265,15 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
             expenseRegular.setBalance(getBalanceWhenCreate(dictionaryBucketPayment, newExpenseDate, oldAmount));
         }
 
+        if((newExpenseDate.getMonth() != oldExpenseDate.getMonth()) || (newExpenseDate.getYear() != oldExpenseDate.getYear())){
+            updateTotalExpenseForReportExpenseRevenue(oldExpenseDate, newBucketPaymentId, - oldAmount);
+            updateTotalExpenseForReportExpenseRevenue(newExpenseDate, newBucketPaymentId, oldAmount);
+        }
+
         if(oldAmount != newAmount){
             expenseRegular.setBalance(expenseRegular.getBalance() - (newAmount - oldAmount));
             updateBalance(dictionaryBucketPayment, (newAmount - oldAmount), expenseRegular.getExpenseDate(), null, true);
+            updateTotalExpenseForReportExpenseRevenue(newExpenseDate, newBucketPaymentId, (newAmount - oldAmount));
         }
 
         expenseRegular = expenseRegularRepository.save(expenseRegular);
@@ -262,6 +284,60 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     public ExpenseRegularResponse getExpenseRegularById(String id) {
         ExpenseRegular expenseRegular = expenseRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.EXPENSE_REGULAR_NOT_EXISTED));
         return expenseRegularMapper.toExpenseRegularResponse(expenseRegular);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    protected void updateTotalExpenseForReportExpenseRevenue(Timestamp date, String bucketPaymentId, long amount){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int month = calendar.get(Calendar.MONTH) + 1;
+
+        int year = calendar.get(Calendar.YEAR);
+        ReportExpenseRevenue reportExpenseRevenue;
+        Optional<ReportExpenseRevenue> optionalReportExpenseRevenue = reportExpenseRevenueRepository.findByMonthAndYearAndBucketPaymentId(month, year, bucketPaymentId);
+        if(optionalReportExpenseRevenue.isPresent()) {
+            reportExpenseRevenue = optionalReportExpenseRevenue.get();
+            reportExpenseRevenue.setTotalExpense(reportExpenseRevenue.getTotalExpense() + amount);
+        }else {
+            reportExpenseRevenue = ReportExpenseRevenue.builder()
+                    .month(month)
+                    .year(year)
+                    .totalExpense(amount)
+                    .totalRevenue(0)
+                    .bucketPaymentId(bucketPaymentId)
+                    .user(userCommon.getMyUserInfo())
+                    .build();
+        }
+        reportExpenseRevenueRepository.save(reportExpenseRevenue);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    protected void updateTotalRevenueForReportExpenseRevenue(Timestamp date, String bucketPaymentId, long amount){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int month = calendar.get(Calendar.MONTH) + 1;
+
+        int year = calendar.get(Calendar.YEAR);
+        ReportExpenseRevenue reportExpenseRevenue;
+        Optional<ReportExpenseRevenue> optionalReportExpenseRevenue = reportExpenseRevenueRepository.findByMonthAndYearAndBucketPaymentId(month, year, bucketPaymentId);
+        if(optionalReportExpenseRevenue.isPresent()) {
+            reportExpenseRevenue = optionalReportExpenseRevenue.get();
+            reportExpenseRevenue.setTotalRevenue(reportExpenseRevenue.getTotalRevenue() + amount);
+        }else {
+            reportExpenseRevenue = ReportExpenseRevenue.builder()
+                    .month(getMonth(month))
+                    .year(year)
+                    .totalExpense(0)
+                    .totalRevenue(amount)
+                    .bucketPaymentId(bucketPaymentId)
+                    .user(userCommon.getMyUserInfo())
+                    .build();
+        }
+        reportExpenseRevenueRepository.save(reportExpenseRevenue);
+    }
+
+    private static int getMonth(int month) {
+        return month;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -291,9 +367,13 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
         //update balance
         DictionaryBucketPayment dictionaryBucketPayment = expenseRegular.getDictionaryBucketPayment();
         updateBalance(dictionaryBucketPayment, -expenseRegular.getAmount(), expenseRegular.getExpenseDate(), null, true);
+
+        //update report
+        updateTotalExpenseForReportExpenseRevenue(expenseRegular.getExpenseDate(), expenseRegular.getDictionaryBucketPayment().getId(), - expenseRegular.getAmount());
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteExpenseRegularByTransferType(String id) {
         ExpenseRegular expenseRegular = expenseRegularRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.EXPENSE_REGULAR_NOT_EXISTED));
         //delete record in transaction history table
@@ -308,6 +388,11 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
         //update balance for beneficiary account
         DictionaryBucketPayment beneficiaryAccount = expenseRegular.getBeneficiaryAccount();
         updateBalance(beneficiaryAccount, expenseRegular.getAmount(), expenseRegular.getExpenseDate(), null, true);
+
+        //update report
+        Timestamp date = expenseRegular.getExpenseDate();
+        updateTotalExpenseForReportExpenseRevenue(date, expenseRegular.getDictionaryBucketPayment().getId(), - expenseRegular.getAmount());
+        updateTotalRevenueForReportExpenseRevenue(date, expenseRegular.getBeneficiaryAccount().getId(), - expenseRegular.getAmount());
     }
 
     private long getBalanceWhenCreate(DictionaryBucketPayment dictionaryBucketPayment, Timestamp date, long amount) {

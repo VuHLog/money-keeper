@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
+import com.vuhlog.money_keeper.common.UserCommon;
 import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.constants.TransactionType;
 import com.vuhlog.money_keeper.constants.TransferType;
@@ -21,11 +22,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class RevenueRegularServiceImpl implements RevenueRegularService {
+    private final UserCommon userCommon;
+    private final ReportExpenseRevenueRepository reportExpenseRevenueRepository;
     private final RevenueRegularRepository revenueRegularRepository;
     private final ExpenseRegularRepository expenseRegularRepository;
     private final DictionaryBucketPaymentRepository dictionaryBucketPaymentRepository;
@@ -66,6 +71,9 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
 
         //update balance
         updateBalance(dictionaryBucketPayment, request.getAmount(), revenueRegular.getRevenueDate(), null, true);
+
+        //update report expense revenue
+        updateTotalRevenueReportExpenseRevenue(revenueRegular.getRevenueDate(), request.getDictionaryBucketPaymentId(), request.getAmount());
 
         long balance =  getBalanceWhenCreate(dictionaryBucketPayment, revenueRegular.getRevenueDate(), request.getAmount());
         revenueRegular.setBalance(balance);
@@ -127,6 +135,10 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
             DictionaryBucketPayment old =  dictionaryBucketPaymentRepository.findById(oldBucketPaymentId).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
             updateBalance(old, -oldAmount, oldRevenueDate, null, true);
             updateBalance(dictionaryBucketPayment, oldAmount, oldRevenueDate, null, true);
+
+            //update report expense revenue
+            updateTotalRevenueReportExpenseRevenue(oldRevenueDate, oldBucketPaymentId, - oldAmount);
+            updateTotalRevenueReportExpenseRevenue(oldRevenueDate, newBucketPaymentId, oldAmount);
         }
 
         if(newRevenueDate.after(oldRevenueDate)){
@@ -141,9 +153,15 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
             revenueRegular.setBalance(getBalanceWhenCreate(dictionaryBucketPayment, newRevenueDate, oldAmount));
         }
 
+        if((newRevenueDate.getMonth() != oldRevenueDate.getMonth()) || (newRevenueDate.getYear() != oldRevenueDate.getYear())){
+            updateTotalRevenueReportExpenseRevenue(oldRevenueDate, newBucketPaymentId, - oldAmount);
+            updateTotalRevenueReportExpenseRevenue(newRevenueDate, newBucketPaymentId, oldAmount);
+        }
+
         if(oldAmount != newAmount){
             revenueRegular.setBalance(revenueRegular.getBalance() + (newAmount - oldAmount));
             updateBalance(dictionaryBucketPayment, newAmount - oldAmount, revenueRegular.getRevenueDate(), null, true);
+            updateTotalRevenueReportExpenseRevenue(newRevenueDate, newBucketPaymentId, (newAmount - oldAmount));
         }
 
         revenueRegular = revenueRegularRepository.save(revenueRegular);
@@ -167,7 +185,36 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
         //update balance
         DictionaryBucketPayment dictionaryBucketPayment = revenueRegular.getDictionaryBucketPayment();
         updateBalance(dictionaryBucketPayment, - revenueRegular.getAmount(), revenueRegular.getRevenueDate(), null, true);
+
+        //update report
+        updateTotalRevenueReportExpenseRevenue(revenueRegular.getRevenueDate(), revenueRegular.getDictionaryBucketPayment().getId(), - revenueRegular.getAmount());
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    protected void updateTotalRevenueReportExpenseRevenue(Timestamp date, String bucketPaymentId, long amount){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int month = calendar.get(Calendar.MONTH) + 1;
+
+        int year = calendar.get(Calendar.YEAR);
+        ReportExpenseRevenue reportExpenseRevenue;
+        Optional<ReportExpenseRevenue> optionalReportExpenseRevenue = reportExpenseRevenueRepository.findByMonthAndYearAndBucketPaymentId(month, year, bucketPaymentId);
+        if(optionalReportExpenseRevenue.isPresent()) {
+            reportExpenseRevenue = optionalReportExpenseRevenue.get();
+            reportExpenseRevenue.setTotalRevenue(reportExpenseRevenue.getTotalRevenue() + amount);
+        }else {
+            reportExpenseRevenue = ReportExpenseRevenue.builder()
+                    .month(month)
+                    .year(year)
+                    .totalExpense(0)
+                    .totalRevenue(amount)
+                    .bucketPaymentId(bucketPaymentId)
+                    .user(userCommon.getMyUserInfo())
+                    .build();
+        }
+        reportExpenseRevenueRepository.save(reportExpenseRevenue);
+    }
+
 
     @Transactional(rollbackFor = Exception.class)
     protected void updateBalance(DictionaryBucketPayment dictionaryBucketPayment, long amount, Timestamp startDate, Timestamp endDate, boolean isUpdateBucketPayment) {

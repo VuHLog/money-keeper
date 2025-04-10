@@ -64,7 +64,9 @@ public class Users {
     @JsonIgnore
     private Set<CollectMoneyWho> collectMoneyWho;
 
-
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private Set<ReportExpenseRevenue> reportExpenseRevenues;
 
     @PrePersist
     public void onCreate() {
