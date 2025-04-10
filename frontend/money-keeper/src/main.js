@@ -28,6 +28,8 @@ import "sweetalert2/dist/sweetalert2.min.css";
 import { ElDatePicker } from "element-plus";
 import "element-plus/es/components/date-picker/style/css";
 
+import VueApexCharts from "vue3-apexcharts";
+
 const pinia = createPinia();
 const app = createApp(App);
 
@@ -56,6 +58,9 @@ app.use(vuetify);
 app.use(pinia);
 app.use(VueSweetalert2);
 app.use(ElDatePicker)
+app.use(VueApexCharts)
+
+app.component("apexchart", VueApexCharts)
 
 const config = app.config;
 config.globalProperties.$api = base;
