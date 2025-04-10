@@ -102,7 +102,7 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
         String startDate = req.getStartDate();
         String endDate = req.getEndDate();
         String bucketPaymentId = req.getBucketPaymentId();
-        PeriodOfTime periodOfTime = handleTimeOption(timeOption, startDate, endDate);
+        PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(timeOption, startDate, endDate);
 
         List<Object[]> results = dictionaryBucketPaymentRepository.getAllExpenseRevenueHistoryByBucketPaymentId(bucketPaymentId, periodOfTime != null ? periodOfTime.getStartDate() : null, periodOfTime != null ? periodOfTime.getEndDate() : null);
         return convertToExpenseRevenueHistory(results);
@@ -119,7 +119,7 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
         Root<DictionaryBucketPayment> root = cq.from(DictionaryBucketPayment.class);
         Join<DictionaryBucketPayment, ExpenseRegular> expenseRegularJoin = root.join("expenseRegulars", JoinType.INNER);
         cq.select(cb.sum(expenseRegularJoin.get("amount")));
-        PeriodOfTime periodOfTime = handleTimeOption(timeOption, startDate, endDate);
+        PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(timeOption, startDate, endDate);
         Predicate lessThanDate = null;
         Predicate greaterThanDate = null;
         List<Predicate> predicates = new ArrayList<>();
@@ -157,7 +157,7 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
         Root<DictionaryBucketPayment> root = cq.from(DictionaryBucketPayment.class);
         Join<DictionaryBucketPayment, RevenueRegular> revenueRegularJoin = root.join("revenueRegulars", JoinType.INNER);
         cq.select(cb.sum(revenueRegularJoin.get("amount")));
-        PeriodOfTime periodOfTime = handleTimeOption(timeOption, startDate, endDate);
+        PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(timeOption, startDate, endDate);
         Predicate lessThanDate = null;
         Predicate greaterThanDate = null;
         List<Predicate> predicates = new ArrayList<>();
@@ -210,32 +210,5 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
                         (String) obj[9]
                 )
         ).collect(Collectors.toList());
-    }
-
-    public PeriodOfTime handleTimeOption(String timeOption, String startDate, String endDate) {
-        PeriodOfTime periodOfTime = new PeriodOfTime();
-        if (timeOption != null && !timeOption.isEmpty()) {
-            if (timeOption.equalsIgnoreCase(TimeOptionType.FULL.getType())) {
-                return null;
-            } else if (timeOption.equalsIgnoreCase(TimeOptionType.OPTIONAL.getType())) {
-                if (startDate != null && !startDate.isEmpty()) {
-                    periodOfTime.setStartDate(TimestampUtil.stringToTimestamp(startDate));
-                }
-                if (endDate != null && !endDate.isEmpty()) {
-                    // time 23:59:59
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.setTime(TimestampUtil.stringToTimestamp(endDate));
-                    calendar.set(Calendar.HOUR_OF_DAY, 23);
-                    calendar.set(Calendar.MINUTE, 59);
-                    calendar.set(Calendar.SECOND, 59);
-                    calendar.set(Calendar.MILLISECOND, 0);
-                    periodOfTime.setEndDate(new Timestamp(calendar.getTimeInMillis()));
-                }
-                return periodOfTime;
-            } else {
-                return TimestampUtil.getPeriodOfTime(timeOption);
-            }
-        }
-        return null;
     }
 }

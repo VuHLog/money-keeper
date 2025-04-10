@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 
 public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, String>, JpaSpecificationExecutor<ExpenseRegular> {
@@ -40,5 +41,19 @@ public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, 
             @Param("amount") long amount,
             @Param("startDate") Timestamp startDate,
             @Param("endDate") Timestamp endDate
+    );
+
+
+    @Query(value ="SELECT SUM(er.amount) total_expense\n" +
+            "FROM expense_regular er\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = er.dictionary_bucket_payment_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND (:startDate IS NULL OR er.expense_date >= :startDate) AND (:endDate IS NULL OR er.expense_date <= :endDate)\n" +
+            "AND (:bucketPaymentId IS NULL OR dbp.id = :bucketPaymentId)", nativeQuery = true)
+    Long getTotalExpenseByMonthAndThisYear(
+            @Param("startDate") Timestamp startDate,
+            @Param("endDate") Timestamp endDate,
+            @Param("bucketPaymentId") String bucketPaymentId,
+            @Param("userId") String userId
     );
 }

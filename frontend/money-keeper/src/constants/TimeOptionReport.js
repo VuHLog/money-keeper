@@ -1,0 +1,1 @@
+export const TimeOption = ["Hôm nay", "Tuần này", "Tháng này", "Quý này", "Năm nay"]

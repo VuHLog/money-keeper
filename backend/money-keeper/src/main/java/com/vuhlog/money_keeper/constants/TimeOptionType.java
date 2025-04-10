@@ -4,6 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum TimeOptionType {
+    TODAY("Hôm nay"),
+    THIS_WEEK("Tuần này"),
     LAST_30_DAYS("30 ngày gần nhất"),
     THIS_MONTH("Tháng này"),
     LAST_MONTH("Tháng trước"),

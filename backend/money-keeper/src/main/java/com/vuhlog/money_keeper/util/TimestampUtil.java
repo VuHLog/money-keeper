@@ -6,8 +6,11 @@ import com.vuhlog.money_keeper.model.PeriodOfTime;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Calendar;
 
 public class TimestampUtil {
     public static Timestamp stringToTimestamp(String dateString) {
@@ -28,7 +31,17 @@ public class TimestampUtil {
         PeriodOfTime periodOfTime = new PeriodOfTime();
         LocalDateTime localDateTimeNow = LocalDateTime.now();
 
-        if(timeOption.equalsIgnoreCase(TimeOptionType.LAST_30_DAYS.getType())){
+        if(timeOption.equals(TimeOptionType.TODAY.getType())){
+            LocalDateTime startDateTimeToday = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.getMonth(), localDateTimeNow.getDayOfMonth(), 0, 0, 0);
+            periodOfTime.setStartDate(Timestamp.valueOf(startDateTimeToday));
+            LocalDateTime endDateTimeToday = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.getMonth(), localDateTimeNow.getDayOfMonth(), 23, 59, 59);
+            periodOfTime.setEndDate(Timestamp.valueOf(endDateTimeToday));
+        }else if(timeOption.equalsIgnoreCase(TimeOptionType.THIS_WEEK.getType())){
+            LocalDateTime firstDayOfWeek = localDateTimeNow.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).withHour(0).withMinute(0).withSecond(0);
+            periodOfTime.setStartDate(Timestamp.valueOf(firstDayOfWeek));
+            LocalDateTime lastDayOfWeek = localDateTimeNow.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).withHour(23).withMinute(59).withSecond(59);
+            periodOfTime.setEndDate(Timestamp.valueOf(lastDayOfWeek));
+        }else if(timeOption.equalsIgnoreCase(TimeOptionType.LAST_30_DAYS.getType())){
             LocalDateTime localDateTimeLast30Days = localDateTimeNow.minusDays(30);
             periodOfTime.setStartDate(Timestamp.valueOf(localDateTimeLast30Days));
             periodOfTime.setEndDate(Timestamp.valueOf(localDateTimeNow));
@@ -80,5 +93,32 @@ public class TimestampUtil {
             periodOfTime.setEndDate(Timestamp.valueOf(endDateTime));
         }
         return periodOfTime;
+    }
+
+    public static PeriodOfTime handleTimeOption(String timeOption, String startDate, String endDate) {
+        PeriodOfTime periodOfTime = new PeriodOfTime();
+        if (timeOption != null && !timeOption.isEmpty()) {
+            if (timeOption.equalsIgnoreCase(TimeOptionType.FULL.getType())) {
+                return null;
+            } else if (timeOption.equalsIgnoreCase(TimeOptionType.OPTIONAL.getType())) {
+                if (startDate != null && !startDate.isEmpty()) {
+                    periodOfTime.setStartDate(TimestampUtil.stringToTimestamp(startDate));
+                }
+                if (endDate != null && !endDate.isEmpty()) {
+                    // time 23:59:59
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(TimestampUtil.stringToTimestamp(endDate));
+                    calendar.set(Calendar.HOUR_OF_DAY, 23);
+                    calendar.set(Calendar.MINUTE, 59);
+                    calendar.set(Calendar.SECOND, 59);
+                    calendar.set(Calendar.MILLISECOND, 0);
+                    periodOfTime.setEndDate(new Timestamp(calendar.getTimeInMillis()));
+                }
+                return periodOfTime;
+            } else {
+                return TimestampUtil.getPeriodOfTime(timeOption);
+            }
+        }
+        return null;
     }
 }

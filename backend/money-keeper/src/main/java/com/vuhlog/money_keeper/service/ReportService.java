@@ -1,7 +1,8 @@
 package com.vuhlog.money_keeper.service;
 
-import com.vuhlog.money_keeper.dto.response.ReportExpenseRevenueResponse;
+import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
+import com.vuhlog.money_keeper.dto.response.TotalExpenseRevenueResponse;
 
 public interface ReportService {
-    ReportExpenseRevenueResponse getTotalExpenseRevenueByMonthOrYear(Integer month, Integer year);
+    TotalExpenseRevenueResponse getTotalExpenseRevenueByTimeOption(ExpenseRevenueHistoryRequest req);
 }

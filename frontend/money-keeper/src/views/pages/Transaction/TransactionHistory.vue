@@ -102,7 +102,7 @@ function sumHistoryByDate(date, type) {
             icon
             variant="text"
             class="back-button text-primary"
-            to="/account"
+            :to="route.query.redirect ? route.query.redirect : '/home'"
           >
             <font-awesome-icon :icon="['fas', 'angle-left']" style="font-size: 32px" />
           </v-btn>

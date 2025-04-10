@@ -42,5 +42,16 @@ public interface RevenueRegularRepository extends JpaRepository<RevenueRegular, 
             @Param("endDate") Timestamp endDate
     );
 
-    RevenueRegular findByExpenseRegularId(String expenseRegularId);
+    @Query(value ="SELECT SUM(rr.amount) total_revenue\n" +
+            "FROM revenue_regular rr\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = rr.dictionary_bucket_payment_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND (:startDate IS NULL OR rr.revenue_date >= :startDate) AND (:endDate IS NULL OR rr.revenue_date <= :endDate)\n" +
+            "AND (:bucketPaymentId IS NULL OR dbp.id = :bucketPaymentId)", nativeQuery = true)
+    Long getTotalRevenueByMonthAndThisYear(
+            @Param("startDate") Timestamp startDate,
+            @Param("endDate") Timestamp endDate,
+            @Param("bucketPaymentId") String bucketPaymentId,
+            @Param("userId") String userId
+    );
 }
