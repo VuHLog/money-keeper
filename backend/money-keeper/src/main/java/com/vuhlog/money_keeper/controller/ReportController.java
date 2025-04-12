@@ -1,6 +1,7 @@
 package com.vuhlog.money_keeper.controller;
 
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
+import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.ApiResponse;
 import com.vuhlog.money_keeper.dto.response.ReportExpenseRevenueResponse;
 import com.vuhlog.money_keeper.dto.response.TotalExpenseRevenueResponse;
@@ -19,7 +20,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @GetMapping("/total-expense-revenue")
-    public ApiResponse<TotalExpenseRevenueResponse> getTotalExpenseRevenueByTimeOption(ExpenseRevenueHistoryRequest req) {
+    public ApiResponse<TotalExpenseRevenueResponse> getTotalExpenseRevenueByTimeOption(TotalExpenseRevenueRequest req) {
         return ApiResponse.<TotalExpenseRevenueResponse>builder()
                 .result(reportService.getTotalExpenseRevenueByTimeOption(req))
                 .build();

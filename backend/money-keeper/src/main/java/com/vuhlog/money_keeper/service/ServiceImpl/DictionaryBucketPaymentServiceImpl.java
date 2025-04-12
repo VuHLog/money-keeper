@@ -25,6 +25,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -94,6 +97,20 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
 
         Sort sortable = Sort.by("accountName").ascending();
         return dictionaryBucketPaymentRepository.findAll(specs, sortable).stream().map(dictionaryBucketPaymentMapper::toDictionaryBucketResponse).toList();
+    }
+
+    @Override
+    public Page<DictionaryBucketPaymentResponse> getDictionaryBucketPaymentPagination(String userId, String field, Integer pageNumber, Integer pageSize, String sort, String search) {
+        Specification<DictionaryBucketPayment> specs = Specification.where(null);
+        specs = specs.and(DictionaryBucketPaymentSpecification.filterByUserId(userId));
+
+        if (search != null && !search.isEmpty()) {
+            specs = specs.and(DictionaryBucketPaymentSpecification.filterByName(search));
+        }
+
+        Sort sortable = Sort.by(field).ascending();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sortable);
+        return dictionaryBucketPaymentRepository.findAll(specs, pageable).map(dictionaryBucketPaymentMapper::toDictionaryBucketResponse);
     }
 
     @Override

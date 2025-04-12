@@ -7,4 +7,8 @@ public class DictionaryBucketPaymentSpecification {
     public static Specification<DictionaryBucketPayment> filterByUserId(String userId) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("user").get("id"), userId);
     }
+
+    public static Specification<DictionaryBucketPayment> filterByName(String name) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("accountName"), "%" + name + "%");
+    }
 }

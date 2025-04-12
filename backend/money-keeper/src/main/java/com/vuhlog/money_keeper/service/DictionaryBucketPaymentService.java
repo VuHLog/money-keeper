@@ -7,6 +7,7 @@ import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
 import com.vuhlog.money_keeper.dto.response.DictionaryBucketPaymentResponse;
 import com.vuhlog.money_keeper.dto.response.ExpenseRevenueHistory;
+import org.springframework.data.domain.Page;
 
 public interface DictionaryBucketPaymentService {
     DictionaryBucketPaymentResponse createDictionaryBucketPayment(
@@ -21,6 +22,8 @@ public interface DictionaryBucketPaymentService {
     DictionaryBucketPaymentResponse getDictionaryBucketPaymentById(String id);
 
     List<DictionaryBucketPaymentResponse> getAllDictionaryBucketPayment(String userId);
+
+    Page<DictionaryBucketPaymentResponse> getDictionaryBucketPaymentPagination( String userId,String field, Integer pageNumber, Integer pageSize, String sort, String search);
 
     List<ExpenseRevenueHistory> getAllExpenseRevenueRegularsByIdAndDate(
             ExpenseRevenueHistoryRequest req, Integer pageNumber, Integer pageSize, String sort);

@@ -3,6 +3,7 @@ package com.vuhlog.money_keeper.controller;
 import java.util.List;
 
 import com.vuhlog.money_keeper.dto.request.BucketPaymentUsageStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import com.vuhlog.money_keeper.dto.request.DictionaryBucketPaymentRequest;
@@ -28,6 +29,20 @@ public class DictionaryBucketPaymentController {
         Users user = usersService.getMyUserInfo();
         return ApiResponse.<List<DictionaryBucketPaymentResponse>>builder()
                 .result(dictionaryBucketPaymentService.getAllDictionaryBucketPayment(user.getId()))
+                .build();
+    }
+
+    @GetMapping("/pagination")
+    public ApiResponse<Page<DictionaryBucketPaymentResponse>> getDictionaryBucketPayment(
+            @RequestParam(name = "field", required = false, defaultValue = "accountName") String field,
+            @RequestParam(name = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
+            @RequestParam(name = "pageSize", required = false, defaultValue = "5") Integer pageSize,
+            @RequestParam(name = "sort", required = false, defaultValue = "ASC") String sort,
+            @RequestParam(name = "search", required = false, defaultValue = "") String search
+    ) {
+        Users user = usersService.getMyUserInfo();
+        return ApiResponse.<Page<DictionaryBucketPaymentResponse>>builder()
+                .result(dictionaryBucketPaymentService.getDictionaryBucketPaymentPagination(user.getId(),field, pageNumber, pageSize, sort, search))
                 .build();
     }
 

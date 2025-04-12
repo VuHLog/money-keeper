@@ -30,6 +30,32 @@ export const useDictionaryBucketPaymentStore = defineStore("dictionaryBucketPaym
         });
       return response;
     },
+    async getMyBucketPaymentsPagination(field = "accountName", pageNumber = 1, pageSize = 5, sort = 'ASC', search='') {
+      if(search === null){
+        search = '';
+      }
+      let response = null;
+      await base
+        .get("/dictionary-bucket-payment/pagination?"
+          + "field="+ field
+          + "&pageNumber="+ (pageNumber - 1)
+          + "&pageSize=" + pageSize
+          + "&sort=" + sort
+          + "&search=" + search
+        )
+        .then((res) => {
+          response = res.result;
+          response.content.forEach((item) => {
+            item.accountType = AccountType.find(
+              (type) => type.name === item.accountType
+            );
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      return response;
+    },
     async getBucketPaymentById(id) {
       let response = null;
       await base

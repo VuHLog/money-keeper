@@ -12,10 +12,10 @@ export const useReportStore = defineStore("report", {
   getters: {
   },
   actions: {
-    async getTotalExpenseRevenueByBucketPaymentIdAndTimeOption(id, timeOption, startDate, endDate){
+    async getTotalExpenseRevenueByBucketPaymentIdAndTimeOption(bucketPaymentIds, timeOption, startDate, endDate){
       let response = null;
       const request = {
-        bucketPaymentId: id,
+        bucketPaymentIds: bucketPaymentIds,
         timeOption: timeOption,
         startDate: formatDate(startDate),
         endDate: formatDate(endDate)

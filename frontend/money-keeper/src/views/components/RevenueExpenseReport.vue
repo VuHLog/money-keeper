@@ -11,8 +11,16 @@ const route = useRoute();
 const myBucketPayments = ref([]);
 const reportStore = useReportStore();
 const isSelectAll = ref(true);
-const countItemSelected = ref();
+const isManuallyToggledSelectAll = ref(false);
+const itemSelectedMap =  ref(new Map());
+const itemIdSelectedList = ref([]);
 const dictionaryBucketPaymentStore = useDictionaryBucketPaymentStore();
+const pageNumber = ref(1);
+const pageSize = ref(5);
+const totalElements= ref(0);
+const isOpenDictionaryBucketPayment = ref(false);
+const isChangeBucketPaymentsSelected = ref(false);
+const field = ref("accountName")
 const searchBucketPaymentName = ref("");
 const revenueExpenseData = ref({
   totalExpense: 0,
@@ -21,12 +29,16 @@ const revenueExpenseData = ref({
 const chartSeries = ref([]);
 onMounted(async () => {
   await getData();
+  myBucketPayments.value.forEach((value) => {
+    itemSelectedMap.value.set(value.id, true);
+    itemIdSelectedList.value.push(value.id);
+  });
 });
 
 async function getData() {
   revenueExpenseData.value =
     await reportStore.getTotalExpenseRevenueByBucketPaymentIdAndTimeOption(
-      null,
+      itemIdSelectedList.value,
       selectedPeriod.value,
       null,
       null
@@ -47,10 +59,25 @@ async function getData() {
     },
   ];
 
-  myBucketPayments.value = await dictionaryBucketPaymentStore.getMyBucketPayments();
-  myBucketPayments.value.forEach((value) => value.isSelected = true);
+  let res = await dictionaryBucketPaymentStore.getMyBucketPaymentsPagination(field.value, pageNumber.value, pageSize.value, 'ASC', searchBucketPaymentName.value);
+  myBucketPayments.value = res.content;
+  totalElements.value = res.totalElements;
+}
 
-  countItemSelected.value = myBucketPayments.value.length;
+watch(
+  searchBucketPaymentName,
+  () =>{
+    totalElements.value = 0;
+    pageSize.value = 5;
+    pageNumber.value = 1;
+    getData();
+  }
+)
+
+async function clickLoadMoreBucketPayment() {
+  if (myBucketPayments.value.length >= totalElements.value) return;
+  pageSize.value += 10 * pageSize.value;
+  await getData();
 }
 
 const selectedPeriod = ref("Tháng này");
@@ -115,7 +142,7 @@ const chartOptions = ref({
     },
     title: {
       text: "₫ (Đồng)",
-      rotate: 0, // 👉 chữ nằm ngang
+      rotate: 0,
       offsetX: 0,
       offsetY: -80,
       style: {
@@ -134,26 +161,47 @@ const chartOptions = ref({
   },
 });
 
-function handleSelectAllCheckBox() {
-  if (isSelectAll.value) {
-    myBucketPayments.value.forEach((value) => value.isSelected = true);
-    countItemSelected.value = myBucketPayments.value.length;
-  } else {
-    myBucketPayments.value.forEach((value) => value.isSelected = false);
+watch(isSelectAll,
+  () =>{
+      if (!isManuallyToggledSelectAll.value) return; // handle when click select all check box
+      itemIdSelectedList.value = [];
+      isChangeBucketPaymentsSelected.value = true;
+      if (isSelectAll.value) {
+        myBucketPayments.value.forEach((value) => {
+          itemSelectedMap.value.set(value.id, true);
+          itemIdSelectedList.value.push(value.id);
+        });
+      } else {
+        itemSelectedMap.value.clear();
+        itemIdSelectedList.value = [];
+      }
+      isManuallyToggledSelectAll.value = false; // reset
+    }
+)
+
+function handleSelectBucketPayment(id) {
+  const isSelected = itemSelectedMap.value.get(id);
+  isChangeBucketPaymentsSelected.value = true;
+  if (!isSelected) {
+    itemSelectedMap.value.delete(id);
+    itemIdSelectedList.value = itemIdSelectedList.value.filter(value => value !== id);
+  }else{
+    itemIdSelectedList.value.push(id);
+  }
+  if (itemIdSelectedList.value.length === totalElements.value) {
+    isSelectAll.value = true;
+  } else if(itemIdSelectedList.value.length === 0) {
+    isSelectAll.value = false;
   }
 }
 
-function handleSelectBucketPayment(bucketPayment) {
-  let isSelect = bucketPayment.isSelected;
-  if (isSelect) {
-    countItemSelected.value++;
-  } else {
-    countItemSelected.value--;
-  }
-  if (countItemSelected.value === myBucketPayments.value.length) {
-    isSelectAll.value = true;
-  } else {
-    isSelectAll.value = false;
+async function handleDictionaryBucketPaymentMenuToggle(){
+  if (!isOpenDictionaryBucketPayment.value && isChangeBucketPaymentsSelected.value) {
+      isChangeBucketPaymentsSelected.value = false;
+      if(itemIdSelectedList.value.length === 0){
+          isSelectAll.value = true;
+      }
+      await getData();
   }
 }
 
@@ -214,36 +262,51 @@ const donutSeries = ref([99.2, 0.7]);
             </v-list-item>
             <v-list-item @click="() => { }">
               <v-list-item-title>
-                <v-menu location="end" :submenu="true" :close-on-content-click="false">
+                <v-menu v-model="isOpenDictionaryBucketPayment" @update:modelValue="handleDictionaryBucketPaymentMenuToggle" location="end" :submenu="true" :close-on-content-click="false">
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
-                      <span>Tất cả tài khoản</span>
+                      <span class="user-select-none">Tất cả tài khoản</span>
                       <font-awesome-icon :icon="['fas', 'chevron-down']" class="ml-1" />
                     </div>
                   </template>
                   <v-list width="300">
                     <v-list-item>
-                      <v-text-field density="compact" v-model="searchBucketPaymentName" label="Tìm kiếm theo tên tài khoản" variant="outlined" hide-details single-line>
+                      <v-text-field density="compact" v-model.trim="searchBucketPaymentName" label="Tìm kiếm theo tên tài khoản" variant="outlined" hide-details single-line clearable>
                         <template v-slot:prepend-inner>
                           <v-icon icon="fa:fas fa-magnifying-glass" />
                         </template>
                       </v-text-field>
                     </v-list-item>
-                    <v-list-item>
-                      <v-checkbox v-model="isSelectAll" color="green-darken-1" label="Chọn tất cả" hide-details
-                        @change="handleSelectAllCheckBox()"></v-checkbox>
-                    </v-list-item>
-                    <v-list-item v-for="bucketPayment in myBucketPayments" :key="bucketPayment">
-                      <v-list-item-title class="d-flex align-center">
-                        <v-checkbox v-model="bucketPayment.isSelected" color="green-darken-1"
-                          @change="handleSelectBucketPayment(bucketPayment)" hide-details></v-checkbox>
-                        <div>
-                          <v-avatar start>
-                            <img class="icon-size" :src="bucketPayment.accountType?.icon" alt="icon" />
-                          </v-avatar>
-                          <span class="text-grey-color">{{ bucketPayment.accountName }}</span>
+                    <template v-if="myBucketPayments.length > 0">
+                      <v-list-item v-show="searchBucketPaymentName === '' || searchBucketPaymentName === null">
+                        <div class="d-flex justify-space-between align-center">
+                          <v-checkbox v-model="isSelectAll" color="green-darken-1" label="Chọn tất cả" hide-details @click="() => isManuallyToggledSelectAll = true"></v-checkbox>
+                          <span class="text-14 text-grey-darken-1">Đã chọn {{ itemIdSelectedList.length }}</span>
                         </div>
-                      </v-list-item-title>
+                      </v-list-item>
+                      <div style="max-height: 240; overflow-y: auto">
+                        <v-list-item height="48" v-for="bucketPayment in myBucketPayments" :key="bucketPayment">
+                          <v-list-item-title class="d-flex align-center" style="height: 48px;">
+                            <v-checkbox :model-value="itemSelectedMap.get(bucketPayment.id) || false"
+                              @update:model-value="val => itemSelectedMap.set(bucketPayment.id, val)" color="green-darken-1"
+                              @change="handleSelectBucketPayment(bucketPayment.id)" hide-details></v-checkbox>
+                            <div>
+                              <v-avatar start>
+                                <img class="icon-size" :src="bucketPayment.accountType?.icon" alt="icon" />
+                              </v-avatar>
+                              <span class="text-grey-color">{{ bucketPayment.accountName }}</span>
+                            </div>
+                          </v-list-item-title>
+                        </v-list-item>
+                      </div>
+                      <v-list-item v-if="myBucketPayments.length < totalElements">
+                        <div class="flex-center">
+                          <span class="text-12 cursor-pointer font-weight-bold text-decoration-underline text-grey-darken-1 pa-2" @click="clickLoadMoreBucketPayment()">Tải thêm</span>
+                        </div>
+                      </v-list-item>
+                    </template>
+                    <v-list-item v-else>
+                        <span class="text-12 flex-center font-weight-bold text-grey-darken-1">Không tồn tại tên tài khoản chứa {{ searchBucketPaymentName }}</span>
                     </v-list-item>
                   </v-list>
                 </v-menu>

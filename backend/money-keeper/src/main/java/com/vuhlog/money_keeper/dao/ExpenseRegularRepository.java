@@ -49,11 +49,11 @@ public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, 
             "JOIN dictionary_bucket_payment dbp ON dbp.id = er.dictionary_bucket_payment_id\n" +
             "WHERE dbp.user_id = :userId\n" +
             "AND (:startDate IS NULL OR er.expense_date >= :startDate) AND (:endDate IS NULL OR er.expense_date <= :endDate)\n" +
-            "AND (:bucketPaymentId IS NULL OR dbp.id = :bucketPaymentId)", nativeQuery = true)
+            "AND (:bucketPaymentIdsJoin IS NULL OR FIND_IN_SET(dbp.id, :bucketPaymentIdsJoin))", nativeQuery = true)
     Long getTotalExpenseByMonthAndThisYear(
             @Param("startDate") Timestamp startDate,
             @Param("endDate") Timestamp endDate,
-            @Param("bucketPaymentId") String bucketPaymentId,
+            @Param("bucketPaymentIdsJoin") String bucketPaymentIdsJoin,
             @Param("userId") String userId
     );
 }

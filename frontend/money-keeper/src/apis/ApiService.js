@@ -57,7 +57,7 @@ instance.interceptors.response.use(
 export const base = {
   async get(url, params = {}) {
     try {
-      const response = await instance.get(url, { params });
+      const response = await instance.get(url, { params: params, paramsSerializer: {indexes: null} });
       return response.data;
     } catch (error) {
       return Promise.reject(error);

@@ -6,6 +6,7 @@ import com.vuhlog.money_keeper.dao.ExpenseRegularRepository;
 import com.vuhlog.money_keeper.dao.ReportExpenseRevenueRepository;
 import com.vuhlog.money_keeper.dao.RevenueRegularRepository;
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
+import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.ReportExpenseRevenueResponse;
 import com.vuhlog.money_keeper.dto.response.TotalExpenseRevenueResponse;
 import com.vuhlog.money_keeper.entity.ReportExpenseRevenue;
@@ -40,19 +41,20 @@ public class ReportServiceImpl implements ReportService {
     private EntityManager em;
 
     @Override
-    public TotalExpenseRevenueResponse getTotalExpenseRevenueByTimeOption(ExpenseRevenueHistoryRequest req) {
+    public TotalExpenseRevenueResponse getTotalExpenseRevenueByTimeOption(TotalExpenseRevenueRequest req) {
         String timeOption = req.getTimeOption();
         String startDate = req.getStartDate();
         String endDate = req.getEndDate();
-        String bucketPaymentId = req.getBucketPaymentId();
+        List<String> bucketPaymentIds = req.getBucketPaymentIds();
+        String bucketPaymentIdsJoin = bucketPaymentIds != null ? String.join(",", bucketPaymentIds) : null;
         Users user = userCommon.getMyUserInfo();
         String userId = user.getId();
         PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(timeOption, startDate, endDate);
         TotalExpenseRevenueResponse totalExpenseRevenueResponse = new TotalExpenseRevenueResponse();
         if(timeOption.equals(TimeOptionType.TODAY.getType()) || timeOption.equals(TimeOptionType.THIS_WEEK.getType())){
-            Long totalExpense = expenseRegularRepository.getTotalExpenseByMonthAndThisYear(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentId, userId);
+            Long totalExpense = expenseRegularRepository.getTotalExpenseByMonthAndThisYear(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
             totalExpenseRevenueResponse.setTotalExpense(totalExpense == null ? 0 : totalExpense);
-            Long totalRevenue = revenueRegularRepository.getTotalRevenueByMonthAndThisYear(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentId, userId);
+            Long totalRevenue = revenueRegularRepository.getTotalRevenueByMonthAndThisYear(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
             totalExpenseRevenueResponse.setTotalRevenue(totalRevenue == null ? 0 : totalRevenue);
             return totalExpenseRevenueResponse;
         }else if (timeOption.equals(TimeOptionType.THIS_MONTH.getType()) || timeOption.equals(TimeOptionType.THIS_QUARTER.getType()) || timeOption.equals(TimeOptionType.THIS_YEAR.getType())){
@@ -62,10 +64,10 @@ public class ReportServiceImpl implements ReportService {
             calendar.setTime(periodOfTime.getEndDate());
             int endMonth = calendar.get(Calendar.MONTH) + 1;
             int year = calendar.get(Calendar.YEAR);
-            Object[] result = reportExpenseRevenueRepository.getTotalExpenseRevenueByMonthAndThisYear(startMonth, endMonth, year, userId);
+            Object[] result = reportExpenseRevenueRepository.getTotalExpenseRevenueByMonthAndThisYear(startMonth, endMonth, year, userId, bucketPaymentIdsJoin);
             if(result != null && result.length > 0) {
                 Object[] object = (Object[]) result[0];
-                if(object.length >= 2){
+                if(object != null && object.length >= 2 && object[0] != null && object[1] != null){
                     totalExpenseRevenueResponse = new TotalExpenseRevenueResponse(
                             ((Number) object[0]).longValue(),
                             ((Number) object[1]).longValue()
