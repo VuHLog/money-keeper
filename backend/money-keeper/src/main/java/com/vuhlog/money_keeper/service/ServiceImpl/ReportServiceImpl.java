@@ -6,9 +6,9 @@ import com.vuhlog.money_keeper.dao.ExpenseRegularRepository;
 import com.vuhlog.money_keeper.dao.ReportExpenseRevenueRepository;
 import com.vuhlog.money_keeper.dao.RevenueRegularRepository;
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
+import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
 import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
-import com.vuhlog.money_keeper.dto.response.ReportExpenseRevenueResponse;
-import com.vuhlog.money_keeper.dto.response.TotalExpenseRevenueResponse;
+import com.vuhlog.money_keeper.dto.response.*;
 import com.vuhlog.money_keeper.entity.ReportExpenseRevenue;
 import com.vuhlog.money_keeper.entity.Users;
 import com.vuhlog.money_keeper.mapper.ReportExpenseRevenueMapper;
@@ -24,9 +24,11 @@ import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -83,5 +85,52 @@ public class ReportServiceImpl implements ReportService {
             }
         }
         return totalExpenseRevenueResponse;
+    }
+
+    @Override
+    public List<ReportCategoryResponse> getTotalExpenseByTimeOptionAndCategory(TotalExpenseRevenueRequest req) {
+        String timeOption = req.getTimeOption();
+        String startDate = req.getStartDate();
+        String endDate = req.getEndDate();
+        List<String> bucketPaymentIds = req.getBucketPaymentIds();
+        String bucketPaymentIdsJoin = bucketPaymentIds != null ? String.join(",", bucketPaymentIds) : null;
+        Users user = userCommon.getMyUserInfo();
+        String userId = user.getId();
+        PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(timeOption, startDate, endDate);
+//        if(timeOption.equals(TimeOptionType.TODAY.getType()) || timeOption.equals(TimeOptionType.THIS_WEEK.getType())){
+//            List<Object[]> results = expenseRegularRepository.getTotalExpenseByTimeAndCategory(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
+//            return convertToReportCategoryResponse(results);
+//        }else if (timeOption.equals(TimeOptionType.THIS_MONTH.getType()) || timeOption.equals(TimeOptionType.THIS_QUARTER.getType()) || timeOption.equals(TimeOptionType.THIS_YEAR.getType())){
+//            List<Object[]> results = expenseRegularRepository.getTotalExpenseByTimeAndCategory(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
+//            return convertToReportCategoryResponse(results);
+//        }
+        List<Object[]> results = expenseRegularRepository.getTotalExpenseByTimeAndCategory(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
+        return convertToReportCategoryResponse(results);
+    }
+
+    @Override
+    public List<ReportCategoryResponse> getTotalRevenueByTimeOptionAndCategory(TotalExpenseRevenueRequest req) {
+        String timeOption = req.getTimeOption();
+        String startDate = req.getStartDate();
+        String endDate = req.getEndDate();
+        List<String> bucketPaymentIds = req.getBucketPaymentIds();
+        String bucketPaymentIdsJoin = bucketPaymentIds != null ? String.join(",", bucketPaymentIds) : null;
+        Users user = userCommon.getMyUserInfo();
+        String userId = user.getId();
+        PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(timeOption, startDate, endDate);
+        List<Object[]> results = revenueRegularRepository.getTotalRevenueByTimeAndCategory(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
+        return convertToReportCategoryResponse(results);
+    }
+
+    private List<ReportCategoryResponse> convertToReportCategoryResponse(List<Object[]> list) {
+        return list.stream().map(obj ->
+                    new ReportCategoryResponse(
+                            ((Number) obj[0]).longValue(), // total
+                            (String) obj[1], //type
+                            (String) obj[2], // category id
+                            (String) obj[3], // name
+                            (String) obj[4] // icon url
+                    )
+        ).collect(Collectors.toList());
     }
 }

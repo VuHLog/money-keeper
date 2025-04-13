@@ -3,7 +3,7 @@ import { ref, getCurrentInstance, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useReportStore } from "@/store/ReportStore.js";
 import { useDictionaryBucketPaymentStore } from "@/store/DictionaryBucketPayment";
-import { formatCurrency } from "@/utils/format.js";
+import { formatCurrency, formatNumberToPercent } from "@/utils/format.js";
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
@@ -26,7 +26,11 @@ const revenueExpenseData = ref({
   totalExpense: 0,
   totalRevenue: 0,
 });
+const totalExpenseByCategory = ref([]);
+const totalRevenueByCategory = ref([]);
 const chartSeries = ref([]);
+const startDate = ref(null);
+const endDate = ref(null);
 onMounted(async () => {
   await getData();
   myBucketPayments.value.forEach((value) => {
@@ -40,8 +44,8 @@ async function getData() {
     await reportStore.getTotalExpenseRevenueByBucketPaymentIdAndTimeOption(
       itemIdSelectedList.value,
       selectedPeriod.value,
-      null,
-      null
+      startDate.value,
+      endDate.value
     );
   chartSeries.value = [
     {
@@ -62,6 +66,13 @@ async function getData() {
   let res = await dictionaryBucketPaymentStore.getMyBucketPaymentsPagination(field.value, pageNumber.value, pageSize.value, 'ASC', searchBucketPaymentName.value);
   myBucketPayments.value = res.content;
   totalElements.value = res.totalElements;
+
+  totalExpenseByCategory.value = await reportStore.getTotalExpenseByBucketPaymentIdAndTimeOptionAndCategory(itemIdSelectedList.value,selectedPeriod.value,startDate.value,endDate.value);
+  updateExpensePieSeries();
+  updateExpensePieOptions();
+  totalRevenueByCategory.value = await reportStore.getTotalRevenueByBucketPaymentIdAndTimeOptionAndCategory(itemIdSelectedList.value,selectedPeriod.value,startDate.value,endDate.value);
+  updateRevenuePieSeries();
+  updateRevenuePieOptions();
 }
 
 watch(
@@ -205,25 +216,121 @@ async function handleDictionaryBucketPaymentMenuToggle(){
   }
 }
 
-const donutChartOptions = ref({
+const expensePieChartOptions = ref({
   chart: {
-    type: "donut",
+    type: "pie",
+    width: 380,
   },
-  colors: ["#ffc107", "#f44336"],
-  labels: ["Không xác định (99,2%)", "Ăn uống (0,7%)"],
-  legend: {
-    position: "bottom",
-  },
-  plotOptions: {
-    pie: {
-      donut: {
-        size: "70%",
-      },
+  colors: [],
+  fill: {
+    type: 'image',
+    opacity: 0.85,
+    image: {
+      src: [],
+      width: 25,
+      imagedHeight: 25
     },
+  },
+  dataLabels:{
+    enabled: false,
+  },
+  labels: [],
+  legend: {
+    show: false,
   },
 });
 
-const donutSeries = ref([99.2, 0.7]);
+const expensePieSeries = ref([]);
+const expensePieChart = ref(null)
+function updateExpensePieSeries(){
+  expensePieChart.value.updateSeries(totalExpenseByCategory.value.map(val => val.total));
+}
+
+function updateExpensePieOptions() {
+  const options = {
+    imgSrc: [],
+    colors: [],
+    labels: [],
+  };
+  totalExpenseByCategory.value.forEach(val => {
+    options.imgSrc.push(val.iconUrl);
+    options.colors.push('#93C3EE');
+    options.labels.push(val.name);
+  });
+  expensePieChart.value.updateOptions(
+    {
+      colors: options.colors,
+      fill: {
+        image: {
+          src: options.imgSrc
+        },
+      },
+      labels: options.labels,
+      stroke: {
+        width: totalExpenseByCategory.value.length === 1 ? 0 : 2,
+        colors: ['#ffffff']
+      },
+    }
+  );
+}
+
+const revenuePieChartOptions = ref({
+  chart: {
+    type: "pie",
+  },
+  colors: [],
+  fill: {
+    type: 'image',
+    opacity: 0.85,
+    image: {
+      src: [],
+      width: 25,
+      imagedHeight: 25
+    },
+  },
+  dataLabels:{
+    enabled: false,
+  },
+  labels: [],
+  legend: {
+    show: false,
+  },
+});
+
+const revenuePieSeries = ref([]);
+const revenuePieChart = ref(null)
+function updateRevenuePieSeries(){
+  revenuePieChart.value.updateSeries(totalRevenueByCategory.value.map(val => val.total));
+}
+
+function updateRevenuePieOptions() {
+  const options = {
+    imgSrc: [],
+    colors: [],
+    labels: [],
+  };
+  totalRevenueByCategory.value.forEach(val => {
+    options.imgSrc.push(val.iconUrl);
+    options.colors.push('#93C3EE');
+    options.labels.push(val.name);
+  });
+  
+  revenuePieChart.value.updateOptions(
+    {
+      colors: options.colors,
+      fill: {
+        image: {
+          src: options.imgSrc
+        },
+      },
+      labels: options.labels,
+      stroke: {
+        width: totalRevenueByCategory.value.length === 1 ? 0 : 2,
+        colors: ['#ffffff']
+      },
+    }
+  );
+}
 </script>
 
 <template>
@@ -262,7 +369,9 @@ const donutSeries = ref([99.2, 0.7]);
             </v-list-item>
             <v-list-item @click="() => { }">
               <v-list-item-title>
-                <v-menu v-model="isOpenDictionaryBucketPayment" @update:modelValue="handleDictionaryBucketPaymentMenuToggle" location="end" :submenu="true" :close-on-content-click="false">
+                <v-menu v-model="isOpenDictionaryBucketPayment"
+                  @update:modelValue="handleDictionaryBucketPaymentMenuToggle" location="end" :submenu="true"
+                  :close-on-content-click="false">
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <span class="user-select-none">Tất cả tài khoản</span>
@@ -271,7 +380,8 @@ const donutSeries = ref([99.2, 0.7]);
                   </template>
                   <v-list width="300">
                     <v-list-item>
-                      <v-text-field density="compact" v-model.trim="searchBucketPaymentName" label="Tìm kiếm theo tên tài khoản" variant="outlined" hide-details single-line clearable>
+                      <v-text-field density="compact" v-model.trim="searchBucketPaymentName"
+                        label="Tìm kiếm theo tên tài khoản" variant="outlined" hide-details single-line clearable>
                         <template v-slot:prepend-inner>
                           <v-icon icon="fa:fas fa-magnifying-glass" />
                         </template>
@@ -280,7 +390,8 @@ const donutSeries = ref([99.2, 0.7]);
                     <template v-if="myBucketPayments.length > 0">
                       <v-list-item v-show="searchBucketPaymentName === '' || searchBucketPaymentName === null">
                         <div class="d-flex justify-space-between align-center">
-                          <v-checkbox v-model="isSelectAll" color="green-darken-1" label="Chọn tất cả" hide-details @click="() => isManuallyToggledSelectAll = true"></v-checkbox>
+                          <v-checkbox v-model="isSelectAll" color="green-darken-1" label="Chọn tất cả" hide-details
+                            @click="() => isManuallyToggledSelectAll = true"></v-checkbox>
                           <span class="text-14 text-grey-darken-1">Đã chọn {{ itemIdSelectedList.length }}</span>
                         </div>
                       </v-list-item>
@@ -288,8 +399,9 @@ const donutSeries = ref([99.2, 0.7]);
                         <v-list-item height="48" v-for="bucketPayment in myBucketPayments" :key="bucketPayment">
                           <v-list-item-title class="d-flex align-center" style="height: 48px;">
                             <v-checkbox :model-value="itemSelectedMap.get(bucketPayment.id) || false"
-                              @update:model-value="val => itemSelectedMap.set(bucketPayment.id, val)" color="green-darken-1"
-                              @change="handleSelectBucketPayment(bucketPayment.id)" hide-details></v-checkbox>
+                              @update:model-value="val => itemSelectedMap.set(bucketPayment.id, val)"
+                              color="green-darken-1" @change="handleSelectBucketPayment(bucketPayment.id)"
+                              hide-details></v-checkbox>
                             <div>
                               <v-avatar start>
                                 <img class="icon-size" :src="bucketPayment.accountType?.icon" alt="icon" />
@@ -301,12 +413,15 @@ const donutSeries = ref([99.2, 0.7]);
                       </div>
                       <v-list-item v-if="myBucketPayments.length < totalElements">
                         <div class="flex-center">
-                          <span class="text-12 cursor-pointer font-weight-bold text-decoration-underline text-grey-darken-1 pa-2" @click="clickLoadMoreBucketPayment()">Tải thêm</span>
+                          <span
+                            class="text-12 cursor-pointer font-weight-bold text-decoration-underline text-grey-darken-1 pa-2"
+                            @click="clickLoadMoreBucketPayment()">Tải thêm</span>
                         </div>
                       </v-list-item>
                     </template>
                     <v-list-item v-else>
-                        <span class="text-12 flex-center font-weight-bold text-grey-darken-1">Không tồn tại tên tài khoản chứa {{ searchBucketPaymentName }}</span>
+                      <span class="text-12 flex-center font-weight-bold text-grey-darken-1">Không tồn tại tên tài khoản
+                        chứa {{ searchBucketPaymentName }}</span>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -344,17 +459,68 @@ const donutSeries = ref([99.2, 0.7]);
         <div class="d-flex align-center justify-end">
           <div class="text-h6 font-weight-bold">
             {{
-              formatCurrency(
-                revenueExpenseData.totalRevenue -
-                revenueExpenseData.totalExpense
-              )
+            formatCurrency(
+            revenueExpenseData.totalRevenue -
+            revenueExpenseData.totalExpense
+            )
             }}
           </div>
         </div>
       </div>
     </div>
 
-    <apexchart type="donut" :options="donutChartOptions" :series="donutSeries" height="200"></apexchart>
+    <v-row>
+      <v-col cols="12" class="mb-3" v-if="revenueExpenseData.totalRevenue > 0">
+        <div class="d-flex">
+          <apexchart class="border-e-sm mr-2 align-self-center" type="pie" width="200" :options="revenuePieChartOptions"
+            :series="revenuePieSeries" ref="revenuePieChart"></apexchart>
+          <div class="align-self-start w-100">
+            <p class="text-primary pb-3">Thu</p>
+            <template v-for="item in totalRevenueByCategory" :key="item">
+              <div>
+                <div class="d-flex justify-space-between align-center">
+                  <div>
+                    <v-avatar start>
+                      <img :src="item.iconUrl" alt="icon" style="width: 30px" />
+                    </v-avatar>
+                    <span class="text-grey-color text-14">{{ item.name }}</span>
+                  </div>
+                  <div>
+                    <span class="text-14 mr-1">{{ formatCurrency(item.total) }}</span>
+                    <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total, revenueExpenseData.totalRevenue) }}</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </v-col>
+      <v-col cols="12" v-if="revenueExpenseData.totalExpense > 0">
+        <div class="d-flex align-center">
+          <apexchart class="border-e-sm mr-2 align-self-center" type="pie" width="200" :options="expensePieChartOptions"
+            :series="expensePieSeries" ref="expensePieChart"></apexchart>
+          <div class="align-self-start w-100">
+            <p class="text-red-accent-3 pb-3">Chi</p>
+            <template v-for="item in totalExpenseByCategory" :key="item">
+              <div>
+                <div class="d-flex justify-space-between align-center">
+                  <div>
+                    <v-avatar start>
+                      <img :src="item.iconUrl" alt="icon" style="width: 30px" />
+                    </v-avatar>
+                    <span class="text-grey-color text-14">{{ item.name }}</span>
+                  </div>
+                  <div>
+                    <span class="text-14 mr-1">{{ formatCurrency(item.total) }}</span>
+                    <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total, revenueExpenseData.totalExpense) }}</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </v-col>
+    </v-row>
   </v-card>
 </template>
 

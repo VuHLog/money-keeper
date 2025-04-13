@@ -16,3 +16,7 @@ export const formatCurrencyWithColor = (amount, currency = '₫', color = 'text-
   const formattedAmount = formatCurrency(amount, currency);
   return `<span class="${color} font-weight-bold">${formattedAmount}</span>`;
 }; 
+
+export const formatNumberToPercent = (numerator, denominator) => {
+  return `(${(Math.round((numerator * 10000 / denominator))/100).toString().replace('.', ',')}%)`;
+}; 
