@@ -20,14 +20,18 @@ const fullPath = computed(() => route.fullPath)
 const showUserMenu = ref(false);
 
 const username = computed(() => store.username);
-const avatarUrl = ref("");
+const avatarUrl = computed(() => store.avatarUrl);
+const fullName = computed(() => store.fullName);
 const name = ref("");
 const showPopupChangePassword = ref(false);
 const showUserInfo = ref(false);
 
-onMounted(() => {
+onMounted(async () => {
   let token = sessionStorage.getItem("token");
   decodedToken(token);
+  const users = await store.getMyInfo();
+  store.fullName = users.fullName;
+  store.avatarUrl = users.avatarUrl;
 });
 
 function decodedToken(token) {
@@ -48,7 +52,7 @@ function decodedToken(token) {
 const isLoggedIn = computed(() => store.isLoggedIn);
 watch(isLoggedIn, (newVal) => {
   if (newVal) {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     decodedToken(token);
   } else {
     decodedToken(null);
@@ -154,7 +158,7 @@ async function logOut() {
         </div>
       </div>
       <div class="d-flex align-center">
-        <span class="font-weight-bold text-grey-darken-4">{{ name }}</span>
+        <span class="font-weight-bold text-grey-darken-4">{{ fullName }}</span>
         <v-menu v-if="isLoggedIn">
           <template v-slot:activator="{ props }">
             <div class="d-flex align-center cursor-pointer h-100 pa-3 user-none" @click="showUserMenu = !showUserMenu"

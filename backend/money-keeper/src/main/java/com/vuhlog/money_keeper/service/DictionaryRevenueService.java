@@ -15,4 +15,6 @@ public interface DictionaryRevenueService {
     DictionaryRevenueResponse getDictionaryRevenueById(String id);
 
     List<DictionaryRevenueResponse> getAllDictionaryRevenue();
+
+    List<DictionaryRevenueResponse> getAllDictionaryRevenueWithoutTransfer();
 }

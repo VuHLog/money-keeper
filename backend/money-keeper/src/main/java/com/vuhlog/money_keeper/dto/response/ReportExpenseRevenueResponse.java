@@ -21,4 +21,6 @@ public class ReportExpenseRevenueResponse {
     private String updatedAt;
     private String bucketPaymentId;
     private String userId;
+    private String categoryId;
+    private String type;
 }

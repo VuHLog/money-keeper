@@ -1,8 +1,10 @@
 <script setup>
 import { ref, getCurrentInstance, onMounted } from "vue";
 import { inject } from "vue";
+import { useBaseStore } from "@/store/index.js";
 
 const emit = defineEmits(['hide-option']);
+const store = useBaseStore();
 
 const { proxy } = getCurrentInstance();
 const swal = inject("$swal");
@@ -52,6 +54,7 @@ async function submitFile() {
     .postFile("/cloudinary/upload/image", formData)
     .then((res) => {
       user.value.avatarUrl = res.url;
+      store.avatarUrl = res.url;
       console.log(res.url);
     })
     .catch((error) => console.log(error));
@@ -80,6 +83,7 @@ async function updateUser() {
   await proxy.$api
     .put("/users/" + user.value.id, user.value)
     .then((res) => {
+      store.fullName = user.value.fullName;
       emit("update:modelValue", false);
       swal.fire({
         title: "Thành công",
@@ -98,7 +102,7 @@ async function updateUser() {
     <div>
       <v-row justify="center">
         <v-col cols="7">
-          <v-text-field v-model="user.username" label="Tên đăng nhập" hide-details="true" disabled
+          <v-text-field v-model="user.username" label="Tên đăng nhập" hide-details="true" :readonly="true"
             class="text-blue-accent-3 font-weight-bold text-end" bg-color="bg-white" hide-spin-buttons>
           </v-text-field>
         </v-col>

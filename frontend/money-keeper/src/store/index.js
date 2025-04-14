@@ -13,7 +13,8 @@ export const useBaseStore = defineStore("base", {
       isLoggedIn: tokenDecoded?true:false,
       roles: tokenDecoded?.scope || "",
       username: tokenDecoded?.sub || "",
-      fullName: tokenDecoded?.name || "",
+      fullName: "",
+      avatarUrl: "",
       avatarUserDefault:
         "https://res.cloudinary.com/cloud1412/image/upload/v1739899158/hffbxsj6wbkbzkxjfetz.png",
     };

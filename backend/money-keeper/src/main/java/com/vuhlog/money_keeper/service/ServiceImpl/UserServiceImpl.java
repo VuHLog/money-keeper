@@ -120,7 +120,6 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
         Users user = usersRepository.findById(userId).get();
         userMapper.updateUser(user, request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         // xoá user id trong user_role
         userRoleRepository.deleteByUser(user);

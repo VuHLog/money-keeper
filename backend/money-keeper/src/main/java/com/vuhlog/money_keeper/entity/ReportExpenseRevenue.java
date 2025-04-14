@@ -18,11 +18,13 @@ public class ReportExpenseRevenue {
     private String id;
     private int month;
     private int year;
+    private String type;
     private long totalExpense;
     private long totalRevenue;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private String bucketPaymentId;
+    private String categoryId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

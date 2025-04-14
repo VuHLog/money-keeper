@@ -15,4 +15,6 @@ public interface DictionaryExpenseService {
     DictionaryExpenseResponse getDictionaryExpenseById(String id);
 
     List<DictionaryExpenseResponse> getAllDictionaryExpense();
+
+    List<DictionaryExpenseResponse> getAllDictionaryExpenseWithoutTransfer();
 }

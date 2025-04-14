@@ -13,6 +13,7 @@ import java.util.List;
 @Builder
 public class TotalExpenseRevenueRequest {
     private List<String> bucketPaymentIds;
+    private List<String> categoriesId;
     private String timeOption;
     private String startDate;
     private String endDate;

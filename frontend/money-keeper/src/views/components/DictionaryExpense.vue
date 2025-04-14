@@ -16,7 +16,7 @@ const dictionaryExpense = ref([]);
 onMounted(async () => {
   let data = [];
   await proxy.$api
-    .get("/dictionary-expense")
+    .get("/dictionary-expense/without-transfer")
     .then((res) => {
       data = res.result;
     })

@@ -16,7 +16,7 @@ const dictionaryRevenue = ref([]);
 onMounted(async () => {
   let data = [];
   await proxy.$api
-    .get("/dictionary-revenue")
+    .get("/dictionary-revenue/without-transfer")
     .then((res) => {
       data = res.result;
     })

@@ -23,4 +23,7 @@ public class DictionaryRevenueSpecification {
     public static Specification<DictionaryRevenue> equalName(String name) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("name"), name);
     }
+    public static Specification<DictionaryRevenue> notEqualName(String name) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("name"), name);
+    }
 }

@@ -70,6 +70,19 @@ public class DictionaryRevenueServiceImpl implements DictionaryRevenueService {
         return dictionaryRevenueRepository.findAll(specs, sortable).stream().map(dictionaryRevenueMapper::toDictionaryRevenueResponse).toList();
     }
 
+    @Override
+    public List<DictionaryRevenueResponse> getAllDictionaryRevenueWithoutTransfer() {
+        Specification<DictionaryRevenue> specs = Specification.where(null);
+
+        specs = specs.and(DictionaryRevenueSpecification.equalSystemDefault(true));
+        specs = specs.and(DictionaryRevenueSpecification.notEqualName("Chuyển khoản"));
+        specs = specs.or(DictionaryRevenueSpecification.equalUserId(getMyInfo().getId()).and(DictionaryRevenueSpecification.equalSystemDefault(false)));
+
+        Sort sortable = Sort.by("name").ascending();
+
+        return dictionaryRevenueRepository.findAll(specs, sortable).stream().map(dictionaryRevenueMapper::toDictionaryRevenueResponse).toList();
+    }
+
     public Users getMyInfo(){
         var context = SecurityContextHolder.getContext();
         String name = context.getAuthentication().getName();

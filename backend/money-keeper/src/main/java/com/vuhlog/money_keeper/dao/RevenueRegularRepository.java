@@ -48,11 +48,13 @@ public interface RevenueRegularRepository extends JpaRepository<RevenueRegular, 
             "JOIN dictionary_bucket_payment dbp ON dbp.id = rr.dictionary_bucket_payment_id\n" +
             "WHERE dbp.user_id = :userId\n" +
             "AND (:startDate IS NULL OR rr.revenue_date >= :startDate) AND (:endDate IS NULL OR rr.revenue_date <= :endDate)\n" +
-            "AND (:bucketPaymentIdsJoin IS NULL OR FIND_IN_SET(dbp.id, :bucketPaymentIdsJoin))", nativeQuery = true)
+            "AND (:bucketPaymentIdsJoin IS NULL OR FIND_IN_SET(dbp.id, :bucketPaymentIdsJoin))\n" +
+            "AND (:categoriesIdJoin IS NULL OR FIND_IN_SET(rr.dictionary_revenue_id, :categoriesIdJoin))", nativeQuery = true)
     Long getTotalRevenueByMonthAndThisYear(
             @Param("startDate") Timestamp startDate,
             @Param("endDate") Timestamp endDate,
             @Param("bucketPaymentIdsJoin") String bucketPaymentIdsJoin,
+            @Param("categoriesIdJoin") String categoriesIdJoin,
             @Param("userId") String userId
     );
 

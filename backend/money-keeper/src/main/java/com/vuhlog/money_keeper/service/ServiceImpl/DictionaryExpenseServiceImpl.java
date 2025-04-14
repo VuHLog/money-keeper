@@ -73,6 +73,19 @@ public class DictionaryExpenseServiceImpl implements DictionaryExpenseService {
         return dictionaryExpenseRepository.findAll(specs, sortable).stream().map(dictionaryExpenseMapper::toDictionaryExpenseResponse).toList();
     }
 
+    @Override
+    public List<DictionaryExpenseResponse> getAllDictionaryExpenseWithoutTransfer() {
+        Specification<DictionaryExpense> specs = Specification.where(null);
+
+        specs = specs.and(DictionaryExpenseSpecification.equalSystemDefault(true));
+        specs = specs.and(DictionaryExpenseSpecification.notEqualName("Chuyển khoản"));
+        specs = specs.or(DictionaryExpenseSpecification.equalUserId(getMyInfo().getId()).and(DictionaryExpenseSpecification.equalSystemDefault(false)));
+
+        Sort sortable = Sort.by("name").ascending();
+
+        return dictionaryExpenseRepository.findAll(specs, sortable).stream().map(dictionaryExpenseMapper::toDictionaryExpenseResponse).toList();
+    }
+
     public Users getMyInfo(){
         var context = SecurityContextHolder.getContext();
         String name = context.getAuthentication().getName();

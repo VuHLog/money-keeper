@@ -5,6 +5,7 @@ import { useReportStore } from "@/store/ReportStore.js";
 import { useDictionaryBucketPaymentStore } from "@/store/DictionaryBucketPayment";
 import { formatCurrency, formatNumberToPercent } from "@/utils/format.js";
 import { colorRepos } from "@/common/ColorRepos.js";
+import { TransferType, TransferTypeIcon } from "@/constants/TransferType.js";
 import VRange from "@/components/VRange.vue";
 
 const { proxy } = getCurrentInstance();
@@ -32,15 +33,15 @@ const totalExpenseByCategory = ref([]);
 const totalRevenueByCategory = ref([]);
 const groupedRevenueCategories = computed(() => {
   const groups = []
-  for (let i = 0; i < totalRevenueByCategory.value.length; i += 4) {
-    groups.push(totalRevenueByCategory.value.slice(i, i + 4))
+  for (let i = 0; i < totalRevenueByCategory.value.length; i += lengthWindow.value) {
+    groups.push(totalRevenueByCategory.value.slice(i, i + lengthWindow.value))
   }
   return groups
 })
 const groupedExpenseCategories = computed(() => {
   const groups = []
-  for (let i = 0; i < totalExpenseByCategory.value.length; i += 4) {
-    groups.push(totalExpenseByCategory.value.slice(i, i + 4))
+  for (let i = 0; i < totalExpenseByCategory.value.length; i += lengthWindow.value) {
+    groups.push(totalExpenseByCategory.value.slice(i, i + lengthWindow.value))
   }
   return groups
 })
@@ -49,7 +50,7 @@ const startDate = ref(null);
 const endDate = ref(null);
 const windowExpense = ref(0);
 const windowRevenue = ref(0);
-const length = ref(3);
+const lengthWindow = ref(4);
 onMounted(async () => {
   await getData();
   myBucketPayments.value.forEach((value) => {
@@ -286,6 +287,16 @@ function updateExpensePieOptions() {
         width: totalExpenseByCategory.value.length === 1 ? 0 : 2,
         colors: ['#ffffff']
       },
+      tooltip: {
+        custom: function({series, seriesIndex, dataPointIndex, w}) {
+          return `<div class="d-flex align-center py-1 px-2">
+                    <v-avatar class="mr-1 d-flex align-center" start>
+                      <img src="${options.imgSrc[seriesIndex]}" alt="icon" style="width: 30px" />
+                    </v-avatar>
+                    <span class="text-grey-color text-14 text-white">${options.labels[seriesIndex]}: ${formatCurrency(series[seriesIndex])}</span>
+                  </div>`
+        }
+      }
     }
   );
 }
@@ -325,8 +336,11 @@ function updateRevenuePieOptions() {
     const selectedColor = availableColors[randomIndex];
     options.colors.push(selectedColor);
     availableColors.splice(randomIndex, 1);
-    
-    options.labels.push(val.name);
+    let label = val.name;
+    if(label === "Chuyển khoản"){
+      label = "Nhận từ chuyển khoản";
+    }
+    options.labels.push(label);
   });
   
   revenueOptions.value = options;
@@ -338,6 +352,16 @@ function updateRevenuePieOptions() {
         width: totalRevenueByCategory.value.length === 1 ? 0 : 2,
         colors: ['#ffffff']
       },
+      tooltip: {
+        custom: function({series, seriesIndex, dataPointIndex, w}) {
+          return `<div class="d-flex align-center py-1 px-2">
+                    <v-avatar class="mr-1 d-flex align-center" start>
+                      <img src="${options.imgSrc[seriesIndex]}" alt="icon" style="width: 30px" />
+                    </v-avatar>
+                    <span class="text-grey-color text-14 text-white">${options.labels[seriesIndex]}: ${formatCurrency(series[seriesIndex])}</span>
+                  </div>`
+        }
+      }
     }
   );
 }
@@ -484,29 +508,33 @@ function updateRevenuePieOptions() {
         <div class="d-flex">
           <div>
             <p class="text-primary text-center">Thu</p>
-            <apexchart class="border-e-sm mr-2 align-self-center" type="pie" width="200" :options="revenuePieChartOptions"
-            :series="revenuePieSeries" ref="revenuePieChart"></apexchart>
+            <apexchart class="border-e-sm align-self-center" type="pie" width="200" :options="revenuePieChartOptions"
+              :series="revenuePieSeries" ref="revenuePieChart"></apexchart>
           </div>
           <div class="align-self-start w-100">
-            <v-window v-model="windowRevenue" show-arrows>
+            <v-window v-model="windowRevenue" show-arrows="hover">
               <v-window-item v-for="(group,index1) in groupedRevenueCategories" :key="group">
                 <v-card class="d-flex justify-center align-center" height="220px">
-                  <div class="w-75">
+                  <div style="width: 80%;">
                     <template v-for="(item,index2) in group" :key="item">
-                      <div  class="mb-2">
+                      <div class="mb-2">
                         <div class="d-flex justify-space-between align-center">
                           <div>
                             <v-avatar start>
                               <img :src="item.iconUrl" alt="icon" style="width: 30px" />
                             </v-avatar>
-                            <span class="text-grey-color text-14">{{ item.name }}</span>
+                            <span class="text-grey-color text-14" v-if="item.name === 'Chuyển khoản'">Nhận từ chuyển
+                              khoản</span>
+                            <span class="text-grey-color text-14" v-else>{{ item.name }}</span>
                           </div>
                           <div>
                             <span class="text-14 mr-1">{{ formatCurrency(item.total) }}</span>
-                            <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total, revenueExpenseData.totalRevenue) }}</span>
+                            <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total,
+                              revenueExpenseData.totalRevenue) }}</span>
                           </div>
                         </div>
-                        <v-range :progress="(Math.round((item.total * 10000 / revenueExpenseData.totalRevenue))/100)" :color="revenueOptions.colors[index1*4 + index2]"></v-range>
+                        <v-range :progress="(Math.round((item.total * 10000 / revenueExpenseData.totalRevenue))/100)"
+                          :color="revenueOptions.colors[index1*lengthWindow + index2]"></v-range>
                       </div>
                     </template>
                   </div>
@@ -520,16 +548,26 @@ function updateRevenuePieOptions() {
         <div class="d-flex align-center">
           <div>
             <p class="text-red-accent-3 text-center">Chi</p>
-            <apexchart class="border-e-sm mr-2 align-self-center" type="pie" width="200" :options="expensePieChartOptions"
-            :series="expensePieSeries" ref="expensePieChart"></apexchart>
+            <apexchart class="border-e-sm align-self-center" type="pie" width="200" :options="expensePieChartOptions"
+              :series="expensePieSeries" ref="expensePieChart"></apexchart>
           </div>
           <div class="align-self-start w-100">
-            <v-window v-model="windowExpense" show-arrows>
+            <v-window v-model="windowExpense" show-arrows="hover">
+              <template v-slot:prev="{ props }">
+                <div class="cursor-pointer hover-bg-grey-darken elevation-3 rounded-circle flex-center pa-3" @click="props.onClick" style="width: 16px; height: 16px;">
+                  <font-awesome-icon :icon="['fas', 'chevron-left']" />
+                </div>
+              </template>
+              <template v-slot:next="{ props }">
+                <div class="cursor-pointer hover-bg-grey-darken elevation-3 rounded-circle flex-center pa-3" @click="props.onClick" style="width: 16px; height: 16px;">
+                  <font-awesome-icon :icon="['fas', 'chevron-right']" />
+                </div>
+              </template>
               <v-window-item v-for="(group,index1) in groupedExpenseCategories" :key="group">
                 <v-card class="d-flex justify-center align-center" height="220px">
                   <div class="w-75">
                     <template v-for="(item,index2) in group" :key="item">
-                      <div  class="mb-2">
+                      <div class="mb-2">
                         <div class="d-flex justify-space-between align-center">
                           <div>
                             <v-avatar start>
@@ -539,10 +577,12 @@ function updateRevenuePieOptions() {
                           </div>
                           <div>
                             <span class="text-14 mr-1">{{ formatCurrency(item.total) }}</span>
-                            <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total, revenueExpenseData.totalExpense) }}</span>
+                            <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total,
+                              revenueExpenseData.totalExpense) }}</span>
                           </div>
                         </div>
-                        <v-range :progress="(Math.round((item.total * 10000 / revenueExpenseData.totalExpense))/100)" :color="expenseOptions.colors[index1*4 + index2]"></v-range>
+                        <v-range :progress="(Math.round((item.total * 10000 / revenueExpenseData.totalExpense))/100)"
+                          :color="expenseOptions.colors[index1*lengthWindow + index2]"></v-range>
                       </div>
                     </template>
                   </div>

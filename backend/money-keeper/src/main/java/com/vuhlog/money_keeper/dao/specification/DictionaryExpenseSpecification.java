@@ -23,4 +23,8 @@ public class DictionaryExpenseSpecification {
     public static Specification<DictionaryExpense> equalName(String name) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("name"), name);
     }
+
+    public static Specification<DictionaryExpense> notEqualName(String name) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.notEqual(root.get("name"), name);
+    }
 }

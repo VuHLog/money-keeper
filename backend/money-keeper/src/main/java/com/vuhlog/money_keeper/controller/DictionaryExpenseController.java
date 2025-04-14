@@ -16,9 +16,16 @@ public class DictionaryExpenseController {
     private final DictionaryExpenseService dictionaryExpenseService;
 
     @GetMapping("")
-    public ApiResponse<List<DictionaryExpenseResponse>> getDictionaryExpense(){
+    public ApiResponse<List<DictionaryExpenseResponse>> getAllDictionaryExpense(){
         return ApiResponse.<List<DictionaryExpenseResponse>>builder()
                 .result(dictionaryExpenseService.getAllDictionaryExpense())
+                .build();
+    }
+
+    @GetMapping("/without-transfer")
+    public ApiResponse<List<DictionaryExpenseResponse>> getAllDictionaryExpenseWithoutTransfer(){
+        return ApiResponse.<List<DictionaryExpenseResponse>>builder()
+                .result(dictionaryExpenseService.getAllDictionaryExpenseWithoutTransfer())
                 .build();
     }
 

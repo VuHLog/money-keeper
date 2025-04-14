@@ -33,6 +33,15 @@ async function updateUsageStatus(id, status){
   .then((res) => {
     console.log(res.result.haveUse? "Đang sử dụng": "Ngừng sử dụng")
     dictionaryBucketPayment.value.find(value => value.id === id).haveUse = res.result.haveUse;
+    let haveUse = res.result.haveUse;
+    let balance = res.result.balance;
+    if(haveUse){
+      currentBalanceUsed.value += balance;
+      currentBalanceNotUsed.value -= balance;
+    }else{
+      currentBalanceUsed.value -= balance;
+      currentBalanceNotUsed.value += balance;
+    }
   }).catch((err) => {
     console.log(err);
   });
@@ -132,7 +141,7 @@ async function updateUsageStatus(id, status){
                         </router-link>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item class="hover-bg-grey">
+                    <!-- <v-list-item class="hover-bg-grey">
                       <v-list-item-title>
                         <router-link
                           class="text-decoration-none text-grey-darken-4"
@@ -148,7 +157,7 @@ async function updateUsageStatus(id, status){
                           </div>
                         </router-link>
                       </v-list-item-title>
-                    </v-list-item>
+                    </v-list-item> -->
                     <v-list-item class="hover-bg-grey">
                       <v-list-item-title>
                         <router-link
@@ -254,7 +263,7 @@ async function updateUsageStatus(id, status){
                         </div>
                       </v-list-item-title>
                     </v-list-item>
-                    <v-list-item>
+                    <!-- <v-list-item>
                       <v-list-item-title>
                         <div class="text-12 d-flex text-disable">
                           <div class="mr-2">
@@ -263,7 +272,7 @@ async function updateUsageStatus(id, status){
                           <span>Chia sẻ tài khoản</span>
                         </div>
                       </v-list-item-title>
-                    </v-list-item>
+                    </v-list-item> -->
                     <v-list-item>
                       <v-list-item-title>
                         <div class="text-12 d-flex text-disable">

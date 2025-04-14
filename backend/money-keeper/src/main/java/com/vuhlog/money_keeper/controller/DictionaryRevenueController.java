@@ -22,6 +22,13 @@ public class DictionaryRevenueController {
                 .build();
     }
 
+    @GetMapping("/without-transfer")
+    public ApiResponse<List<DictionaryRevenueResponse>> getDictionaryRevenueWithoutTransfer(){
+        return ApiResponse.<List<DictionaryRevenueResponse>>builder()
+                .result(dictionaryRevenueService.getAllDictionaryRevenueWithoutTransfer())
+                .build();
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<DictionaryRevenueResponse> getDictionaryRevenue(@PathVariable String id){
         return ApiResponse.<DictionaryRevenueResponse>builder()

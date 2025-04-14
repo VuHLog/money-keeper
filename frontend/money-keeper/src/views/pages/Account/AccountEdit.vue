@@ -139,7 +139,7 @@ async function handleDeleteAccount() {
         <v-row class="mb-10">
             <v-col cols="6">
                 <v-text-field v-model="bucketPayment.balance" class="text-blue-accent-3" hide-details="auto"
-                    label="Số dư" disabled></v-text-field>
+                    label="Số dư" :readonly="true"></v-text-field>
             </v-col>
             <v-col cols="6" v-show="accountType?.id === 3">
                 <v-text-field v-model="bucketPayment.creditLimit" hide-details="auto"

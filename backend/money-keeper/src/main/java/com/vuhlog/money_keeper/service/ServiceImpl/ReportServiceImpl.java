@@ -49,14 +49,16 @@ public class ReportServiceImpl implements ReportService {
         String endDate = req.getEndDate();
         List<String> bucketPaymentIds = req.getBucketPaymentIds();
         String bucketPaymentIdsJoin = bucketPaymentIds != null ? String.join(",", bucketPaymentIds) : null;
+        List<String> categoriesId = req.getCategoriesId();
+        String categoriesIdJoin = categoriesId != null ? String.join(",", categoriesId) : null;
         Users user = userCommon.getMyUserInfo();
         String userId = user.getId();
         PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(timeOption, startDate, endDate);
         TotalExpenseRevenueResponse totalExpenseRevenueResponse = new TotalExpenseRevenueResponse();
         if(timeOption.equals(TimeOptionType.TODAY.getType()) || timeOption.equals(TimeOptionType.THIS_WEEK.getType())){
-            Long totalExpense = expenseRegularRepository.getTotalExpenseByMonthAndThisYear(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
+            Long totalExpense = expenseRegularRepository.getTotalExpenseByMonthAndThisYear(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, categoriesIdJoin, userId);
             totalExpenseRevenueResponse.setTotalExpense(totalExpense == null ? 0 : totalExpense);
-            Long totalRevenue = revenueRegularRepository.getTotalRevenueByMonthAndThisYear(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
+            Long totalRevenue = revenueRegularRepository.getTotalRevenueByMonthAndThisYear(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, categoriesIdJoin, userId);
             totalExpenseRevenueResponse.setTotalRevenue(totalRevenue == null ? 0 : totalRevenue);
             return totalExpenseRevenueResponse;
         }else if (timeOption.equals(TimeOptionType.THIS_MONTH.getType()) || timeOption.equals(TimeOptionType.THIS_QUARTER.getType()) || timeOption.equals(TimeOptionType.THIS_YEAR.getType())){
@@ -66,7 +68,7 @@ public class ReportServiceImpl implements ReportService {
             calendar.setTime(periodOfTime.getEndDate());
             int endMonth = calendar.get(Calendar.MONTH) + 1;
             int year = calendar.get(Calendar.YEAR);
-            Object[] result = reportExpenseRevenueRepository.getTotalExpenseRevenueByMonthAndThisYear(startMonth, endMonth, year, userId, bucketPaymentIdsJoin);
+            Object[] result = reportExpenseRevenueRepository.getTotalExpenseRevenueByMonthAndThisYear(startMonth, endMonth, year, userId, bucketPaymentIdsJoin, categoriesIdJoin);
             if(result != null && result.length > 0) {
                 Object[] object = (Object[]) result[0];
                 if(object != null && object.length >= 2 && object[0] != null && object[1] != null){
