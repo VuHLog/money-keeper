@@ -1,9 +1,11 @@
 <script setup>
-import { ref, getCurrentInstance, onMounted, watch } from "vue";
+import { ref, getCurrentInstance, onMounted, watch, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useReportStore } from "@/store/ReportStore.js";
 import { useDictionaryBucketPaymentStore } from "@/store/DictionaryBucketPayment";
 import { formatCurrency, formatNumberToPercent } from "@/utils/format.js";
+import { colorRepos } from "@/common/ColorRepos.js";
+import VRange from "@/components/VRange.vue";
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
@@ -28,9 +30,26 @@ const revenueExpenseData = ref({
 });
 const totalExpenseByCategory = ref([]);
 const totalRevenueByCategory = ref([]);
+const groupedRevenueCategories = computed(() => {
+  const groups = []
+  for (let i = 0; i < totalRevenueByCategory.value.length; i += 4) {
+    groups.push(totalRevenueByCategory.value.slice(i, i + 4))
+  }
+  return groups
+})
+const groupedExpenseCategories = computed(() => {
+  const groups = []
+  for (let i = 0; i < totalExpenseByCategory.value.length; i += 4) {
+    groups.push(totalExpenseByCategory.value.slice(i, i + 4))
+  }
+  return groups
+})
 const chartSeries = ref([]);
 const startDate = ref(null);
 const endDate = ref(null);
+const windowExpense = ref(0);
+const windowRevenue = ref(0);
+const length = ref(3);
 onMounted(async () => {
   await getData();
   myBucketPayments.value.forEach((value) => {
@@ -201,7 +220,7 @@ function handleSelectBucketPayment(id) {
   }
   if (itemIdSelectedList.value.length === totalElements.value) {
     isSelectAll.value = true;
-  } else if(itemIdSelectedList.value.length === 0) {
+  } else {
     isSelectAll.value = false;
   }
 }
@@ -222,15 +241,6 @@ const expensePieChartOptions = ref({
     width: 380,
   },
   colors: [],
-  fill: {
-    type: 'image',
-    opacity: 0.85,
-    image: {
-      src: [],
-      width: 25,
-      imagedHeight: 25
-    },
-  },
   dataLabels:{
     enabled: false,
   },
@@ -246,17 +256,23 @@ function updateExpensePieSeries(){
   expensePieChart.value.updateSeries(totalExpenseByCategory.value.map(val => val.total));
 }
 
+const expenseOptions = ref({});
 function updateExpensePieOptions() {
   const options = {
     imgSrc: [],
     colors: [],
     labels: [],
   };
+  const availableColors = [...colorRepos];
   totalExpenseByCategory.value.forEach(val => {
     options.imgSrc.push(val.iconUrl);
-    options.colors.push('#93C3EE');
+    const randomIndex = Math.floor(Math.random() * availableColors.length);
+    const selectedColor = availableColors[randomIndex];
+    options.colors.push(selectedColor);
+    availableColors.splice(randomIndex, 1);
     options.labels.push(val.name);
   });
+  expenseOptions.value = options;
   expensePieChart.value.updateOptions(
     {
       colors: options.colors,
@@ -279,15 +295,6 @@ const revenuePieChartOptions = ref({
     type: "pie",
   },
   colors: [],
-  fill: {
-    type: 'image',
-    opacity: 0.85,
-    image: {
-      src: [],
-      width: 25,
-      imagedHeight: 25
-    },
-  },
   dataLabels:{
     enabled: false,
   },
@@ -302,27 +309,30 @@ const revenuePieChart = ref(null)
 function updateRevenuePieSeries(){
   revenuePieChart.value.updateSeries(totalRevenueByCategory.value.map(val => val.total));
 }
-
+const revenueOptions = ref({});
 function updateRevenuePieOptions() {
   const options = {
     imgSrc: [],
     colors: [],
     labels: [],
   };
+
+  const availableColors = [...colorRepos];
   totalRevenueByCategory.value.forEach(val => {
     options.imgSrc.push(val.iconUrl);
-    options.colors.push('#93C3EE');
+    
+    const randomIndex = Math.floor(Math.random() * availableColors.length);
+    const selectedColor = availableColors[randomIndex];
+    options.colors.push(selectedColor);
+    availableColors.splice(randomIndex, 1);
+    
     options.labels.push(val.name);
   });
   
+  revenueOptions.value = options;
   revenuePieChart.value.updateOptions(
     {
       colors: options.colors,
-      fill: {
-        image: {
-          src: options.imgSrc
-        },
-      },
       labels: options.labels,
       stroke: {
         width: totalRevenueByCategory.value.length === 1 ? 0 : 2,
@@ -472,51 +482,73 @@ function updateRevenuePieOptions() {
     <v-row>
       <v-col cols="12" class="mb-3" v-if="revenueExpenseData.totalRevenue > 0">
         <div class="d-flex">
-          <apexchart class="border-e-sm mr-2 align-self-center" type="pie" width="200" :options="revenuePieChartOptions"
+          <div>
+            <p class="text-primary text-center">Thu</p>
+            <apexchart class="border-e-sm mr-2 align-self-center" type="pie" width="200" :options="revenuePieChartOptions"
             :series="revenuePieSeries" ref="revenuePieChart"></apexchart>
+          </div>
           <div class="align-self-start w-100">
-            <p class="text-primary pb-3">Thu</p>
-            <template v-for="item in totalRevenueByCategory" :key="item">
-              <div>
-                <div class="d-flex justify-space-between align-center">
-                  <div>
-                    <v-avatar start>
-                      <img :src="item.iconUrl" alt="icon" style="width: 30px" />
-                    </v-avatar>
-                    <span class="text-grey-color text-14">{{ item.name }}</span>
+            <v-window v-model="windowRevenue" show-arrows>
+              <v-window-item v-for="(group,index1) in groupedRevenueCategories" :key="group">
+                <v-card class="d-flex justify-center align-center" height="220px">
+                  <div class="w-75">
+                    <template v-for="(item,index2) in group" :key="item">
+                      <div  class="mb-2">
+                        <div class="d-flex justify-space-between align-center">
+                          <div>
+                            <v-avatar start>
+                              <img :src="item.iconUrl" alt="icon" style="width: 30px" />
+                            </v-avatar>
+                            <span class="text-grey-color text-14">{{ item.name }}</span>
+                          </div>
+                          <div>
+                            <span class="text-14 mr-1">{{ formatCurrency(item.total) }}</span>
+                            <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total, revenueExpenseData.totalRevenue) }}</span>
+                          </div>
+                        </div>
+                        <v-range :progress="(Math.round((item.total * 10000 / revenueExpenseData.totalRevenue))/100)" :color="revenueOptions.colors[index1*4 + index2]"></v-range>
+                      </div>
+                    </template>
                   </div>
-                  <div>
-                    <span class="text-14 mr-1">{{ formatCurrency(item.total) }}</span>
-                    <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total, revenueExpenseData.totalRevenue) }}</span>
-                  </div>
-                </div>
-              </div>
-            </template>
+                </v-card>
+              </v-window-item>
+            </v-window>
           </div>
         </div>
       </v-col>
       <v-col cols="12" v-if="revenueExpenseData.totalExpense > 0">
         <div class="d-flex align-center">
-          <apexchart class="border-e-sm mr-2 align-self-center" type="pie" width="200" :options="expensePieChartOptions"
+          <div>
+            <p class="text-red-accent-3 text-center">Chi</p>
+            <apexchart class="border-e-sm mr-2 align-self-center" type="pie" width="200" :options="expensePieChartOptions"
             :series="expensePieSeries" ref="expensePieChart"></apexchart>
+          </div>
           <div class="align-self-start w-100">
-            <p class="text-red-accent-3 pb-3">Chi</p>
-            <template v-for="item in totalExpenseByCategory" :key="item">
-              <div>
-                <div class="d-flex justify-space-between align-center">
-                  <div>
-                    <v-avatar start>
-                      <img :src="item.iconUrl" alt="icon" style="width: 30px" />
-                    </v-avatar>
-                    <span class="text-grey-color text-14">{{ item.name }}</span>
+            <v-window v-model="windowExpense" show-arrows>
+              <v-window-item v-for="(group,index1) in groupedExpenseCategories" :key="group">
+                <v-card class="d-flex justify-center align-center" height="220px">
+                  <div class="w-75">
+                    <template v-for="(item,index2) in group" :key="item">
+                      <div  class="mb-2">
+                        <div class="d-flex justify-space-between align-center">
+                          <div>
+                            <v-avatar start>
+                              <img :src="item.iconUrl" alt="icon" style="width: 30px" />
+                            </v-avatar>
+                            <span class="text-grey-color text-14">{{ item.name }}</span>
+                          </div>
+                          <div>
+                            <span class="text-14 mr-1">{{ formatCurrency(item.total) }}</span>
+                            <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total, revenueExpenseData.totalExpense) }}</span>
+                          </div>
+                        </div>
+                        <v-range :progress="(Math.round((item.total * 10000 / revenueExpenseData.totalExpense))/100)" :color="expenseOptions.colors[index1*4 + index2]"></v-range>
+                      </div>
+                    </template>
                   </div>
-                  <div>
-                    <span class="text-14 mr-1">{{ formatCurrency(item.total) }}</span>
-                    <span class="text-14 text-grey-darken-1">{{ formatNumberToPercent(item.total, revenueExpenseData.totalExpense) }}</span>
-                  </div>
-                </div>
-              </div>
-            </template>
+                </v-card>
+              </v-window-item>
+            </v-window>
           </div>
         </div>
       </v-col>
