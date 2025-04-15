@@ -88,11 +88,15 @@ async function getData() {
   totalElements.value = res.totalElements;
 
   totalExpenseByCategory.value = await reportStore.getTotalExpenseByBucketPaymentIdAndTimeOptionAndCategory(itemIdSelectedList.value,selectedPeriod.value,startDate.value,endDate.value);
-  updateExpensePieSeries();
-  updateExpensePieOptions();
+  if(totalExpenseByCategory.value.length > 0){
+    updateExpensePieSeries();
+    updateExpensePieOptions();
+  }
   totalRevenueByCategory.value = await reportStore.getTotalRevenueByBucketPaymentIdAndTimeOptionAndCategory(itemIdSelectedList.value,selectedPeriod.value,startDate.value,endDate.value);
-  updateRevenuePieSeries();
-  updateRevenuePieOptions();
+  if(totalRevenueByCategory.value.length > 0){
+    updateRevenuePieSeries();
+    updateRevenuePieOptions();
+  }
 }
 
 watch(
