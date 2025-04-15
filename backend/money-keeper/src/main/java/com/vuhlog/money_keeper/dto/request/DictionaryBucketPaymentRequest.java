@@ -16,4 +16,5 @@ public class DictionaryBucketPaymentRequest {
     private String accountType;
     private String interpretation;
     private String bankId;
+    private String iconUrl;
 }

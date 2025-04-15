@@ -68,6 +68,10 @@ public class Users {
     @JsonIgnore
     private Set<ReportExpenseRevenue> reportExpenseRevenues;
 
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private Set<ExpenseLimit> expenseLimits;
+
     @PrePersist
     public void onCreate() {
         if(oAuth2 == null) {

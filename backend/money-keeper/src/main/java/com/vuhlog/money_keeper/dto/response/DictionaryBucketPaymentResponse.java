@@ -18,4 +18,5 @@ public class DictionaryBucketPaymentResponse {
     private String interpretation;
     private boolean haveUse;
     private BankResponse bank;
+    private String iconUrl;
 }

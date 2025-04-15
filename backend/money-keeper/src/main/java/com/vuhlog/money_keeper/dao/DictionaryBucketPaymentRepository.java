@@ -64,4 +64,12 @@ public interface DictionaryBucketPaymentRepository
             "\tLIMIT 1\n" +
             ") AS NearestTransaction", nativeQuery = true)
     Object[] getNearestTransactionByBucketPaymentIdAndGreaterThanDate(@Param("bucketPaymentId") String bucketPaymentId, @Param("date") Timestamp date);
+
+    @Query(
+            value = "SELECT * FROM dictionary_bucket_payment\n" +
+                    "WHERE user_id = :userId\n" +
+                    "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(id, :bucketPaymentIds))",
+            nativeQuery = true
+    )
+    List<DictionaryBucketPayment> findAllByIdIn(@Param("bucketPaymentIds") String bucketPaymentIds,@Param("userId") String userId);
 }

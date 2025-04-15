@@ -16,5 +16,5 @@ public interface DictionaryExpenseService {
 
     List<DictionaryExpenseResponse> getAllDictionaryExpense();
 
-    List<DictionaryExpenseResponse> getAllDictionaryExpenseWithoutTransfer();
+    List<DictionaryExpenseResponse> getAllDictionaryExpenseWithoutTransfer(String search);
 }

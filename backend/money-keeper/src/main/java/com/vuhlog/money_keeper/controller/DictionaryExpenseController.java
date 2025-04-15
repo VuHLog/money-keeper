@@ -23,9 +23,11 @@ public class DictionaryExpenseController {
     }
 
     @GetMapping("/without-transfer")
-    public ApiResponse<List<DictionaryExpenseResponse>> getAllDictionaryExpenseWithoutTransfer(){
+    public ApiResponse<List<DictionaryExpenseResponse>> getAllDictionaryExpenseWithoutTransfer(
+            @RequestParam(name = "search", required = false, defaultValue = "") String search
+    ){
         return ApiResponse.<List<DictionaryExpenseResponse>>builder()
-                .result(dictionaryExpenseService.getAllDictionaryExpenseWithoutTransfer())
+                .result(dictionaryExpenseService.getAllDictionaryExpenseWithoutTransfer(search))
                 .build();
     }
 

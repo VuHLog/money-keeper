@@ -22,6 +22,7 @@ public enum ErrorCode {
     REVENUE_REGULAR_NOT_EXISTED(6001, "Revenue regular not existed", HttpStatus.NOT_FOUND),
     BUCKET_PAYMENT_NOT_EXISTED(7001, "Bucket payment not existed", HttpStatus.NOT_FOUND),
     UPDATE_TIME_LIMIT(8001, "You can't update expense/revenue after 1 month", HttpStatus.NOT_FOUND),
+    EXPENSE_LIMIT_NOT_EXISTED(9001, "Expense limit not existed", HttpStatus.NOT_FOUND),
     ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

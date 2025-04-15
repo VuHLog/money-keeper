@@ -74,12 +74,16 @@ public class DictionaryExpenseServiceImpl implements DictionaryExpenseService {
     }
 
     @Override
-    public List<DictionaryExpenseResponse> getAllDictionaryExpenseWithoutTransfer() {
+    public List<DictionaryExpenseResponse> getAllDictionaryExpenseWithoutTransfer(String search) {
         Specification<DictionaryExpense> specs = Specification.where(null);
 
         specs = specs.and(DictionaryExpenseSpecification.equalSystemDefault(true));
         specs = specs.and(DictionaryExpenseSpecification.notEqualName("Chuyển khoản"));
         specs = specs.or(DictionaryExpenseSpecification.equalUserId(getMyInfo().getId()).and(DictionaryExpenseSpecification.equalSystemDefault(false)));
+
+        if(search != null && !search.isEmpty()){
+            specs = specs.and(DictionaryExpenseSpecification.likeName(search));
+        }
 
         Sort sortable = Sort.by("name").ascending();
 

@@ -23,6 +23,7 @@ public class DictionaryBucketPayment {
     private String accountType;
     private String interpretation; // dien giai
     private boolean haveUse;
+    private String iconUrl;
 
     @ManyToOne
     @JoinColumn(name = "bank_id")

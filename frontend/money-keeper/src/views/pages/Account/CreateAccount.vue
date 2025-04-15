@@ -71,6 +71,7 @@ async function createAccount() {
   }
 
   bucketPayment.value.accountType = accountType.value.name;
+  bucketPayment.value.iconUrl = accountType.value.icon;
   if(accountType.value.id === 2 || accountType.value.id === 3) {
     bucketPayment.value.bankId = bank.value.id;
   }
