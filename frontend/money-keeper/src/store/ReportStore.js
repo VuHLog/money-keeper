@@ -25,26 +25,28 @@ export const useReportStore = defineStore("report", {
       })
       return response;
     },
-    async getTotalExpenseByBucketPaymentIdAndTimeOptionAndCategory(bucketPaymentIds, timeOption, startDate, endDate){
+    async getTotalExpenseByBucketPaymentIdAndTimeOptionAndCategory(bucketPaymentIds, timeOption, startDate, endDate, isSelectAllBucketPayment = false){
       let response = null;
       const request = {
         bucketPaymentIds: bucketPaymentIds,
         timeOption: timeOption,
         startDate: formatDate(startDate),
-        endDate: formatDate(endDate)
+        endDate: formatDate(endDate),
+        isSelectAllBucketPayment: isSelectAllBucketPayment
       }
       await base.get("/report/total-expense-by-category", request).then((res) => {
         response = res.result;
       })
       return response;
     },
-    async getTotalRevenueByBucketPaymentIdAndTimeOptionAndCategory(bucketPaymentIds, timeOption, startDate, endDate){
+    async getTotalRevenueByBucketPaymentIdAndTimeOptionAndCategory(bucketPaymentIds, timeOption, startDate, endDate, isSelectAllBucketPayment = false){
       let response = null;
       const request = {
         bucketPaymentIds: bucketPaymentIds,
         timeOption: timeOption,
         startDate: formatDate(startDate),
-        endDate: formatDate(endDate)
+        endDate: formatDate(endDate),
+        isSelectAllBucketPayment: isSelectAllBucketPayment
       }
       await base.get("/report/total-revenue-by-category", request).then((res) => {
         response = res.result;

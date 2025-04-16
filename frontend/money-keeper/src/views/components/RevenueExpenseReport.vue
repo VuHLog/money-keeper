@@ -19,7 +19,7 @@ const itemSelectedMap =  ref(new Map());
 const itemIdSelectedList = ref([]);
 const dictionaryBucketPaymentStore = useDictionaryBucketPaymentStore();
 const pageNumber = ref(1);
-const pageSize = ref(5);
+const pageSize = ref(1);
 const totalElements= ref(0);
 const isOpenDictionaryBucketPayment = ref(false);
 const isChangeBucketPaymentsSelected = ref(false);
@@ -87,12 +87,12 @@ async function getData() {
   myBucketPayments.value = res.content;
   totalElements.value = res.totalElements;
 
-  totalExpenseByCategory.value = await reportStore.getTotalExpenseByBucketPaymentIdAndTimeOptionAndCategory(itemIdSelectedList.value,selectedPeriod.value,startDate.value,endDate.value);
+  totalExpenseByCategory.value = await reportStore.getTotalExpenseByBucketPaymentIdAndTimeOptionAndCategory(itemIdSelectedList.value,selectedPeriod.value,startDate.value,endDate.value, isSelectAll.value);
   if(totalExpenseByCategory.value.length > 0){
     updateExpensePieSeries();
     updateExpensePieOptions();
   }
-  totalRevenueByCategory.value = await reportStore.getTotalRevenueByBucketPaymentIdAndTimeOptionAndCategory(itemIdSelectedList.value,selectedPeriod.value,startDate.value,endDate.value);
+  totalRevenueByCategory.value = await reportStore.getTotalRevenueByBucketPaymentIdAndTimeOptionAndCategory(itemIdSelectedList.value,selectedPeriod.value,startDate.value,endDate.value, isSelectAll.value);
   if(totalRevenueByCategory.value.length > 0){
     updateRevenuePieSeries();
     updateRevenuePieOptions();
@@ -103,16 +103,30 @@ watch(
   searchBucketPaymentName,
   () =>{
     totalElements.value = 0;
-    pageSize.value = 5;
+    pageSize.value = 1;
     pageNumber.value = 1;
     getData();
   }
 )
 
+function resetBucketPaymentPagination(){
+  pageSize.value = 1;
+  pageNumber.value = 1;
+}
+
 async function clickLoadMoreBucketPayment() {
   if (myBucketPayments.value.length >= totalElements.value) return;
-  pageSize.value += 10 * pageSize.value;
-  await getData();
+  pageSize.value += 1;
+  let res = await dictionaryBucketPaymentStore.getMyBucketPaymentsPagination(field.value, pageNumber.value, pageSize.value, 'ASC', searchBucketPaymentName.value);
+  myBucketPayments.value = res.content;
+  if(isSelectAll.value){
+    myBucketPayments.value.forEach((value) => {
+      if(!itemSelectedMap.value.has(value.id)){
+        itemSelectedMap.value.set(value.id, true);
+        itemIdSelectedList.value.push(value.id);
+      }
+    });
+  }
 }
 
 const selectedPeriod = ref("Tháng này");
@@ -127,6 +141,53 @@ const timePeriods = ref([
 watch(selectedPeriod, async () => {
   await getData();
 });
+
+watch(isSelectAll,
+  () =>{
+      if (!isManuallyToggledSelectAll.value) return; // handle when click select all check box
+      itemIdSelectedList.value = [];
+      isChangeBucketPaymentsSelected.value = true;
+      if (isSelectAll.value) {
+        myBucketPayments.value.forEach((value) => {
+          itemSelectedMap.value.set(value.id, true);
+          itemIdSelectedList.value.push(value.id);
+        });
+      } else {
+        itemSelectedMap.value.clear();
+        itemIdSelectedList.value = [];
+      }
+      isManuallyToggledSelectAll.value = false; // reset
+    }
+)
+
+function handleSelectBucketPayment(id) {
+  const isSelected = itemSelectedMap.value.get(id);
+  isChangeBucketPaymentsSelected.value = true;
+  if (!isSelected) {
+    itemSelectedMap.value.delete(id);
+    itemIdSelectedList.value = itemIdSelectedList.value.filter(value => value !== id);
+  }else{
+    itemIdSelectedList.value.push(id);
+  }
+  if (itemIdSelectedList.value.length === totalElements.value) {
+    isSelectAll.value = true;
+  } else {
+    isSelectAll.value = false;
+  }
+}
+
+async function handleDictionaryBucketPaymentMenuToggle(){
+  if (!isOpenDictionaryBucketPayment.value && isChangeBucketPaymentsSelected.value) {
+      isChangeBucketPaymentsSelected.value = false;
+      if(itemIdSelectedList.value.length === 0){
+          isSelectAll.value = true;
+      }
+      resetBucketPaymentPagination();
+      searchBucketPaymentName.value = "";
+      await getData();
+  }
+}
+
 
 const chartOptions = ref({
   chart: {
@@ -195,50 +256,6 @@ const chartOptions = ref({
     },
   },
 });
-
-watch(isSelectAll,
-  () =>{
-      if (!isManuallyToggledSelectAll.value) return; // handle when click select all check box
-      itemIdSelectedList.value = [];
-      isChangeBucketPaymentsSelected.value = true;
-      if (isSelectAll.value) {
-        myBucketPayments.value.forEach((value) => {
-          itemSelectedMap.value.set(value.id, true);
-          itemIdSelectedList.value.push(value.id);
-        });
-      } else {
-        itemSelectedMap.value.clear();
-        itemIdSelectedList.value = [];
-      }
-      isManuallyToggledSelectAll.value = false; // reset
-    }
-)
-
-function handleSelectBucketPayment(id) {
-  const isSelected = itemSelectedMap.value.get(id);
-  isChangeBucketPaymentsSelected.value = true;
-  if (!isSelected) {
-    itemSelectedMap.value.delete(id);
-    itemIdSelectedList.value = itemIdSelectedList.value.filter(value => value !== id);
-  }else{
-    itemIdSelectedList.value.push(id);
-  }
-  if (itemIdSelectedList.value.length === totalElements.value) {
-    isSelectAll.value = true;
-  } else {
-    isSelectAll.value = false;
-  }
-}
-
-async function handleDictionaryBucketPaymentMenuToggle(){
-  if (!isOpenDictionaryBucketPayment.value && isChangeBucketPaymentsSelected.value) {
-      isChangeBucketPaymentsSelected.value = false;
-      if(itemIdSelectedList.value.length === 0){
-          isSelectAll.value = true;
-      }
-      await getData();
-  }
-}
 
 const expensePieChartOptions = ref({
   chart: {
@@ -430,7 +447,7 @@ function updateRevenuePieOptions() {
                         <div class="d-flex justify-space-between align-center">
                           <v-checkbox v-model="isSelectAll" color="green-darken-1" label="Chọn tất cả" hide-details
                             @click="() => isManuallyToggledSelectAll = true"></v-checkbox>
-                          <span class="text-14 text-grey-darken-1">Đã chọn {{ itemIdSelectedList.length }}</span>
+                          <span class="text-14 text-grey-darken-1">Đã chọn {{ isSelectAll?totalElements:itemIdSelectedList.length }}</span>
                         </div>
                       </v-list-item>
                       <div style="max-height: 240; overflow-y: auto">

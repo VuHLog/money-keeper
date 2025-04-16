@@ -95,6 +95,9 @@ public class ReportServiceImpl implements ReportService {
         String startDate = req.getStartDate();
         String endDate = req.getEndDate();
         List<String> bucketPaymentIds = req.getBucketPaymentIds();
+        if (req.getIsSelectAllBucketPayment() != null && req.getIsSelectAllBucketPayment()) {
+            bucketPaymentIds = null;
+        }
         String bucketPaymentIdsJoin = bucketPaymentIds != null ? String.join(",", bucketPaymentIds) : null;
         Users user = userCommon.getMyUserInfo();
         String userId = user.getId();
@@ -116,6 +119,9 @@ public class ReportServiceImpl implements ReportService {
         String startDate = req.getStartDate();
         String endDate = req.getEndDate();
         List<String> bucketPaymentIds = req.getBucketPaymentIds();
+        if (req.getIsSelectAllBucketPayment() != null && req.getIsSelectAllBucketPayment()) {
+            bucketPaymentIds = null;
+        }
         String bucketPaymentIdsJoin = bucketPaymentIds != null ? String.join(",", bucketPaymentIds) : null;
         Users user = userCommon.getMyUserInfo();
         String userId = user.getId();

@@ -17,4 +17,5 @@ public class TotalExpenseRevenueRequest {
     private String timeOption;
     private String startDate;
     private String endDate;
+    private Boolean isSelectAllBucketPayment;
 }
