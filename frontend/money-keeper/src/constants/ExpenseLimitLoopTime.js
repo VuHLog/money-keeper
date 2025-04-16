@@ -1,0 +1,1 @@
+export const ExpenseLimitLoopTime = ["Không lặp lại", "Hàng ngày", "Hàng tuần", "Hàng tháng", "Hàng quý", "Hàng năm"]

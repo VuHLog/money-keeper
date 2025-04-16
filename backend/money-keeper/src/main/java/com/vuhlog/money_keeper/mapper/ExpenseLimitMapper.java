@@ -15,17 +15,17 @@ import java.sql.Timestamp;
 public interface ExpenseLimitMapper {
     @Named("stringToTimestamp")
     @Mapping(target = "startDate", expression = "java(stringToTimestamp(req.getStartDate()))")
-    @Mapping(target = "endDate", expression = "java(stringToTimestamp(req.getEndDate()))")
+    @Mapping(target = "endDate", ignore = true)
     ExpenseLimit toExpenseLimit(ExpenseLimitRequest req);
 
     @Named("stringToTimestamp")
     @Mapping(target = "startDate", expression = "java(stringToTimestamp(req.getStartDate()))")
-    @Mapping(target = "endDate", expression = "java(stringToTimestamp(req.getEndDate()))")
+    @Mapping(target = "endDate", ignore = true)
     void updateExpenseLimit(@MappingTarget ExpenseLimit expenseLimit, ExpenseLimitRequest req);
 
     @Named("timestampToString")
     @Mapping(target = "startDate", expression = "java(timestampToString(expenseLimit.getStartDate()))")
-    @Mapping(target = "endDate", expression = "java(timestampToString(expenseLimit.getEndDate()))")
+    @Mapping(target = "endDate", ignore = true)
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "bucketPayments", ignore = true)
     ExpenseLimitResponse toExpenseLimitResponse(ExpenseLimit expenseLimit);

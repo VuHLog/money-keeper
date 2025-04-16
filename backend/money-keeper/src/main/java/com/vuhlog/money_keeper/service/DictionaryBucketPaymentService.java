@@ -21,7 +21,7 @@ public interface DictionaryBucketPaymentService {
 
     DictionaryBucketPaymentResponse getDictionaryBucketPaymentById(String id);
 
-    List<DictionaryBucketPaymentResponse> getAllDictionaryBucketPayment(String userId);
+    List<DictionaryBucketPaymentResponse> getAllDictionaryBucketPayment(String userId, String search);
 
     Page<DictionaryBucketPaymentResponse> getDictionaryBucketPaymentPagination( String userId,String field, Integer pageNumber, Integer pageSize, String sort, String search);
 

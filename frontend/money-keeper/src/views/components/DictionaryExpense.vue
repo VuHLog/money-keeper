@@ -37,10 +37,11 @@ async function getData(){
   await proxy.$api
     .get("/dictionary-expense/without-transfer?search=" + text)
     .then((res) => {
-      dictionaryExpenseTemp.value = res.result;
+      dictionaryExpense.value = res.result;
     })
     .catch((error) => console.log(error));
   if(!isOnmounted.value && props.isMultiple){
+    dictionaryExpenseTemp.value = dictionaryExpense.value;
     totalElements.value = dictionaryExpenseTemp.value.length;
     if(props.modelValue.length === 0){
       isSelectAll.value = true;
@@ -57,9 +58,9 @@ async function getData(){
     }
   }
 
-  let parents = dictionaryExpenseTemp.value.filter((item) => item.parentId === null);
+  let parents = dictionaryExpense.value.filter((item) => item.parentId === null);
   parents.forEach((parent) => {
-    parent.children = dictionaryExpenseTemp.value.filter((child) => child.parentId === parent.id);
+    parent.children = dictionaryExpense.value.filter((child) => child.parentId === parent.id);
   });
   dictionaryExpense.value = parents;
 }

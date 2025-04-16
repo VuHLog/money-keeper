@@ -91,9 +91,13 @@ public class DictionaryBucketPaymentServiceImpl implements DictionaryBucketPayme
     }
 
     @Override
-    public List<DictionaryBucketPaymentResponse> getAllDictionaryBucketPayment(String userId) {
+    public List<DictionaryBucketPaymentResponse> getAllDictionaryBucketPayment(String userId, String search) {
         Specification<DictionaryBucketPayment> specs = Specification.where(null);
         specs = specs.and(DictionaryBucketPaymentSpecification.filterByUserId(userId));
+
+        if (search != null && !search.isEmpty()) {
+            specs = specs.and(DictionaryBucketPaymentSpecification.filterByName(search));
+        }
 
         Sort sortable = Sort.by("accountName").ascending();
         return dictionaryBucketPaymentRepository.findAll(specs, sortable).stream().map(dictionaryBucketPaymentMapper::toDictionaryBucketResponse).toList();

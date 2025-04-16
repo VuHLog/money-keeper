@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ExpenseLimitRequest {
+    private Long amount;
     private String name;
     private String categoriesId;
     private String bucketPaymentIds;

@@ -37,3 +37,9 @@ export const formatDate = (date) => {
       .replace('T', ' ')
     : date;
 };
+
+export const parseDateString = (dateStr) => {
+  const [datePart] = dateStr.split(' ');
+  const [yyyy, mm, dd] = datePart.split('-');
+  return new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd)); //yyyy-mm-dd
+}

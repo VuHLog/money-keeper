@@ -25,15 +25,15 @@ public class DictionaryBucketPaymentController {
     private final UserService usersService;
 
     @GetMapping("")
-    public ApiResponse<List<DictionaryBucketPaymentResponse>> getAllDictionaryBucketPayment() {
+    public ApiResponse<List<DictionaryBucketPaymentResponse>> getAllDictionaryBucketPayment(@RequestParam(name = "search", required = false, defaultValue = "") String search) {
         Users user = usersService.getMyUserInfo();
         return ApiResponse.<List<DictionaryBucketPaymentResponse>>builder()
-                .result(dictionaryBucketPaymentService.getAllDictionaryBucketPayment(user.getId()))
+                .result(dictionaryBucketPaymentService.getAllDictionaryBucketPayment(user.getId(), search))
                 .build();
     }
 
     @GetMapping("/pagination")
-    public ApiResponse<Page<DictionaryBucketPaymentResponse>> getDictionaryBucketPayment(
+    public ApiResponse<Page<DictionaryBucketPaymentResponse>> getDictionaryBucketPaymentByPagination(
             @RequestParam(name = "field", required = false, defaultValue = "accountName") String field,
             @RequestParam(name = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
             @RequestParam(name = "pageSize", required = false, defaultValue = "5") Integer pageSize,

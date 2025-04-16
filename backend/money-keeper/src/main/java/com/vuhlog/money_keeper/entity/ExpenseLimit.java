@@ -16,8 +16,13 @@ public class ExpenseLimit {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+    private Long amount;
     private String name;
+    @Lob
+    @Column(name = "categories_id", columnDefinition = "LONGTEXT")
     private String categoriesId;
+    @Lob
+    @Column(name = "bucket_payment_ids", columnDefinition = "LONGTEXT")
     private String bucketPaymentIds;
     private String repeatTime;
     private Timestamp startDate;

@@ -8,16 +8,22 @@ const emit = defineEmits(["update:modelValue", "confirm"]);
 const props = defineProps({
   modelValue: {
     type: Array,
-    default: () => [],
+    default: [],
   }
 });
 
 const search = ref("");
 const selectedAccounts = ref(new Map());
 const accountList = ref([]);
+const isSelectAll = ref(false);
+const isManuallyToggledSelectAll = ref(false);
+const totalElements = ref(0);
+const isOnmounted = ref(false);
+const accountListTemp = ref([]);
 
 onMounted(async () => {
   await getData();
+  isOnmounted.value = true;
 });
 
 async function getData() {
@@ -28,7 +34,36 @@ async function getData() {
       accountList.value = res.result;
     })
     .catch((error) => console.log(error));
+  if(!isOnmounted.value){
+    accountListTemp.value = accountList.value;
+    totalElements.value = accountListTemp.value.length;
+    if(props.modelValue.length === 0){
+      isSelectAll.value = true;
+      accountListTemp.value.forEach((value) => {
+        selectedAccounts.value.set(value.id, true);
+      });
+    }else{
+      isSelectAll.value = props.modelValue.length === totalElements.value;
+      props.modelValue.forEach((value) => {
+        selectedAccounts.value.set(value.id, true);
+      });
+    }
+  }
 }
+
+watch(isSelectAll,
+  () =>{
+      if (!isManuallyToggledSelectAll.value) return; // handle when click select all check box
+      if (isSelectAll.value) {
+        accountListTemp.value.forEach((value) => {
+          selectedAccounts.value.set(value.id, true);
+        });
+      } else {
+        selectedAccounts.value.clear();
+      }
+      isManuallyToggledSelectAll.value = false; // reset
+    }
+)
 
 watch(search, () => {
   getData();
@@ -41,10 +76,17 @@ function handleSelectAccount(account) {
   } else {
     selectedAccounts.value.set(account.id, account);
   }
+  if (selectedAccounts.value.size === totalElements.value) {
+    isSelectAll.value = true;
+  } else {
+    isSelectAll.value = false;
+  }
 }
 
 function handleConfirm() {
-  const selectedItems = Array.from(selectedAccounts.value.values());
+  const selectedItems = accountListTemp.value.filter(item => 
+    selectedAccounts.value.has(item.id)
+  );
   emit("update:modelValue", selectedItems);
   emit("confirm", selectedItems);
 }
@@ -53,7 +95,14 @@ function handleConfirm() {
 <template>
   <div class="bg-white rounded-lg pa-3 position-relative container-box overflow-y-auto overflow-hidden">
     <h1 class="text-center text-primary mb-8">Chọn tài khoản</h1>
-    <div class="d-flex align-center justify-end mr-2 mb-8">
+    <div class="d-flex align-center justify-space-between mr-2 mb-8">
+      <v-switch
+        v-model="isSelectAll"
+        color="green-accent-3"
+        label="Chọn tất cả"
+        hide-details
+        @click="() => isManuallyToggledSelectAll = true"
+      ></v-switch>
       <div>
         <v-text-field width="300" density="compact" v-model.trim="search" label="Tìm kiếm theo tên tài khoản"
           variant="outlined" hide-details single-line clearable>
@@ -78,20 +127,15 @@ function handleConfirm() {
           >
             <template v-slot:prepend>
               <v-avatar>
-                <img :src="account.iconUrl" :alt="account.name" />
+                <img class="icon-size" :src="account.iconUrl" :alt="account.accountName" />
               </v-avatar>
             </template>
             <v-list-item-title class="text-grey-darken-4 font-weight-bold">
               {{ account.accountName }}
             </v-list-item-title>
-            <v-list-item-subtitle class="text-grey-color">
-              {{ account.name }}
-            </v-list-item-subtitle>
             <template v-slot:append>
-              <v-icon
-                :icon="selectedAccounts.has(account.id) ? 'mdi-check-circle' : 'mdi-circle-outline'"
-                :color="selectedAccounts.has(account.id) ? 'primary' : 'grey'"
-              ></v-icon>
+              <font-awesome-icon v-if="selectedAccounts.has(account.id)" class="text-green-darken-3" :icon="['fas', 'circle-check']" />
+              <font-awesome-icon v-else class="text-grey" :icon="['far', 'circle']" />
             </template>
           </v-list-item>
         </v-list>

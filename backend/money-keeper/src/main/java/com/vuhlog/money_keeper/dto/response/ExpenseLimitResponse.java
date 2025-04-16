@@ -15,6 +15,7 @@ import java.util.List;
 @Builder
 public class ExpenseLimitResponse {
     private String id;
+    private Long amount;
     private String name;
     private List<DictionaryExpense> categories;
     private List<DictionaryBucketPaymentResponse> bucketPayments;

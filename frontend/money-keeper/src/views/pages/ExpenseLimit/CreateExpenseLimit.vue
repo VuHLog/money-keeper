@@ -2,36 +2,20 @@
 import { ref, watch, getCurrentInstance, onMounted, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import DictionaryExpense from "@components/DictionaryExpense.vue";
-import TripEvent from "@components/TripEvent.vue";
-import Beneficiary from "@components/Beneficiary.vue";
 import AccountModal from "@components/AccountModal.vue";
-import { AccountType } from "@/constants/AccountType.js";
+import { ExpenseLimitLoopTime } from "@/constants/ExpenseLimitLoopTime.js";
+import { formatDate, parseDateString } from "@/utils/DateUtil.js";
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
 const swal = inject("$swal");
 const route = useRoute();
 
-const currentTime = ref(new Date());
+const timeOptions = ref(ExpenseLimitLoopTime)
 const dictionaryBucketPayment = ref([]);
 const account = ref([]);
-const categorySelected = ref([]);
+const categories = ref([]);
 const showPopupCategory = ref(false);
-watch(categorySelected, () => {
-    showPopupCategory.value = false;
-});
-const tripEventSelected = ref({});
-const showPopupTripEvent = ref(false);
-watch(tripEventSelected, () => {
-    showPopupTripEvent.value = false;
-});
-
-const beneficiarySelected = ref({});
-const showBeneficiary = ref(false);
-
-watch(beneficiarySelected, () => {
-    showBeneficiary.value = false;
-});
 
 const errMsg = ref("");
 const showAccountModal = ref(false);
@@ -41,34 +25,41 @@ onMounted(() => {
         .get("/dictionary-bucket-payment")
         .then((res) => {
             dictionaryBucketPayment.value = res.result;
-            dictionaryBucketPayment.value.forEach((item) => {
-                item.accountType = AccountType.find(
-                    (type) => type.name === item.accountType
-                );
-            });
-            account.value = dictionaryBucketPayment.value[0];
         })
         .catch((err) => {
             console.log(err);
-        });
+    });
 });
 
-const expense = ref({
+const expenseLimit = ref({
     amount: 0,
-    location: "",
-    interpretation: "",
-    expenseDate: "",
-    dictionaryBucketPaymentId: "",
-    dictionaryExpenseId: "",
-    tripEventId: "",
-    beneficiaryId: "",
+    name: "",
+    categoriesId: "",
+    bucketPaymentIds: "",
+    repeatTime: "Hàng tháng",
+    startDate: (() => {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        return date;
+    })(),
+    endDate: "",
 });
 
 function isValid() {
     const numberRegex = /^(0|[1-9]\d*)$/; // Cho phép số 0 hoặc số dương không bắt đầu bằng 0
 
-    if (!numberRegex.test(expense.value.amount)) {
+    if (!numberRegex.test(expenseLimit.value.amount)) {
         errMsg.value = "Số tiền không hợp lệ";
+        return false;
+    }
+
+    if (expenseLimit.value.name === "") {
+        errMsg.value = "Tên hạn mức không được để trống";
+        return false;
+    }
+
+    if (expenseLimit.value.amount <= 0) {
+        errMsg.value = "Số tiền phải lớn hơn 0";
         return false;
     }
 
@@ -77,12 +68,12 @@ function isValid() {
         return false;
     }
 
-    if (Object.keys(categorySelected.value).length === 0) {
+    if (categories.value.length === 0) {
         errMsg.value = "Hạng mục không được để trống";
         return false;
     }
 
-    if (currentTime.value === "" || currentTime.value === null) {
+    if (expenseLimit.value.startDate === "" || expenseLimit.value.startDate === null) {
         errMsg.value = "Thời điểm chi tiêu không được để trống";
         return false;
     }
@@ -91,49 +82,43 @@ function isValid() {
     return true;
 }
 
-async function createExpense() {
+async function createExpenseLimit() {
     if (!isValid()) {
         return;
     }
 
-    if (account.value.length !== 0) {
-        expense.value.dictionaryBucketPaymentId = account.value.id;
+    expenseLimit.value.bucketPaymentIds = account.value.map(val => val.id).join();
+    expenseLimit.value.categoriesId = categories.value.map(val => val.id).join();
+    expenseLimit.value.startDate = formatDate(expenseLimit.value.startDate);
+    if (expenseLimit.value.endDate !== "" && expenseLimit.value.endDate !== null) {
+        expenseLimit.value.endDate = formatDate(expenseLimit.value.endDate);
+        if(parseDateString(expenseLimit.value.endDate).getTime() <= parseDateString(expenseLimit.value.startDate).getTime()){
+            errMsg.value = `Ngày kết thúc phải lớn hơn ${expenseLimit.value.startDate.split(" ")[0]}`;
+            return;
+        }
     }
 
-    if (Object.keys(categorySelected.value).length !== 0) {
-        expense.value.dictionaryExpenseId = categorySelected.value.id;
-    }
 
-    if (Object.keys(tripEventSelected.value).length !== 0) {
-        expense.value.tripEventId = tripEventSelected.value.id;
-    }
-
-    if (Object.keys(beneficiarySelected.value).length !== 0) {
-        expense.value.beneficiaryId = beneficiarySelected.value.id;
-    }
-
-    expense.value.expenseDate = currentTime.value instanceof Date
-        ? new Date(currentTime.value.getTime() - (currentTime.value.getTimezoneOffset() * 60000))
-            .toISOString()
-            .slice(0, 19)
-            .replace('T', ' ')
-        : currentTime.value;
-
-    await proxy.$api.post("/expense-regular", expense.value).then(() => {
+    await proxy.$api.post("/expense-limit", expenseLimit.value).then(() => {
         swal.fire({
             title: "Thành công",
-            text: "Bạn đã thêm khoản chi tiền thành công!",
+            text: "Bạn đã thêm khoản hạn mức chi thành công!",
             icon: "success",
         });
-        router.push("/expense");
+        router.push("/expense-limit");
+    }).catch((error) =>{
+        if(error.response.data.code === 9002){
+            errMsg.value = "Ngày kết thúc phải lớn hơn " + error.response.data.message;
+        }
+        console.log(error)
     });
 }
 
-function handleConfirmCategory(selectedItems) {
-    
+function handleConfirmCategory(){
+    showPopupCategory.value = false
 }
 
-function handleConfirmAccount(selectedAccounts) {
+function handleConfirmAccount() {
     showAccountModal.value = false;
 }
 </script>
@@ -157,8 +142,8 @@ function handleConfirmAccount(selectedAccounts) {
                 <v-col cols="3">
                     <div class="flex-center flex-column text-20">
                         <div class="flex-center w-100">
-                            <v-text-field v-model="expense.amount" label="Số tiền" type="number" hide-details="auto"
-                                class="text-red-accent-3 font-weight-bold text-end" bg-color="bg-white"
+                            <v-text-field v-model="expenseLimit.amount" label="Số tiền" type="number" hide-details="auto"
+                                class="text-primary font-weight-bold text-end" bg-color="bg-white"
                                 hide-spin-buttons>
                                 <template v-slot:prepend>
                                     <v-avatar class="flex-center">
@@ -170,56 +155,13 @@ function handleConfirmAccount(selectedAccounts) {
                         </div>
                     </div>
                 </v-col>
-                <v-col cols="3">
-                    <div class="flex-center flex-column text-20">
-                        <div class="flex-center w-100">
-                            <v-text-field label="Tên hạn mức" hide-details="auto" class="text-grey-color text-end"
-                                bg-color="bg-white" hide-spin-buttons>
-                                <template v-slot:prepend>
-                                    <v-avatar class="flex-center">
-                                        <font-awesome-icon :icon="['fas', 'money-check-dollar']" />
-                                    </v-avatar>
-                                </template>
-                            </v-text-field>
-                        </div>
-                    </div>
-                </v-col>
-                <v-col cols="3">
-                    <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showPopupCategory = true">
-                        <template v-if="Object.keys(categorySelected).length > 0">
-                            <div class="stacked-images">
-                                <template v-for="(item,index) in categorySelected" :key="item">
-                                    <img v-if="index < 3" :src="item.iconUrl" alt="" 
-                                        :class="['stacked-image', `stacked-image-${index + 1}`]" />
-                                </template>
-                            </div>
-                            <template v-for="(item,index) in categorySelected" :key="item">
-                                <span v-if="index === 0" class="text-14" style="text-transform: none">{{
-                                item.name
-                                }}</span>
-                                <span v-if="index === 1" class="text-14" style="text-transform: none">{{
-                                ", " + item.name
-                                }}</span>
-                            </template>
-                            <span v-if="categorySelected.length > 2" class="text-14" style="text-transform: none">{{
-                                " + " + (categorySelected.length - 2) + " hạng mục khác"
-                            }}</span>
-                            <v-tooltip activator="parent" location="bottom">Hạng mục</v-tooltip>
-                        </template>
-                        <template v-else>
-                            <font-awesome-icon :icon="['fas', 'circle-question']" class="text-20 mr-2" />
-                            <span style="text-transform: none">Chọn hạng mục</span>
-                        </template>
-                    </v-btn>
-                </v-col>
-            </v-row>
-            <v-row class="mb-2 align-center" justify="space-between">
+
                 <v-col cols="3">
                     <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showAccountModal = true">
                         <template v-if="account.length > 0">
                             <div class="stacked-images">
                                 <template v-for="(item,index) in account" :key="item">
-                                    <img v-if="index < 3" :src="item.accountType?.icon" alt="" 
+                                    <img v-if="index < 2" :src="item.iconUrl" alt="" 
                                         :class="['stacked-image', `stacked-image-${index + 1}`]" />
                                 </template>
                             </div>
@@ -242,70 +184,85 @@ function handleConfirmAccount(selectedAccounts) {
                         </template>
                     </v-btn>
                 </v-col>
+                
                 <v-col cols="3">
-                    <v-btn elevation="4" rounded="xl" size="x-large" @click="showPopupTripEvent = true">
-                        <template v-if="Object.keys(tripEventSelected).length > 0">
-                            <span class="text-16" style="text-transform: none">{{
-                                tripEventSelected.name
+                    <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showPopupCategory = true">
+                        <template v-if="categories.length > 0">
+                            <div class="stacked-images">
+                                <template v-for="(item,index) in categories" :key="item">
+                                    <img v-if="index < 2" :src="item.iconUrl" alt="" 
+                                        :class="['stacked-image', `stacked-image-${index + 1}`]" />
+                                </template>
+                            </div>
+                            <template v-for="(item,index) in categories" :key="item">
+                                <span v-if="index === 0" class="text-14" style="text-transform: none">{{
+                                item.name
                                 }}</span>
-                            <v-tooltip activator="parent" location="bottom">Chuyến đi/sự kiện</v-tooltip>
+                                <span v-if="index === 1" class="text-14" style="text-transform: none">{{
+                                ", " + item.name
+                                }}</span>
+                            </template>
+                            <span v-if="categories.length > 2" class="text-14" style="text-transform: none">{{
+                                " + " + (categories.length - 2) + " hạng mục khác"
+                            }}</span>
+                            <v-tooltip activator="parent" location="bottom">Hạng mục</v-tooltip>
                         </template>
                         <template v-else>
-                            <font-awesome-icon :icon="['fas', 'house']" class="text-20 mr-2" />
-                            <span style="text-transform: none">Chuyến đi/sự kiện</span>
-                        </template>
-                    </v-btn>
-                </v-col>
-                <v-col cols="3">
-                    <v-btn elevation="4" rounded="xl" size="x-large" @click="showBeneficiary = true">
-                        <template v-if="Object.keys(beneficiarySelected).length > 0">
-                            <span class="text-16" style="text-transform: none">{{
-                                beneficiarySelected.name
-                                }}</span>
-                            <v-tooltip activator="parent" location="bottom">Chi cho ai</v-tooltip>
-                        </template>
-                        <template v-else>
-                            <font-awesome-icon :icon="['fas', 'user']" class="text-20 mr-2" />
-                            <span style="text-transform: none">Chi cho ai</span>
+                            <font-awesome-icon :icon="['fas', 'circle-question']" class="text-20 mr-2" />
+                            <span style="text-transform: none">Chọn hạng mục</span>
                         </template>
                     </v-btn>
                 </v-col>
             </v-row>
-            <v-row justify="space-between">
+            <v-row class="mb-2 align-center" justify="space-between">
+                <v-col cols="3">
+                    <div class="flex-center flex-column text-20">
+                        <div class="flex-center w-100">
+                            <v-text-field v-model="expenseLimit.name" label="Tên hạn mức" hide-details="auto" class="text-grey-color text-end"
+                                bg-color="bg-white" hide-spin-buttons>
+                                <template v-slot:prepend>
+                                    <v-avatar class="flex-center">
+                                        <font-awesome-icon :icon="['fas', 'money-check-dollar']" />
+                                    </v-avatar>
+                                </template>
+                            </v-text-field>
+                        </div>
+                    </div>
+                </v-col>
                 <v-col cols="3" class="d-flex align-center">
                     <div class="d-flex flex-column align-center justify-center">
                         <span class="text-14 mb-2">Ngày bắt đầu</span>
-                        <el-date-picker v-model="currentTime" type="date" placeholder="Ngày bắt đầu" size="large" />
+                        <el-date-picker v-model="expenseLimit.startDate" type="date" placeholder="Ngày bắt đầu" size="large" :clearable="false"/>
                     </div>
                 </v-col>
                 <v-col cols="3" class="d-flex align-center">
                     <div class="d-flex flex-column align-center justify-center">
                         <span class="text-14 mb-2">Ngày kết thúc</span>
-                        <el-date-picker v-model="currentTime" type="date" placeholder="Ngày kết thúc" size="large" />
+                        <el-date-picker v-model="expenseLimit.endDate" type="date" placeholder="Ngày kết thúc" size="large" />
                     </div>
                 </v-col>
+            </v-row>
+            <v-row justify="space-between">
                 <v-col cols="3">
-                    <v-textarea v-model="expense.interpretation" class="text-grey-color" label="Diễn giải"
-                        bg-color="bg-white" rows="1" auto-grow hide-details="auto" clearable>
-                        <template v-slot:prepend>
-                            <v-avatar class="flex-center">
-                                <font-awesome-icon :icon="['far', 'rectangle-list']" />
-                            </v-avatar>
-                        </template>
-                    </v-textarea>
+                <v-select
+                    v-model="expenseLimit.repeatTime"
+                    label="Lặp lại"
+                    :items="timeOptions"
+                    item-title="option"
+                    item-value="option"
+                    variant="outlined"
+                    density="comfortable"
+                    hide-details
+                    class="custom-select"
+                >
+                </v-select>
                 </v-col>
             </v-row>
             <v-col cols="12">
                 <p class="text-red-accent-3 text-center">{{ errMsg }}</p>
             </v-col>
             <v-dialog v-model="showPopupCategory" width="auto">
-                <dictionary-expense v-model="categorySelected" :isMultiple="true" @confirm="handleConfirmCategory"></dictionary-expense>
-            </v-dialog>
-            <v-dialog v-model="showPopupTripEvent" width="auto">
-                <trip-event v-model="tripEventSelected"></trip-event>
-            </v-dialog>
-            <v-dialog v-model="showBeneficiary" width="auto">
-                <Beneficiary v-model="beneficiarySelected"></Beneficiary>
+                <dictionary-expense v-model="categories" :isMultiple="true" @confirm="handleConfirmCategory"></dictionary-expense>
             </v-dialog>
             <v-dialog v-model="showAccountModal" width="auto">
                 <account-modal v-model="account" @confirm="handleConfirmAccount"></account-modal>
@@ -313,7 +270,7 @@ function handleConfirmAccount(selectedAccounts) {
         </div>
         <div class="text-center">
             <button class="bg-primary-color text-white py-2 px-10 rounded d-inline-flex justify-center"
-                @click.stop="createExpense">
+                @click.stop="createExpenseLimit">
                 <div class="mr-2">
                     <font-awesome-icon :icon="['fas', 'floppy-disk']" />
                 </div>
@@ -324,6 +281,11 @@ function handleConfirmAccount(selectedAccounts) {
 </template>
 
 <style lang="scss" scoped>
+.custom-select {
+      :deep(.v-field) {
+        border-radius: 12px;
+      }
+}
 .stacked-images {
     position: relative;
     width: 40px;
