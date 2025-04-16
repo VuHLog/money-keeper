@@ -1,10 +1,10 @@
 <script setup>
 import { ref, watch, getCurrentInstance, onMounted, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { MainFeature } from "@/constants/MainFeature.js";
 import DictionaryExpense from "@components/DictionaryExpense.vue";
 import TripEvent from "@components/TripEvent.vue";
 import Beneficiary from "@components/Beneficiary.vue";
+import AccountModal from "@components/AccountModal.vue";
 import { AccountType } from "@/constants/AccountType.js";
 
 const { proxy } = getCurrentInstance();
@@ -12,12 +12,10 @@ const router = useRouter();
 const swal = inject("$swal");
 const route = useRoute();
 
-const mainFeatureList = ref(MainFeature);
-const feature = ref(mainFeatureList.value.find((value) => value.id === 1));
 const currentTime = ref(new Date());
 const dictionaryBucketPayment = ref([]);
-const account = ref({});
-const categorySelected = ref({});
+const account = ref([]);
+const categorySelected = ref([]);
 const showPopupCategory = ref(false);
 watch(categorySelected, () => {
     showPopupCategory.value = false;
@@ -36,6 +34,7 @@ watch(beneficiarySelected, () => {
 });
 
 const errMsg = ref("");
+const showAccountModal = ref(false);
 
 onMounted(() => {
     proxy.$api
@@ -73,7 +72,7 @@ function isValid() {
         return false;
     }
 
-    if (Object.keys(account.value).length === 0) {
+    if (account.value.length === 0) {
         errMsg.value = "Tài khoản không được để trống";
         return false;
     }
@@ -97,7 +96,7 @@ async function createExpense() {
         return;
     }
 
-    if (Object.keys(account.value).length !== 0) {
+    if (account.value.length !== 0) {
         expense.value.dictionaryBucketPaymentId = account.value.id;
     }
 
@@ -128,6 +127,14 @@ async function createExpense() {
         });
         router.push("/expense");
     });
+}
+
+function handleConfirmCategory(selectedItems) {
+    
+}
+
+function handleConfirmAccount(selectedAccounts) {
+    showAccountModal.value = false;
 }
 </script>
 
@@ -178,14 +185,25 @@ async function createExpense() {
                     </div>
                 </v-col>
                 <v-col cols="3">
-                    <v-btn elevation="4" rounded="xl" size="x-large" @click="showPopupCategory = true">
+                    <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showPopupCategory = true">
                         <template v-if="Object.keys(categorySelected).length > 0">
-                            <div>
-                                <img :src="categorySelected.iconUrl" alt="" />
+                            <div class="stacked-images">
+                                <template v-for="(item,index) in categorySelected" :key="item">
+                                    <img v-if="index < 3" :src="item.iconUrl" alt="" 
+                                        :class="['stacked-image', `stacked-image-${index + 1}`]" />
+                                </template>
                             </div>
-                            <span class="text-16" style="text-transform: none">{{
-                                categorySelected.name
+                            <template v-for="(item,index) in categorySelected" :key="item">
+                                <span v-if="index === 0" class="text-14" style="text-transform: none">{{
+                                item.name
                                 }}</span>
+                                <span v-if="index === 1" class="text-14" style="text-transform: none">{{
+                                ", " + item.name
+                                }}</span>
+                            </template>
+                            <span v-if="categorySelected.length > 2" class="text-14" style="text-transform: none">{{
+                                " + " + (categorySelected.length - 2) + " hạng mục khác"
+                            }}</span>
                             <v-tooltip activator="parent" location="bottom">Hạng mục</v-tooltip>
                         </template>
                         <template v-else>
@@ -197,23 +215,32 @@ async function createExpense() {
             </v-row>
             <v-row class="mb-2 align-center" justify="space-between">
                 <v-col cols="3">
-                    <v-select label="Chọn tài khoản" variant="solo" rounded v-model="account"
-                        :items="dictionaryBucketPayment" item-title="name" :return-object="true"
-                        class="text-grey-color d-inline-block" width="100%" hide-details="true"
-                        no-data-text="Không tìm thấy">
-                        <template v-slot:item="{ props, item }">
-                            <v-list-item v-bind="props" :prepend-avatar="item.raw?.accountType?.icon"
-                                :title="item.raw?.accountName"></v-list-item>
-                        </template>
-                        <template v-slot:selection="{ item }">
-                            <div>
-                                <v-avatar start>
-                                    <img class="icon-size" :src="item.raw?.accountType?.icon" alt="icon" />
-                                </v-avatar>
-                                <span class="text-grey-color">{{ item.raw?.accountName }}</span>
+                    <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showAccountModal = true">
+                        <template v-if="account.length > 0">
+                            <div class="stacked-images">
+                                <template v-for="(item,index) in account" :key="item">
+                                    <img v-if="index < 3" :src="item.accountType?.icon" alt="" 
+                                        :class="['stacked-image', `stacked-image-${index + 1}`]" />
+                                </template>
                             </div>
+                            <template v-for="(item,index) in account" :key="item">
+                                <span v-if="index === 0" class="text-14" style="text-transform: none">{{
+                                    item.accountName
+                                }}</span>
+                                <span v-if="index === 1" class="text-14" style="text-transform: none">{{
+                                    ", " + item.accountName
+                                }}</span>
+                            </template>
+                            <span v-if="account.length > 2" class="text-14" style="text-transform: none">{{
+                                " + " + (account.length - 2) + " tài khoản khác"
+                            }}</span>
+                            <v-tooltip activator="parent" location="bottom">Tài khoản</v-tooltip>
                         </template>
-                    </v-select>
+                        <template v-else>
+                            <font-awesome-icon :icon="['fas', 'circle-question']" class="text-20 mr-2" />
+                            <span style="text-transform: none">Chọn tài khoản</span>
+                        </template>
+                    </v-btn>
                 </v-col>
                 <v-col cols="3">
                     <v-btn elevation="4" rounded="xl" size="x-large" @click="showPopupTripEvent = true">
@@ -272,13 +299,16 @@ async function createExpense() {
                 <p class="text-red-accent-3 text-center">{{ errMsg }}</p>
             </v-col>
             <v-dialog v-model="showPopupCategory" width="auto">
-                <dictionary-expense v-model="categorySelected" :isMultiple="true"></dictionary-expense>
+                <dictionary-expense v-model="categorySelected" :isMultiple="true" @confirm="handleConfirmCategory"></dictionary-expense>
             </v-dialog>
             <v-dialog v-model="showPopupTripEvent" width="auto">
                 <trip-event v-model="tripEventSelected"></trip-event>
             </v-dialog>
             <v-dialog v-model="showBeneficiary" width="auto">
                 <Beneficiary v-model="beneficiarySelected"></Beneficiary>
+            </v-dialog>
+            <v-dialog v-model="showAccountModal" width="auto">
+                <account-modal v-model="account" @confirm="handleConfirmAccount"></account-modal>
             </v-dialog>
         </div>
         <div class="text-center">
@@ -293,4 +323,41 @@ async function createExpense() {
     </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.stacked-images {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    margin-right: 8px;
+
+    .stacked-image {
+        position: absolute;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+
+        &:hover {
+            z-index: 3;
+            transform: scale(1.1);
+        }
+    }
+
+    .stacked-image-1 {
+        left: 0;
+        z-index: 3;
+    }
+
+    .stacked-image-2 {
+        left: 8px;
+        z-index: 2;
+    }
+
+    .stacked-image-3 {
+        left: 16px;
+        z-index: 1;
+    }
+}
+</style>

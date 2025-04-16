@@ -3,12 +3,12 @@ import { ref, onMounted, defineProps, getCurrentInstance, watch } from "vue";
 
 const { proxy } = getCurrentInstance();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "confirm"]);
 
 const props = defineProps({
   modelValue: {
-    type: Object,
-    default: {},
+    type: [Object, Array],
+    default: () => ({}),
   },
   isMultiple: {
     type: Boolean,
@@ -18,12 +18,13 @@ const props = defineProps({
 
 const search = ref("");
 const dictionaryExpense = ref([]);
-const isSelectAll = ref(true);
+const isSelectAll = ref(false);
 const isManuallyToggledSelectAll = ref(false);
 const itemSelectedMap = ref(new Map());
 const itemIdSelectedList = ref([])
 const totalElements = ref(0);
 const isOnmounted = ref(false);
+const dictionaryExpenseTemp = ref([]);
 
 onMounted(async () => {
   await getData();
@@ -36,20 +37,29 @@ async function getData(){
   await proxy.$api
     .get("/dictionary-expense/without-transfer?search=" + text)
     .then((res) => {
-      data = res.result;
+      dictionaryExpenseTemp.value = res.result;
     })
     .catch((error) => console.log(error));
-  if(!isOnmounted.value){
-    totalElements.value = data.length;
-    data.forEach((value) => {
-      itemSelectedMap.value.set(value.id, true);
-      itemIdSelectedList.value.push(value.id);
-    });
+  if(!isOnmounted.value && props.isMultiple){
+    totalElements.value = dictionaryExpenseTemp.value.length;
+    if(props.modelValue.length === 0){
+      isSelectAll.value = true;
+      dictionaryExpenseTemp.value.forEach((value) => {
+        itemSelectedMap.value.set(value.id, true);
+        itemIdSelectedList.value.push(value.id);
+      });
+    }else{
+      isSelectAll.value = props.modelValue.length === totalElements.value;
+      props.modelValue.forEach((value) => {
+        itemSelectedMap.value.set(value.id, true);
+        itemIdSelectedList.value.push(value.id);
+      });
+    }
   }
 
-  let parents = data.filter((item) => item.parentId === null);
+  let parents = dictionaryExpenseTemp.value.filter((item) => item.parentId === null);
   parents.forEach((parent) => {
-    parent.children = data.filter((child) => child.parentId === parent.id);
+    parent.children = dictionaryExpenseTemp.value.filter((child) => child.parentId === parent.id);
   });
   dictionaryExpense.value = parents;
 }
@@ -66,7 +76,7 @@ watch(isSelectAll,
       if (!isManuallyToggledSelectAll.value) return; // handle when click select all check box
       itemIdSelectedList.value = [];
       if (isSelectAll.value) {
-        dictionaryExpense.value.forEach((value) => {
+        dictionaryExpenseTemp.value.forEach((value) => {
           itemSelectedMap.value.set(value.id, true);
           itemIdSelectedList.value.push(value.id);
         });
@@ -84,6 +94,7 @@ function handleSelectCategory(id) {
     itemSelectedMap.value.delete(id);
     itemIdSelectedList.value = itemIdSelectedList.value.filter(value => value !== id);
   }else{
+    itemSelectedMap.value.set(id, true);
     itemIdSelectedList.value.push(id);
   }
   if (itemIdSelectedList.value.length === totalElements.value) {
@@ -99,6 +110,14 @@ function handleClickCategory(category) {
   }else{
     handleSelectCategory(category.id);
   }
+}
+
+function handleConfirm() {
+  const selectedItems = dictionaryExpenseTemp.value.filter(item => 
+    itemSelectedMap.value.has(item.id)
+  );
+  emit("update:modelValue", selectedItems);
+  emit("confirm", selectedItems);
 }
 </script>
 
@@ -124,7 +143,7 @@ function handleClickCategory(category) {
         </v-text-field>
       </div>
     </div>
-    <div class="mt-10" v-if="dictionaryExpense.length === 0">
+    <div class="mt-10" v-if="dictionaryExpense?.length === 0">
       <h4 class="flex-center font-weight-bold text-grey-darken-1">Không tồn tại tên hạng mục
         chứa "{{ search }}"</h4>
     </div>
@@ -132,26 +151,36 @@ function handleClickCategory(category) {
       <template v-for="category in dictionaryExpense" :key="category.id">
         <v-col cols="6">
           <div class="category-box">
-            <v-row class="hover-bg-grey-darken cursor-pointer" @click="handleClickCategory(category)" :class="(props.isMultiple && itemSelectedMap.get(category.id)) ? 'bg-grey-darken-1' : ''">
+            <v-row class="hover-bg-grey-darken cursor-pointer transition-fast-in-fast-out" 
+              @click="handleClickCategory(category)" 
+              :class="[
+                (props.isMultiple && itemSelectedMap?.has(category.id)) ? 'bg-primary-lighten-5 elevation-2' : '',
+                'rounded-t-lg'
+              ]">
               <v-col cols="8" class="flex-center">
                 <div style="width: 37.5%;" class="flex-center pr-4">
-                  <img :src="category.iconUrl" alt="" />
+                  <v-img :src="category.iconUrl" width="40" height="40" contain></v-img>
                 </div>
                 <span class="text-start text-grey-darken-4 font-weight-bold"
+                  :class="(props.isMultiple && itemSelectedMap.has(category.id)) ? 'text-primary' : ''"
                   style="width: 62.5%;">{{ category.name }}</span>
               </v-col>
             </v-row>
 
-            <v-row>
+            <v-row class="rounded-b-lg">
               <template v-for="child in category.children" :key="child.id">
                 <v-col cols="3"
-                  class="d-flex flex-column align-center align-self-stretch hover-bg-grey-darken cursor-pointer"
-                  :class="(props.isMultiple && itemSelectedMap.get(child.id)) ? 'bg-grey-darken-1' : ''"
+                  class="d-flex flex-column align-center align-self-stretch hover-bg-grey-darken cursor-pointer transition-fast-in-fast-out"
+                  :class="[
+                    (props.isMultiple && itemSelectedMap.has(child.id)) ? 'bg-primary-lighten-5 elevation-2' : '',
+                    'pa-4'
+                  ]"
                   @click="handleClickCategory(child)">
-                  <div>
-                    <img :src="child.iconUrl" alt="" />
+                  <div class="mb-2">
+                    <v-img :src="child.iconUrl" width="32" height="32" contain></v-img>
                   </div>
-                  <span class="text-center text-grey-color">{{ child.name }}</span>
+                  <span class="text-center text-grey-color"
+                    :class="(props.isMultiple && itemSelectedMap.has(child.id)) ? 'text-primary font-weight-bold' : ''">{{ child.name }}</span>
                 </v-col>
               </template>
             </v-row>
@@ -159,6 +188,17 @@ function handleClickCategory(category) {
         </v-col>
       </template>
     </v-row>
+    <div v-if="props.isMultiple" class="d-flex justify-center mt-4">
+      <v-btn
+        color="primary"
+        :disabled="itemIdSelectedList.length === 0"
+        @click="handleConfirm"
+        size="large"
+      >
+        Xác nhận
+        <font-awesome-icon :icon="['fas', 'check']" />
+      </v-btn>
+    </div>
   </div>
 </template>
 
@@ -173,6 +213,7 @@ function handleClickCategory(category) {
   .scroll-container {
     max-height: 60vh;
     overflow-y: auto;
+    flex: 1;
 
     .category-box {
       background: #f5f5f5;
@@ -182,7 +223,16 @@ function handleClickCategory(category) {
       display: flex;
       flex-direction: column;
       height: 100%;
+      transition: all 0.3s ease;
     }
   }
+}
+
+.hover-bg-grey-darken:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.transition-fast-in-fast-out {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
