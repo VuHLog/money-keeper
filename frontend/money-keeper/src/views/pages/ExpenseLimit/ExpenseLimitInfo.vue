@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router';
 import { formatCurrency } from '@/utils/Format';
 import { formatDateStringToDate } from '@/utils/DateUtil';
 import { useExpenseLimitStore } from '@/store/ExpenseLimitStore';
-import { ExpenseLimitLoopTime } from "@/constants/ExpenseLimitLoopTime.js";
 import { useExpenseRegularStore } from '@/store/ExpenseRegularStore';
 import ExpenseLimitDetail from '@/views/pages/ExpenseLimit/ExpenseLimitDetail.vue';
 
@@ -14,9 +13,6 @@ const expenseLimitStore = useExpenseLimitStore();
 const expenseRegularStore = useExpenseRegularStore();
 const expenseLimit = ref(null);
 const totalExpense = ref(0);
-const actualSpending = ref(44);
-const recommendedSpending = ref(21);
-const expectedSpending = ref(1331);
 const totalExpenseList = ref(null);
 const showDetailDialog = ref(false);
 
@@ -28,11 +24,11 @@ onMounted(async () => {
 });
 
 const getExpenseLimit = async () => {
-  expenseLimit.value = await expenseLimitStore.getExpenseLimitByExpenseLimitId("5cb59449-ca40-4836-bf2c-338534fddd96");
+  expenseLimit.value = await expenseLimitStore.getExpenseLimitByExpenseLimitId(expenseLimitId);
 };
 
 const getTotalExpenseList = async (startDate, endDate) => {
-  totalExpenseList.value = await expenseRegularStore.getTotalExpenseByExpenseLimit("5cb59449-ca40-4836-bf2c-338534fddd96", startDate, endDate);
+  totalExpenseList.value = await expenseRegularStore.getTotalExpenseByExpenseLimit(expenseLimitId, startDate, endDate);
 };
 
 // Tính ngày bắt đầu dựa trên thời điểm hiện tại
@@ -163,19 +159,36 @@ const formatDateRange = computed(() => {
   return `${formatDateStringToDate(startDate.toISOString(), showYear)} - ${formatDateStringToDate(endDate.toISOString(), showYear)}`;
 });
 
-// Tính thực tế chi tiêu trung bình mỗi ngày
-const actualDailySpending = computed(() => {
-  if (!totalExpense.value || !getCurrentStartDate.value) return 0;
+const diffTime = computed(() => {
+  if (!expenseLimit.value?.startDate) return 0;
   
   const startDate = new Date(getCurrentStartDate.value);
   const today = new Date();
-  const diffTime = today - startDate;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return today - startDate;
+});
+
+// Tính thực tế chi tiêu trung bình mỗi ngày
+const actualDailySpending = computed(() => {
+  if (!totalExpense.value || !getCurrentStartDate.value) return 0;
+  const diffDays = Math.ceil(diffTime.value / (1000 * 60 * 60 * 24));
   
   // Nếu là ngày đầu tiên, trả về tổng chi tiêu
   if (diffDays <= 0) return totalExpense.value;
   
-  return Math.round(totalExpense.value / diffDays);
+  return totalExpense.value / diffDays;
+});
+
+// Tính nên chi tiêu trung bình mỗi ngày
+const recommendedDailySpending = computed(() => {
+  if (!expenseLimit.value?.amount || !remainingDays.value || remainingDays.value <= 0) return 0;
+
+  const remainingBudget = expenseLimit.value.amount - totalExpense.value;
+  return remainingBudget / remainingDays.value;
+});
+
+const expectedSpending = computed(() => {
+  if (!actualDailySpending.value || !remainingDays.value) return 0;
+  return actualDailySpending.value * remainingDays.value + totalExpense.value;
 });
 
 // Tính bội chi (số tiền còn lại trong hạn mức)
@@ -366,7 +379,13 @@ function viewExpenseDetails() {
 
     <div class="expense-limit-info pa-4">
       <div class="d-flex justify-space-between align-center mb-8">
-        <h2 class="text-h4">Hàng tháng</h2>
+        <h2 class="text-h4 d-flex align-center">
+          <v-btn icon variant="text" class="back-button d-flex align-center text-primary"
+              to="/expense-limit">
+              <font-awesome-icon :icon="['fas', 'angle-left']" style="font-size: 32px" />
+          </v-btn>
+          Hàng tháng
+        </h2>
         <div class="text-right">
           <div class="text-subtitle-1 mb-2">Hạn mức chi tiêu</div>
           <div class="text-h4">{{ formatCurrency(expenseLimit?.amount) }}</div>
@@ -413,7 +432,7 @@ function viewExpenseDetails() {
                   </v-tooltip>
                 </div>
               </div>
-              <div class="text-h6 primary--text">{{ formatCurrency(totalExpense) }}/ngày</div>
+              <div class="text-h6 primary--text">{{ formatCurrency(Math.round(actualDailySpending)) }}/ngày</div>
             </div>
             <div class="text-center stat-box">
               <div class="text-subtitle-1 mb-1 d-flex align-center">
@@ -426,7 +445,7 @@ function viewExpenseDetails() {
                   </v-tooltip>
                 </div>
               </div>
-              <div class="text-h6">{{ formatCurrency(recommendedSpending) }}/ngày</div>
+              <div class="text-h6">{{ formatCurrency(Math.round(recommendedDailySpending)) }}/ngày</div>
             </div>
             <div class="text-center stat-box">
               <div class="text-subtitle-1 mb-1 d-flex align-center">
@@ -438,7 +457,7 @@ function viewExpenseDetails() {
                   </v-tooltip>
                 </div>
               </div>
-              <div class="text-h6 error--text">{{ formatCurrency(expectedSpending) }}</div>
+              <div class="text-h6 error--text">{{ formatCurrency(Math.round(expectedSpending)) }}</div>
             </div>
           </div>
         </v-card-text>
@@ -470,7 +489,9 @@ function viewExpenseDetails() {
   </div>
 
   <v-dialog v-model="showDetailDialog" width="800">
-    <ExpenseLimitDetail />
+    <ExpenseLimitDetail :expense-limit="expenseLimit"
+    :start-date="getCurrentStartDate + ' 00:00:00'"
+    :end-date="getEndDate(getCurrentStartDate, expenseLimit?.repeatTime, expenseLimit?.endDate) + ' 23:59:59'"/>
   </v-dialog>
 </template>
 

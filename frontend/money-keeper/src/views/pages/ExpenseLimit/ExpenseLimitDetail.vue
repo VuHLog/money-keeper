@@ -1,92 +1,57 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useExpenseLimitStore } from '@/store/ExpenseLimitStore';
 import { formatCurrency } from '@/utils/Format';
 import { formatDateStringToDate } from '@/utils/DateUtil';
 
 const props = defineProps({
-  expenses: {
-    type: Array,
-    default: () => []
+  expenseLimit: {
+    type: Object,
+    required: true
+  },
+  startDate: {
+    type: String,
+    required: true
+  },
+  endDate: {
+    type: String,
+    required: true
   }
 });
 
-const formatDate = (date) => {
-  if (date === 'Hôm nay') return date;
-  return formatDateStringToDate(date, false);
-};
+const expenseLimitStore = useExpenseLimitStore();
+const expenseLimit = ref(props.expenseLimit);
+const expenseLimitDetail = ref([]);
 
-const expensesByCategory = computed(() => {
-  const categories = [
-    {
-      name: 'Điện',
-      icon: ['fas', 'bolt'],
-      color: 'warning',
-      total: 8000,
-      expenses: [
-        {
-          id: 1,
-          name: 'Tổng chi',
-          date: '19/04/2025',
-          amount: 8000,
-          wallet: 'Ví'
-        }
-      ]
-    },
-    {
-      name: 'Ăn sáng',
-      icon: ['fas', 'utensils'],
-      color: 'orange',
-      total: 450,
-      expenses: [
-        {
-          id: 2,
-          name: 'Tổng chi',
-          date: 'Hôm nay',
-          amount: 20,
-          wallet: 'Ví'
-        },
-        {
-          id: 3,
-          date: '15/04/2025',
-          amount: 20,
-          wallet: 'Ví'
-        },
-        {
-          id: 4,
-          date: '12/04/2025',
-          amount: 10,
-          wallet: 'Ví'
-        },
-        {
-          id: 5,
-          date: '09/04/2025',
-          amount: 400,
-          wallet: 'Ví'
-        }
-      ]
-    },
-    {
-      name: 'Đi chợ/siêu thị',
-      icon: ['fas', 'shopping-cart'],
-      color: 'grey',
-      total: 0,
-      expenses: [
-        {
-          id: 6,
-          name: 'Tổng chi',
-          date: '27/04/2025',
-          amount: 0,
-          wallet: 'Ví'
-        }
-      ]
-    }
-  ];
-
-  return categories;
+onMounted(async () => {
+  expenseLimitDetail.value = await expenseLimitStore.getExpenseLimitDetailByExpenseLimitId(expenseLimit.value.id, props.startDate, props.endDate);
+  expenseLimitDetail.value = convertData(expenseLimitDetail.value);
 });
 
+const convertData = (data) => {
+  const categories = Object.values(data.reduce((acc, item) => {
+    if (!acc[item.name]) {
+      acc[item.name] = {
+        name: item.name,
+        totalAmount: 0,
+        iconUrl: item.iconUrl,
+        children: []
+      };
+    }
+    acc[item.name].totalAmount += item.amount;
+    acc[item.name].children.push({
+      amount: item.amount,
+      expenseDate: item.expenseDate,
+      bucketPaymentName: item.bucketPaymentName
+    });
+    return acc;
+  }, {}));
+
+  return categories;
+};
+
 const totalAmount = computed(() => {
-  return expensesByCategory.value.reduce((total, category) => total + category.total, 0);
+  return expenseLimitDetail.value.reduce((total, category) => total + category.totalAmount, 0);
 });
 </script>
 
@@ -116,37 +81,43 @@ const totalAmount = computed(() => {
         </v-list-subheader>
 
         <div class="expense-categories">
-          <template v-for="(category, index) in expensesByCategory" :key="index">
+          <template v-for="(detail, index) in expenseLimitDetail" :key="index">
             <div class="category-section" :class="{ 'mt-4': index > 0 }">
               <v-list-item class="category-header">
                 <div class="d-flex align-center w-100">
-                  <v-avatar size="40" class="mr-3" :color="category.color + ' lighten-4'">
-                    <font-awesome-icon :icon="category.icon" :class="category.color + '--text text-darken-2'" />
+                  <v-avatar class="mr-1 d-flex align-center" start>
+                    <img :src="detail.iconUrl" alt="icon" style="width: 30px" />
                   </v-avatar>
                   <div class="flex-grow-1">
                     <div class="d-flex justify-space-between align-center">
-                      <div class="text-subtitle-1 font-weight-medium">{{ category.name }}</div>
-                      <div class="text-subtitle-1" :class="category.total > 0 ? 'error--text' : 'success--text'">
-                        {{ formatCurrency(category.total) }}
+                      <div class="text-subtitle-1 font-weight-medium">{{ detail.name }}</div>
+                      <div class="text-subtitle-1 font-weight-bold" :class="detail.total > 0 ? 'error--text' : 'success--text'">
+                        {{ formatCurrency(detail.totalAmount) }}
                       </div>
                     </div>
                   </div>
                 </div>
               </v-list-item>
 
-              <v-list-item v-for="expense in category.expenses" :key="expense.id" 
-                class="expense-item pl-16" 
-                :class="{ 'today': expense.date === 'Hôm nay' }">
+              <v-list-item v-for="expense in detail.children" :key="expense.id" 
+                class="expense-item pl-16">
                 <div class="d-flex justify-space-between w-100">
-                  <div class="text-subtitle-2 text-grey-darken-1">{{ expense.name || 'Chi tiêu' }}</div>
-                  <div class="d-flex justify-space-between" style="width: 60%">
-                    <div class="text-subtitle-2" :class="{'primary--text': expense.date === 'Hôm nay'}">
-                      {{ formatDate(expense.date) }}
-                    </div>
-                    <div class="text-subtitle-2">{{ formatCurrency(expense.amount) }}</div>
-                    <div class="text-subtitle-2">
-                      <v-chip size="small" color="primary" variant="flat">{{ expense.wallet }}</v-chip>
-                    </div>
+                  <div class="d-flex justify-space-between w-100">
+                    <v-row>
+                      <v-col cols="4">
+                        <div class="text-subtitle-2">
+                          {{ expense.expenseDate.split(".")[0] }}
+                        </div>
+                      </v-col>
+                      <v-col cols="5">
+                        <div class="text-subtitle-2 text-red-accent-3 text-center">{{ formatCurrency(expense.amount) }}</div>
+                      </v-col>
+                      <v-col cols="3">
+                        <div class="text-subtitle-2 text-end">
+                          <v-chip size="small" color="primary" variant="flat">{{ expense.bucketPaymentName }}</v-chip>
+                        </div>
+                      </v-col>
+                    </v-row>
                   </div>
                 </div>
               </v-list-item>

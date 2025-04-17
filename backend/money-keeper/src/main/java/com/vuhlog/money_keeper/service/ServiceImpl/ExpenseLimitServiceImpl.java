@@ -7,6 +7,7 @@ import com.vuhlog.money_keeper.dao.DictionaryExpenseRepository;
 import com.vuhlog.money_keeper.dao.ExpenseLimitRepository;
 import com.vuhlog.money_keeper.dao.specification.ExpenseLimitSpecification;
 import com.vuhlog.money_keeper.dto.request.ExpenseLimitRequest;
+import com.vuhlog.money_keeper.dto.response.responseinterface.ExpenseLimitDetailResponse;
 import com.vuhlog.money_keeper.dto.response.ExpenseLimitResponse;
 import com.vuhlog.money_keeper.entity.DictionaryBucketPayment;
 import com.vuhlog.money_keeper.entity.ExpenseLimit;
@@ -20,13 +21,11 @@ import com.vuhlog.money_keeper.service.ExpenseLimitService;
 import com.vuhlog.money_keeper.util.TimestampUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +45,17 @@ public class ExpenseLimitServiceImpl implements ExpenseLimitService {
         ExpenseLimit expenseLimit = expenseLimitRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.EXPENSE_LIMIT_NOT_EXISTED));
         ExpenseLimitResponse expenseLimitResponse = expenseLimitMapper.toExpenseLimitResponse(expenseLimit);
         return convertToResponse(expenseLimitResponse, expenseLimit.getBucketPaymentIds(), expenseLimit.getCategoriesId(), expenseLimit.getEndDate());
+    }
+
+    @Override
+    public List<ExpenseLimitDetailResponse> getExpenseLimitDetailById(String id, String startDate, String endDate) {
+        ExpenseLimit expenseLimit = expenseLimitRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.EXPENSE_LIMIT_NOT_EXISTED));
+        Timestamp startTime = Timestamp.valueOf(startDate);
+        Timestamp endTime = null;
+        if(endDate != null && !endDate.isEmpty()) {
+            endTime = Timestamp.valueOf(endDate);
+        }
+        return expenseLimitRepository.getExpenseByExpenseLimitAndDate(expenseLimit.getBucketPaymentIds(), expenseLimit.getCategoriesId(), startTime, endTime);
     }
 
     @Override

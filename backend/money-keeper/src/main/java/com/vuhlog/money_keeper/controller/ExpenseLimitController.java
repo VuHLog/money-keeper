@@ -2,10 +2,13 @@ package com.vuhlog.money_keeper.controller;
 
 import com.vuhlog.money_keeper.dto.request.ExpenseLimitRequest;
 import com.vuhlog.money_keeper.dto.response.ApiResponse;
+import com.vuhlog.money_keeper.dto.response.responseinterface.ExpenseLimitDetailResponse;
 import com.vuhlog.money_keeper.dto.response.ExpenseLimitResponse;
 import com.vuhlog.money_keeper.service.ExpenseLimitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/expense-limit")
@@ -17,6 +20,17 @@ public class ExpenseLimitController {
     public ApiResponse<ExpenseLimitResponse> getExpenseLimitById(@PathVariable String id) {
         return ApiResponse.<ExpenseLimitResponse>builder()
                 .result(expenseLimitService.getExpenseLimitById(id))
+                .build();
+    }
+
+    @GetMapping("/{id}/detail")
+    public ApiResponse<List<ExpenseLimitDetailResponse>> getExpenseLimitDetailById(
+            @PathVariable String id,
+            @RequestParam(name = "startDate", required = true) String startDate,
+            @RequestParam(name = "endDate", required = false, defaultValue = "") String endDate
+    ) {
+        return ApiResponse.<List<ExpenseLimitDetailResponse>>builder()
+                .result(expenseLimitService.getExpenseLimitDetailById(id, startDate, endDate))
                 .build();
     }
 
