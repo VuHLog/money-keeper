@@ -27,6 +27,11 @@ public class TimestampUtil {
         return dateFormat.format(timestamp);
     }
 
+    public static String timestampToStringOnlyDate(Timestamp timestamp) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return dateFormat.format(timestamp);
+    }
+
     public static PeriodOfTime getPeriodOfTime(String timeOption) {
         PeriodOfTime periodOfTime = new PeriodOfTime();
         LocalDateTime localDateTimeNow = LocalDateTime.now();

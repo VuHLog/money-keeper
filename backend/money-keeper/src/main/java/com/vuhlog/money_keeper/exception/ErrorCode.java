@@ -24,6 +24,7 @@ public enum ErrorCode {
     UPDATE_TIME_LIMIT(8001, "You can't update expense/revenue after 1 month", HttpStatus.BAD_REQUEST),
     EXPENSE_LIMIT_NOT_EXISTED(9001, "Expense limit not existed", HttpStatus.NOT_FOUND),
     EXPENSE_LIMIT_END_DATE_INVALID(9002, "Expense limit not existed", HttpStatus.BAD_REQUEST),
+    DATE_LESS_THAN_TOMORROW(10001, "Date less than date tomorrow", HttpStatus.BAD_REQUEST),
     ;
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;

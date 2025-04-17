@@ -4,6 +4,7 @@ import com.vuhlog.money_keeper.dto.request.ExpenseRegularRequest;
 import com.vuhlog.money_keeper.dto.request.TransferRequest;
 import com.vuhlog.money_keeper.dto.response.ApiResponse;
 import com.vuhlog.money_keeper.dto.response.ExpenseRegularResponse;
+import com.vuhlog.money_keeper.dto.response.TotalExpenseByDateResponse;
 import com.vuhlog.money_keeper.service.ExpenseRegularService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,15 @@ public class ExpenseRegularController {
     @GetMapping("/{id}")
     public ApiResponse<ExpenseRegularResponse> getExpenseRegularById(@PathVariable String id) {
         return ApiResponse.<ExpenseRegularResponse>builder().result(expenseRegularService.getExpenseRegularById(id)).build();
+    }
+
+    @GetMapping("/total-by-expense-limit")
+    public ApiResponse<List<TotalExpenseByDateResponse>> getTotalExpenseByExpenseLimit(
+            @RequestParam(name = "expenseLimitId", required = true) String expenseLimitId,
+            @RequestParam(name = "startDate", required = true) String startDate,
+            @RequestParam(name = "endDate", required = false, defaultValue = "") String endDate
+    ) {
+        return ApiResponse.<List<TotalExpenseByDateResponse>>builder().result(expenseRegularService.getTotalExpenseByExpenseLimit(expenseLimitId, startDate, endDate)).build();
     }
 
     @PostMapping("")

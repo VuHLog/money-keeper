@@ -74,4 +74,17 @@ public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, 
             @Param("bucketPaymentIdsJoin") String bucketPaymentIdsJoin,
             @Param("userId") String userId
     );
+
+    @Query(value = "SELECT DATE(expense_date), SUM(amount)\n" +
+            "FROM expense_regular\n" +
+            "WHERE (:bucketPaymentIds IS NULL OR FIND_IN_SET(dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (:categoriesId IS NULL OR FIND_IN_SET(dictionary_expense_id,:categoriesId))\n" +
+            "AND expense_date >= :startDate AND (:endDate IS NULL OR expense_date <= :endDate) \n" +
+            "GROUP BY DATE(expense_date)", nativeQuery = true)
+    List<Object[]> getTotalExpenseFromStartDateToNowByCategoryAndBucketPayment(
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("categoriesId") String categoriesId,
+            @Param("startDate") Timestamp startDate,
+            @Param("endDate") Timestamp endDate
+    );
 }

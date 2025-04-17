@@ -91,6 +91,9 @@ async function handleClickSave() {
       router.push("/account");
     })
     .catch((err) => {
+      if(err.response.data.code === 10001){
+        errMsg.value = "Ngày chuyển khoản không được lớn hơn ngày hiện tại";
+      }
       console.log(err);
     });
 }

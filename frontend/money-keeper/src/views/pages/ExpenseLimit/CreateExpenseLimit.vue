@@ -97,6 +97,13 @@ async function createExpenseLimit() {
             return;
         }
     }
+    if(expenseLimit.value.repeatTime === "Không lặp lại"){
+        expenseLimit.value.endDate = formatDate(expenseLimit.value.endDate);
+        if(parseDateString(expenseLimit.value.endDate).getTime() <= parseDateString(expenseLimit.value.startDate).getTime() || (expenseLimit.value.endDate === "" || expenseLimit.value.endDate === null)){
+            errMsg.value = `Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu`;
+            return;
+        }
+    }
 
 
     await proxy.$api.post("/expense-limit", expenseLimit.value).then(() => {
@@ -231,13 +238,13 @@ function handleConfirmAccount() {
                 </v-col>
                 <v-col cols="3" class="d-flex align-center">
                     <div class="d-flex flex-column align-center justify-center">
-                        <span class="text-14 mb-2">Ngày bắt đầu</span>
+                        <span class="text-14 mb-2 text-start w-100">Ngày bắt đầu</span>
                         <el-date-picker v-model="expenseLimit.startDate" type="date" placeholder="Ngày bắt đầu" size="large" :clearable="false"/>
                     </div>
                 </v-col>
                 <v-col cols="3" class="d-flex align-center">
                     <div class="d-flex flex-column align-center justify-center">
-                        <span class="text-14 mb-2">Ngày kết thúc</span>
+                        <span class="text-14 mb-2 text-start w-100">Ngày kết thúc</span>
                         <el-date-picker v-model="expenseLimit.endDate" type="date" placeholder="Ngày kết thúc" size="large" />
                     </div>
                 </v-col>

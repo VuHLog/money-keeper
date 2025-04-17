@@ -13,9 +13,8 @@ public interface DictionaryExpenseRepository extends JpaRepository<DictionaryExp
 
     @Query(
             value = "SELECT * FROM dictionary_expense\n" +
-                    "WHERE (user_id = :userId and system_default = 1 )\n" +
-                    "OR ((:categoriesId IS NULL OR FIND_IN_SET(id, :categoriesId)) and system_default = 0)\n",
+                    "WHERE (:categoriesId IS NULL OR FIND_IN_SET(id, :categoriesId))\n",
             nativeQuery = true
     )
-    List<DictionaryExpense> findAllByIdIn(@Param("categoriesId") String categoriesId, @Param("userId") String userId);
+    List<DictionaryExpense> findAllByIdIn(@Param("categoriesId") String categoriesId);
 }

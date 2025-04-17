@@ -125,6 +125,10 @@ async function createExpense() {
       title: "Thành công",
       text: "Bạn đã thêm khoản chi tiền thành công!",
       icon: "success",
+    }).catch((error) => {
+      if(error.response.data.code === 10001){
+        errMsg.value = "Ngày chi tiêu không được lớn hơn ngày hiện tại";
+      }
     });
     router.push("/expense");
   });

@@ -149,6 +149,8 @@ async function handleUpdateExpense() {
     .catch((error) => {
       if (error.response.data.code === 8001) {
         errMsg.value = "Không được sửa khoản chi đã quá 1 tháng";
+      }else if(error.response.data.code === 10001){
+        errMsg.value = "Ngày chi tiêu không được lớn hơn ngày hiện tại";
       }
     });
 }

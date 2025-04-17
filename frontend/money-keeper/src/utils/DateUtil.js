@@ -43,3 +43,10 @@ export const parseDateString = (dateStr) => {
   const [yyyy, mm, dd] = datePart.split('-');
   return new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd)); //yyyy-mm-dd
 }
+
+export const formatDateStringToDate = (dateString, showYear = true) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const dayMonth = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+  return showYear ? `${dayMonth}/${date.getFullYear()}` : dayMonth;
+};

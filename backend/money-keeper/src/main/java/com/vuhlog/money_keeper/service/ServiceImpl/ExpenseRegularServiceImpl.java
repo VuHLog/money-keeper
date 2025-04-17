@@ -7,8 +7,10 @@ import com.vuhlog.money_keeper.constants.TransferType;
 import com.vuhlog.money_keeper.dao.*;
 import com.vuhlog.money_keeper.dao.specification.ExpenseRegularSpecification;
 import com.vuhlog.money_keeper.dto.request.ExpenseRegularRequest;
+import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
 import com.vuhlog.money_keeper.dto.request.TransferRequest;
 import com.vuhlog.money_keeper.dto.response.ExpenseRegularResponse;
+import com.vuhlog.money_keeper.dto.response.TotalExpenseByDateResponse;
 import com.vuhlog.money_keeper.entity.*;
 import com.vuhlog.money_keeper.exception.AppException;
 import com.vuhlog.money_keeper.exception.ErrorCode;
@@ -25,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.swing.text.html.Option;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,7 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     private final UserCommon userCommon;
     private final ReportExpenseRevenueRepository reportExpenseRevenueRepository;
     private final ExpenseRegularRepository expenseRegularRepository;
+    private final ExpenseLimitRepository expenseLimitRepository;
     private final DictionaryBucketPaymentRepository dictionaryBucketPaymentRepository;
     private final DictionaryExpenseRepository dictionaryExpenseRepository;
     private final DictionaryRevenueRepository dictionaryRevenueRepository;
@@ -53,10 +58,30 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     }
 
     @Override
+    public List<TotalExpenseByDateResponse> getTotalExpenseByExpenseLimit(String expenseLimitId, String startDate, String endDate) {
+        ExpenseLimit expenseLimit = expenseLimitRepository.findById(expenseLimitId).orElseThrow(() -> new AppException(ErrorCode.EXPENSE_LIMIT_NOT_EXISTED));
+        Timestamp startTime = Timestamp.valueOf(startDate);
+        Timestamp endTime = null;
+        if(endDate != null && !endDate.isEmpty()) {
+            endTime = Timestamp.valueOf(endDate);
+        }
+        List<Object[]> totalExpenseByDateListObject = expenseRegularRepository.getTotalExpenseFromStartDateToNowByCategoryAndBucketPayment(expenseLimit.getBucketPaymentIds(), expenseLimit.getCategoriesId(), startTime, endTime);
+        return totalExpenseByDateListObject.stream().map(obj ->
+                new TotalExpenseByDateResponse(
+                        ((java.sql.Date) obj[0]).toLocalDate().toString(), // date
+                        ((Number) obj[1]).longValue() // total expense
+                )
+        ).toList();
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public ExpenseRegularResponse createExpenseRegular(ExpenseRegularRequest request) {
         //save expense
         ExpenseRegular expenseRegular = expenseRegularMapper.toExpenseRegular(request);
+        if(!isValidExpenseDate(expenseRegular.getExpenseDate())){
+            throw new AppException(ErrorCode.DATE_LESS_THAN_TOMORROW);
+        }
         expenseRegular.setTransferType(TransferType.NORMAL.getType());
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
         expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
@@ -90,6 +115,9 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     public ExpenseRegularResponse createExpenseRegularFromTransferRequest(TransferRequest request) {
         // save expense
         ExpenseRegular expenseRegular = expenseRegularMapper.toExpenseRegularFromTransferRequest(request);
+        if(!isValidExpenseDate(expenseRegular.getExpenseDate())){
+            throw new AppException(ErrorCode.DATE_LESS_THAN_TOMORROW);
+        }
         expenseRegular.setTransferType(TransferType.TRANSFER.getType());
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
         expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
@@ -220,6 +248,9 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
             throw new AppException(ErrorCode.UPDATE_TIME_LIMIT);
         }
         expenseRegularMapper.updateExpenseRegularFromRequest(request, expenseRegular);
+        if(!isValidExpenseDate(expenseRegular.getExpenseDate())){
+            throw new AppException(ErrorCode.DATE_LESS_THAN_TOMORROW);
+        }
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElseThrow(() -> new AppException(ErrorCode.BUCKET_PAYMENT_NOT_EXISTED));
         expenseRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
         if(!expenseRegular.getDictionaryExpense().getId().equals(request.getDictionaryExpenseId())){
@@ -436,5 +467,11 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
                 return dictionaryBucketPayment.getBalance() - amount;
         }
         return 0;
+    }
+
+    private boolean isValidExpenseDate(Timestamp expenseDate) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nextDayStart = now.plusDays(1).toLocalDate().atStartOfDay();
+        return expenseDate.toLocalDateTime().isBefore(nextDayStart);
     }
 }

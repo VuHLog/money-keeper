@@ -143,6 +143,8 @@ async function handleUpdateRevenue() {
     .catch((error) => {
       if (error.response.data.code === 8001) {
         errMsg.value = "Không được sửa khoản thu đã quá 1 tháng";
+      }else if(error.response.data.code === 10001){
+        errMsg.value = "Ngày thu tiền không được lớn hơn ngày hiện tại";
       }
     });
 }

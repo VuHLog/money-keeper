@@ -23,8 +23,8 @@ public interface ExpenseLimitMapper {
     @Mapping(target = "endDate", ignore = true)
     void updateExpenseLimit(@MappingTarget ExpenseLimit expenseLimit, ExpenseLimitRequest req);
 
-    @Named("timestampToString")
-    @Mapping(target = "startDate", expression = "java(timestampToString(expenseLimit.getStartDate()))")
+    @Named("timestampToStringOnlyDate")
+    @Mapping(target = "startDate", expression = "java(timestampToStringOnlyDate(expenseLimit.getStartDate()))")
     @Mapping(target = "endDate", ignore = true)
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "bucketPayments", ignore = true)
@@ -36,5 +36,9 @@ public interface ExpenseLimitMapper {
 
     default String timestampToString(Timestamp timestamp) {
         return TimestampUtil.timestampToString(timestamp);
+    }
+
+    default String timestampToStringOnlyDate(Timestamp timestamp) {
+        return TimestampUtil.timestampToStringOnlyDate(timestamp);
     }
 }

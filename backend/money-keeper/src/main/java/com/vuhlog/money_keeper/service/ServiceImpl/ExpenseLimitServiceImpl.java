@@ -106,10 +106,10 @@ public class ExpenseLimitServiceImpl implements ExpenseLimitService {
             res.setBucketPayments(bucketPayments.stream().map(dictionaryBucketPaymentMapper::toDictionaryBucketResponse).collect(Collectors.toList()));
         }
         if (categoriesId != null && !categoriesId.isEmpty()) {
-            res.setCategories(dictionaryExpenseRepository.findAllByIdIn(categoriesId, userId));
+            res.setCategories(dictionaryExpenseRepository.findAllByIdIn(categoriesId));
         }
         if (endDate != null && !endDate.toString().isEmpty()) {
-            res.setEndDate(TimestampUtil.timestampToString(endDate));
+            res.setEndDate(TimestampUtil.timestampToStringOnlyDate(endDate));
         }
         return res;
     }

@@ -22,6 +22,7 @@ import RevenueInfo from "@pages/Revenue/RevenueInfo.vue";
 import TransactionHistory from "@pages/Transaction/TransactionHistory.vue";
 import CreateExpenseLimit from "@pages/ExpenseLimit/CreateExpenseLimit.vue";
 import ExpenseLimitInfo from "@pages/ExpenseLimit/ExpenseLimitInfo.vue";
+import ExpenseLimit from "@pages/ExpenseLimit/ExpenseLimit.vue";
 
 const routes = [
   {
@@ -121,6 +122,11 @@ const routes = [
         name: "Expense limit info",
         component: ExpenseLimitInfo
       },
+      {
+        path: "/expense-limit",
+        name: "Expense limit",
+        component: ExpenseLimit
+      }
     ],
   },
   {

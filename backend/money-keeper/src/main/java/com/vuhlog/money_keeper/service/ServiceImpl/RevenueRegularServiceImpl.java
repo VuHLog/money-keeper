@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +54,9 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
     public RevenueRegularResponse createRevenueRegular(RevenueRegularRequest request) {
         //save revenue
         RevenueRegular revenueRegular = revenueRegularMapper.toRevenueRegular(request);
+        if(!isValidRevenueDate(revenueRegular.getRevenueDate())){
+            throw new AppException(ErrorCode.DATE_LESS_THAN_TOMORROW);
+        }
         revenueRegular.setTransferType(TransferType.NORMAL.getType());
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
         revenueRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
@@ -102,6 +106,9 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
             throw new AppException(ErrorCode.UPDATE_TIME_LIMIT);
         }
         revenueRegularMapper.updateRevenueRegularFromRequest(request, revenueRegular);
+        if(!isValidRevenueDate(revenueRegular.getRevenueDate())){
+            throw new AppException(ErrorCode.DATE_LESS_THAN_TOMORROW);
+        }
         DictionaryBucketPayment dictionaryBucketPayment = dictionaryBucketPaymentRepository.findById(request.getDictionaryBucketPaymentId()).orElse(null);
         revenueRegular.setDictionaryBucketPayment(dictionaryBucketPayment);
         if(!revenueRegular.getDictionaryRevenue().getId().equals(request.getDictionaryRevenueId())){
@@ -265,5 +272,11 @@ public class RevenueRegularServiceImpl implements RevenueRegularService {
                 return dictionaryBucketPayment.getBalance() + amount;
         }
         return 0;
+    }
+
+    private boolean isValidRevenueDate(Timestamp revenueDate) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nextDayStart = now.plusDays(1).toLocalDate().atStartOfDay();
+        return revenueDate.toLocalDateTime().isBefore(nextDayStart);
     }
 }
