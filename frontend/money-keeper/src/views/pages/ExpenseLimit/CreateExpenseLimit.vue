@@ -5,10 +5,12 @@ import DictionaryExpense from "@components/DictionaryExpense.vue";
 import AccountModal from "@components/AccountModal.vue";
 import { ExpenseLimitLoopTime } from "@/constants/ExpenseLimitLoopTime.js";
 import { formatDate, parseDateString } from "@/utils/DateUtil.js";
+import { useExpenseLimitStore } from "@/store/ExpenseLimitStore.js";
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
 const swal = inject("$swal");
+const expenseLimitStore = useExpenseLimitStore();
 const route = useRoute();
 
 const timeOptions = ref(ExpenseLimitLoopTime)
@@ -94,6 +96,11 @@ async function createExpenseLimit() {
         }
     }
 
+    const temp = { ...expenseLimit.value };
+    temp.startDate = temp.startDate.split(" ")[0];
+    temp.endDate = temp.endDate? temp.endDate.split(" ")[0] : null;
+    expenseLimit.value.startDateLimit = (expenseLimitStore.getCurrentStartDate(temp)) + " 00:00:00";
+    expenseLimit.value.endDateLimit = (expenseLimitStore.getEndDate(expenseLimit.value.startDateLimit, temp.repeatTime, temp.endDate)) + " 23:59:59";
 
     await proxy.$api.post("/expense-limit", expenseLimit.value).then(() => {
         swal.fire({

@@ -27,6 +27,8 @@ public class ExpenseLimit {
     private String repeatTime;
     private Timestamp startDate;
     private Timestamp endDate;
+    private Timestamp startDateLimit;
+    private Timestamp endDateLimit;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

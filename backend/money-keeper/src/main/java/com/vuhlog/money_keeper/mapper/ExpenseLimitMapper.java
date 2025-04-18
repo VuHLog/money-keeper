@@ -16,29 +16,35 @@ public interface ExpenseLimitMapper {
     @Named("stringToTimestamp")
     @Mapping(target = "startDate", expression = "java(stringToTimestamp(req.getStartDate()))")
     @Mapping(target = "endDate", ignore = true)
+    @Mapping(target = "startDateLimit", expression = "java(stringToTimestamp(req.getStartDateLimit()))")
+    @Mapping(target = "endDateLimit", expression = "java(stringToTimestamp(req.getEndDateLimit()))")
     ExpenseLimit toExpenseLimit(ExpenseLimitRequest req);
 
     @Named("stringToTimestamp")
     @Mapping(target = "startDate", expression = "java(stringToTimestamp(req.getStartDate()))")
     @Mapping(target = "endDate", ignore = true)
+    @Mapping(target = "startDateLimit", expression = "java(stringToTimestamp(req.getStartDateLimit()))")
+    @Mapping(target = "endDateLimit", expression = "java(stringToTimestamp(req.getEndDateLimit()))")
     void updateExpenseLimit(@MappingTarget ExpenseLimit expenseLimit, ExpenseLimitRequest req);
 
     @Named("timestampToStringOnlyDate")
     @Mapping(target = "startDate", expression = "java(timestampToStringOnlyDate(expenseLimit.getStartDate()))")
     @Mapping(target = "endDate", ignore = true)
+    @Mapping(target = "startDateLimit", expression = "java(timestampToStringOnlyDate(expenseLimit.getStartDateLimit()))")
+    @Mapping(target = "endDateLimit", expression = "java(timestampToStringOnlyDate(expenseLimit.getEndDateLimit()))")
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "bucketPayments", ignore = true)
     ExpenseLimitResponse toExpenseLimitResponse(ExpenseLimit expenseLimit);
 
     default Timestamp stringToTimestamp(String dateString) {
-        return TimestampUtil.stringToTimestamp(dateString);
+        return !dateString.isEmpty()? TimestampUtil.stringToTimestamp(dateString) : null;
     }
 
     default String timestampToString(Timestamp timestamp) {
-        return TimestampUtil.timestampToString(timestamp);
+        return timestamp != null ? TimestampUtil.timestampToString(timestamp) : null;
     }
 
     default String timestampToStringOnlyDate(Timestamp timestamp) {
-        return TimestampUtil.timestampToStringOnlyDate(timestamp);
+        return timestamp != null ? TimestampUtil.timestampToStringOnlyDate(timestamp) : null;
     }
 }

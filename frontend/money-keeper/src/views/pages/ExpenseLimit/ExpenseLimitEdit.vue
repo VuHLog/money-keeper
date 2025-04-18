@@ -45,13 +45,13 @@ onMounted(async () => {
         account.value = expenseLimit.value.bucketPayments || [];
 
     } catch (error) {
-        // console.error(error);
-        // swal.fire({
-        //     title: "Lỗi",
-        //     text: "Không thể tải thông tin hạn mức chi",
-        //     icon: "error",
-        // });
-        // router.push("/expense-limit");
+        console.error(error);
+        swal.fire({
+            title: "Lỗi",
+            text: "Không thể tải thông tin hạn mức chi",
+            icon: "error",
+        });
+        router.push("/expense-limit");
     }
 });
 
@@ -114,6 +114,12 @@ async function updateExpenseLimit() {
             return;
         }
     }
+    
+    const temp = { ...expenseLimit.value };
+    temp.startDate = temp.startDate.split(" ")[0];
+    temp.endDate = temp.endDate? temp.endDate.split(" ")[0] : null;
+    expenseLimit.value.startDateLimit = (expenseLimitStore.getCurrentStartDate(temp)) + " 00:00:00";
+    expenseLimit.value.endDateLimit = (expenseLimitStore.getEndDate(expenseLimit.value.startDateLimit, temp.repeatTime, temp.endDate)) + " 23:59:59";
 
     try {
         await proxy.$api.put(`/expense-limit/${expenseLimitId.value}`, expenseLimit.value);

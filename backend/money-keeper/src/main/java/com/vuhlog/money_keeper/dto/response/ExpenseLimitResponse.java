@@ -22,4 +22,6 @@ public class ExpenseLimitResponse {
     private String repeatTime;
     private String startDate;
     private String endDate;
+    private String startDateLimit;
+    private String endDateLimit;
 }
