@@ -20,7 +20,7 @@ const spendingLimit = ref({
 const expenseLimit = ref({});
 
 onMounted(async () => {
-  expenseLimit.value = (await expenseLimitStore.getExpenseLimits())[0];
+  expenseLimit.value = (await expenseLimitStore.getExpenseLimits())[0] || {};
   expenseLimit.value.currentStartDate = expenseLimitStore.getCurrentStartDate(expenseLimit.value);
   expenseLimit.value.currentEndDate = expenseLimitStore.getEndDate(expenseLimit.value.currentStartDate, expenseLimit.value.repeatTime, expenseLimit.value.endDate);
   expenseLimit.value.remainingDays = expenseLimitStore.remainingDays(expenseLimit.value);
@@ -34,51 +34,59 @@ onMounted(async () => {
 <template>
   <v-card class="pa-4">
     <h3 class="mb-4">Hạn mức chi</h3>
-    <div class="d-flex align-start">
-      <div class="flex-grow-1">
-        <div class="d-flex justify-space-between">
-          <div>
-            <div class="text-h5 d-flex font-weight-medium mb-2">
-              <template v-if="expenseLimit?.categories?.length > 0">
-                <div class="stacked-images">
-                  <template v-for="(item, index) in expenseLimit?.categories" :key="item">
-                    <img v-if="index < 2" :src="item.iconUrl" alt=""
-                      :class="['stacked-image', `stacked-image-${index + 1}`]" />
-                  </template>
-                </div>
-                <v-tooltip activator="parent" location="bottom">Hạng mục</v-tooltip>
-              </template>
-              {{ expenseLimit?.name }}
+    <div v-if="Object.keys(expenseLimit).length > 0">
+      <div class="d-flex align-start">
+        <div class="flex-grow-1">
+          <div class="d-flex justify-space-between">
+            <div>
+              <div class="text-h5 d-flex font-weight-medium mb-2">
+                <template v-if="expenseLimit?.categories?.length > 0">
+                  <div class="stacked-images">
+                    <template v-for="(item, index) in expenseLimit?.categories" :key="item">
+                      <img v-if="index < 2" :src="item.iconUrl" alt=""
+                        :class="['stacked-image', `stacked-image-${index + 1}`]" />
+                    </template>
+                  </div>
+                  <v-tooltip activator="parent" location="bottom">Hạng mục</v-tooltip>
+                </template>
+                {{ expenseLimit?.name }}
+              </div>
+
+              <div class="text-h6 text-grey mb-3">
+                {{ expenseLimitStore.formatDateRange(expenseLimit) }}
+              </div>
             </div>
 
-            <div class="text-h6 text-grey mb-3">
-              {{ expenseLimitStore.formatDateRange(expenseLimit) }}
+            <div class="text-h5 font-weight-medium">
+              {{ formatCurrency(expenseLimit?.amount) }}
             </div>
           </div>
-
-          <div class="text-h5 font-weight-medium">
-            {{ formatCurrency(expenseLimit?.amount) }}
-          </div>
-        </div>
-        <v-range :progress="expenseLimit?.progress || 0" :color="expenseLimit?.isOverBudget ? 'error' : 'warning'"
-          class="my-4" :height="8"></v-range>
-        <div class="d-flex justify-space-between">
-          <div class="mb-2 text-h6 text-subtitle-1 text-range">Còn {{ expenseLimit?.remainingDays }} ngày</div>
-          <div v-if="expenseLimit?.remainingBudget < 0" class="text-subtitle-1">
-            <span class="text-grey-darken-1 mr-1">(Bội chi)</span>
-            <span class="text-red-accent-3">{{ formatCurrency(Math.abs(expenseLimit.remainingBudget)) }}</span>
-          </div>
-          <div v-else class="text-subtitle-1 text-success">
-            {{ formatCurrency(expenseLimit.remainingBudget) }}
+          <v-range :progress="expenseLimit?.progress || 0" :color="expenseLimit?.isOverBudget ? 'error' : 'warning'"
+            class="my-4" :height="8"></v-range>
+          <div class="d-flex justify-space-between">
+            <div class="mb-2 text-h6 text-subtitle-1 text-range">Còn {{ expenseLimit?.remainingDays }} ngày</div>
+            <div v-if="expenseLimit?.remainingBudget < 0" class="text-subtitle-1">
+              <span class="text-grey-darken-1 mr-1">(Bội chi)</span>
+              <span class="text-red-accent-3">{{ formatCurrency(Math.abs(expenseLimit.remainingBudget)) }}</span>
+            </div>
+            <div v-else class="text-subtitle-1 text-success">
+              {{ formatCurrency(expenseLimit.remainingBudget) }}
+            </div>
           </div>
         </div>
       </div>
+      <router-link to="/expense-limit" class="d-flex justify-end text-decoration-none">
+        <span class="text-primary text-h6 font-weight-medium py-2">Xem thêm
+          <font-awesome-icon :icon="['fas', 'angle-right']" />
+        </span>
+      </router-link>
     </div>
-    <router-link to="/expense-limit" class="d-flex justify-end text-decoration-none">
-      <span class="text-primary text-h6 font-weight-medium py-2">Xem thêm
-        <font-awesome-icon :icon="['fas', 'angle-right']" />
-      </span>
-    </router-link>
+    <div v-else class="d-flex justify-center align-center flex-column flex-grow-1">
+      <font-awesome-icon icon="fa-solid fa-circle-exclamation" size="4x" class="text-grey mb-4" />
+      <h2 class="text-h5 text-grey">Không có hạn mức chi nào</h2>
+      <p class="text-subtitle-1 text-grey">Hãy tạo một hạn mức chi mới để bắt đầu theo dõi chi tiêu của bạn.</p>
+      <v-btn class="mt-4" color="primary" to="/expense-limit/create">Tạo hạn mức chi mới</v-btn>
+    </div>
   </v-card>
 </template>
 

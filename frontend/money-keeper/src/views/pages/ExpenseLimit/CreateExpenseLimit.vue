@@ -20,17 +20,6 @@ const showPopupCategory = ref(false);
 const errMsg = ref("");
 const showAccountModal = ref(false);
 
-onMounted(() => {
-    proxy.$api
-        .get("/dictionary-bucket-payment")
-        .then((res) => {
-            dictionaryBucketPayment.value = res.result;
-        })
-        .catch((err) => {
-            console.log(err);
-    });
-});
-
 const expenseLimit = ref({
     amount: 0,
     name: "",
@@ -163,7 +152,7 @@ function handleConfirmAccount() {
                     </div>
                 </v-col>
 
-                <v-col cols="3">
+                <v-col cols="4">
                     <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showAccountModal = true">
                         <template v-if="account.length > 0">
                             <div class="stacked-images">
@@ -192,7 +181,7 @@ function handleConfirmAccount() {
                     </v-btn>
                 </v-col>
                 
-                <v-col cols="3">
+                <v-col cols="4">
                     <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showPopupCategory = true">
                         <template v-if="categories.length > 0">
                             <div class="stacked-images">
@@ -236,13 +225,13 @@ function handleConfirmAccount() {
                         </div>
                     </div>
                 </v-col>
-                <v-col cols="3" class="d-flex align-center">
+                <v-col cols="4" class="d-flex align-center">
                     <div class="d-flex flex-column align-center justify-center">
                         <span class="text-14 mb-2 text-start w-100">Ngày bắt đầu</span>
                         <el-date-picker v-model="expenseLimit.startDate" type="date" placeholder="Ngày bắt đầu" size="large" :clearable="false"/>
                     </div>
                 </v-col>
-                <v-col cols="3" class="d-flex align-center">
+                <v-col cols="4" class="d-flex align-center">
                     <div class="d-flex flex-column align-center justify-center">
                         <span class="text-14 mb-2 text-start w-100">Ngày kết thúc</span>
                         <el-date-picker v-model="expenseLimit.endDate" type="date" placeholder="Ngày kết thúc" size="large" />

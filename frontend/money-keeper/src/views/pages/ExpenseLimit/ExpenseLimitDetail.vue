@@ -69,20 +69,9 @@ const totalAmount = computed(() => {
     <!-- Content có thể scroll -->
     <div class="expense-detail-content">
       <v-list class="expense-list">
-        <v-list-subheader class="list-header">
-          <div class="d-flex justify-space-between w-100">
-            <div class="text-subtitle-2 text-grey-darken-1">Danh mục</div>
-            <div class="d-flex justify-space-between" style="width: 60%">
-              <div class="text-subtitle-2 text-grey-darken-1">Ngày</div>
-              <div class="text-subtitle-2 text-grey-darken-1">Số tiền</div>
-              <div class="text-subtitle-2 text-grey-darken-1">Ví</div>
-            </div>
-          </div>
-        </v-list-subheader>
-
         <div class="expense-categories">
           <template v-for="(detail, index) in expenseLimitDetail" :key="index">
-            <div class="category-section" :class="{ 'mt-4': index > 0 }">
+            <div class="category-section hover-bg-grey" :class="{ 'mt-4': index > 0 }">
               <v-list-item class="category-header">
                 <div class="d-flex align-center w-100">
                   <v-avatar class="mr-1 d-flex align-center" start>
@@ -151,15 +140,6 @@ const totalAmount = computed(() => {
   height: 80vh; // Chiều cao tối đa của modal
 }
 
-.expense-detail-header {
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95));
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
 .expense-detail-content {
   flex: 1;
   overflow-y: auto;
@@ -205,10 +185,6 @@ const totalAmount = computed(() => {
 
 .category-section {
   transition: all 0.3s ease;
-  
-  &:hover {
-    background: rgba(0, 0, 0, 0.01);
-  }
 }
 
 .category-header {

@@ -29,6 +29,7 @@ export const getWeekday = (dateString) => {
   return weekdays[date.getDay()];
 };
 
+//Time zone -> yyyy/mm/dd hh:mm:ss
 export const formatDate = (date) => {
   return date instanceof Date
     ? new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
@@ -38,12 +39,14 @@ export const formatDate = (date) => {
     : date;
 };
 
+// date String yyyy-mm-dd -> Date Object
 export const parseDateString = (dateStr) => {
   const [datePart] = dateStr.split(' ');
   const [yyyy, mm, dd] = datePart.split('-');
   return new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd)); //yyyy-mm-dd
 }
 
+// date String -> dd/mm or dd/mm/yyyy
 export const formatDateStringToDate = (dateString, showYear = true) => {
   if (!dateString) return '';
   const date = new Date(dateString);

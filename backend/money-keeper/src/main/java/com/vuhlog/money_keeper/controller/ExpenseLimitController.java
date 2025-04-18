@@ -47,4 +47,19 @@ public class ExpenseLimitController {
                 .result(expenseLimitService.createExpenseLimit(request))
                 .build();
     }
+
+    @PutMapping("/{id}")
+    public ApiResponse<ExpenseLimitResponse> updateExpenseLimit(@PathVariable String id, @RequestBody ExpenseLimitRequest request) {
+        return ApiResponse.<ExpenseLimitResponse>builder()
+                .result(expenseLimitService.updateExpenseLimit(id, request))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<String> deleteExpenseLimit(@PathVariable String id) {
+        expenseLimitService.deleteExpenseLimit(id);
+        return ApiResponse.<String>builder()
+                .result("Delete expense limit successfully")
+                .build();
+    }
 }

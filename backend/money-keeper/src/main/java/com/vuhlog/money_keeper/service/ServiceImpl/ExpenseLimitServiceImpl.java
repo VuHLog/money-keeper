@@ -105,7 +105,8 @@ public class ExpenseLimitServiceImpl implements ExpenseLimitService {
 
     @Override
     public void deleteExpenseLimit(String id) {
-
+        ExpenseLimit expenseLimit = expenseLimitRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.EXPENSE_LIMIT_NOT_EXISTED));
+        expenseLimitRepository.delete(expenseLimit);
     }
 
     private ExpenseLimitResponse convertToResponse(ExpenseLimitResponse res, String bucketPaymentIds, String categoriesId, Timestamp endDate) {

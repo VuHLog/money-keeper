@@ -42,7 +42,7 @@ function viewLimitDetail(id) {
       </v-btn>
     </v-toolbar>
 
-    <div class="expense-limit-content">
+    <div class="expense-limit-content" v-if="expenseLimits.length > 0">
       <v-list class="expense-limit-list">
         <v-list-item v-for="(limit, index) in expenseLimits" :key="index" @click="viewLimitDetail(limit.id)"
           class="expense-limit-item">
@@ -91,6 +91,12 @@ function viewLimitDetail(id) {
           </v-list-item-title>
         </v-list-item>
       </v-list>
+    </div>
+    <div v-else class="d-flex justify-center align-center flex-column flex-grow-1">
+      <font-awesome-icon icon="fa-solid fa-circle-exclamation" size="4x" class="text-grey mb-4" />
+      <h2 class="text-h5 text-grey">Không có hạn mức chi nào</h2>
+      <p class="text-subtitle-1 text-grey">Hãy tạo một hạn mức chi mới để bắt đầu theo dõi chi tiêu của bạn.</p>
+      <v-btn class="mt-4" color="primary" to="/expense-limit/create">Tạo hạn mức chi mới</v-btn>
     </div>
   </div>
 </template>

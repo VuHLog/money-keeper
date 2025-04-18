@@ -5,14 +5,16 @@ import DictionaryExpense from "@components/DictionaryExpense.vue";
 import AccountModal from "@components/AccountModal.vue";
 import { ExpenseLimitLoopTime } from "@/constants/ExpenseLimitLoopTime.js";
 import { formatDate, parseDateString } from "@/utils/DateUtil.js";
+import { useExpenseLimitStore } from "@/store/ExpenseLimitStore";
 
 const { proxy } = getCurrentInstance();
+const expenseLimitStore = useExpenseLimitStore();
 const router = useRouter();
 const swal = inject("$swal");
 const route = useRoute();
 
+const expenseLimitId = ref(route.params.expenseLimitId);
 const timeOptions = ref(ExpenseLimitLoopTime)
-const dictionaryBucketPayment = ref([]);
 const account = ref([]);
 const categories = ref([]);
 const showPopupCategory = ref(false);
@@ -21,39 +23,26 @@ const errMsg = ref("");
 const showAccountModal = ref(false);
 
 const expenseLimit = ref({
+    id: expenseLimitId.value,
     amount: 0,
     name: "",
     categoriesId: "",
     bucketPaymentIds: "",
-    repeatTime: "Hàng tháng",
-    startDate: (() => {
-        const date = new Date();
-        date.setHours(0, 0, 0, 0);
-        return date;
-    })(),
+    repeatTime: "",
+    startDate: "",
     endDate: "",
+    categories: [],
+    bucketPayments: [],
 });
 
 // Lấy thông tin expense limit cần chỉnh sửa
 onMounted(async () => {
     try {
-        const response = await proxy.$api.get(`/expense-limit/${route.params.id}`);
-        const data = response.result;
-        
-        // Cập nhật dữ liệu
-        expenseLimit.value = {
-            ...data,
-            startDate: parseDateString(data.startDate),
-            endDate: data.endDate ? parseDateString(data.endDate) : null
-        };
-
-        // Lấy danh sách tài khoản
-        const accountResponse = await proxy.$api.get(`/bucket-payment/${data.bucketPaymentIds}`);
-        account.value = accountResponse.result;
-
-        // Lấy danh sách hạng mục
-        const categoriesResponse = await proxy.$api.get(`/dictionary-expense/${data.categoriesId}`);
-        categories.value = categoriesResponse.result;
+        expenseLimit.value = await expenseLimitStore.getExpenseLimitByExpenseLimitId(expenseLimitId.value);
+        expenseLimit.value.startDate = expenseLimit.value.startDate ? expenseLimit.value.startDate + " 00:00:00" : null;
+        expenseLimit.value.endDate = expenseLimit.value.endDate ? expenseLimit.value.endDate + " 23:59:59" : null;
+        categories.value = expenseLimit.value.categories || [];
+        account.value = expenseLimit.value.bucketPayments || [];
 
     } catch (error) {
         // console.error(error);
@@ -127,13 +116,13 @@ async function updateExpenseLimit() {
     }
 
     try {
-        await proxy.$api.put(`/expense-limit/${route.params.id}`, expenseLimit.value);
+        await proxy.$api.put(`/expense-limit/${expenseLimitId.value}`, expenseLimit.value);
         swal.fire({
             title: "Thành công",
             text: "Bạn đã cập nhật hạn mức chi thành công!",
             icon: "success",
         });
-        router.push("/expense-limit");
+        router.push("/expense-limit/info/" + expenseLimitId.value);
     } catch (error) {
         if(error.response.data.code === 9002){
             errMsg.value = "Ngày kết thúc phải lớn hơn " + error.response.data.message;
@@ -156,7 +145,7 @@ async function deleteExpenseLimit() {
 
     if (result.isConfirmed) {
         try {
-            await proxy.$api.delete(`/expense-limit/${route.params.id}`);
+            await proxy.$api.delete(`/expense-limit/${expenseLimitId.value}`);
             swal.fire({
                 title: "Thành công",
                 text: "Bạn đã xóa hạn mức chi thành công!",
@@ -216,7 +205,7 @@ function handleConfirmAccount() {
                     </div>
                 </v-col>
 
-                <v-col cols="3">
+                <v-col cols="4">
                     <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showAccountModal = true">
                         <template v-if="account.length > 0">
                             <div class="stacked-images">
@@ -239,7 +228,7 @@ function handleConfirmAccount() {
                     </v-btn>
                 </v-col>
                 
-                <v-col cols="3">
+                <v-col cols="4">
                     <v-btn class="cursor-pointer" elevation="4" rounded="xl" size="x-large" @click="showPopupCategory = true">
                         <template v-if="categories.length > 0">
                             <div class="stacked-images">
@@ -249,10 +238,16 @@ function handleConfirmAccount() {
                                 </template>
                             </div>
                             <template v-for="(item,index) in categories" :key="item">
-                                <span v-if="index === 0" class="text-14" style="text-transform: none">{{ item.name }}</span>
-                                <span v-if="index === 1" class="text-14" style="text-transform: none">{{ ", " + item.name }}</span>
+                                <span v-if="index === 0" class="text-14" style="text-transform: none">{{
+                                item.name
+                                }}</span>
+                                <span v-if="index === 1" class="text-14" style="text-transform: none">{{
+                                ", " + item.name
+                                }}</span>
                             </template>
-                            <span v-if="categories.length > 2" class="text-14" style="text-transform: none">{{ " + " + (categories.length - 2) + " hạng mục khác" }}</span>
+                            <span v-if="categories.length > 2" class="text-14" style="text-transform: none">{{
+                                " + " + (categories.length - 2) + " hạng mục khác"
+                            }}</span>
                             <v-tooltip activator="parent" location="bottom">Hạng mục</v-tooltip>
                         </template>
                         <template v-else>
@@ -277,13 +272,13 @@ function handleConfirmAccount() {
                         </div>
                     </div>
                 </v-col>
-                <v-col cols="3" class="d-flex align-center">
+                <v-col cols="4" class="d-flex align-center">
                     <div class="d-flex flex-column align-center justify-center">
                         <span class="text-14 mb-2 text-start w-100">Ngày bắt đầu</span>
                         <el-date-picker v-model="expenseLimit.startDate" type="date" placeholder="Ngày bắt đầu" size="large" :clearable="false"/>
                     </div>
                 </v-col>
-                <v-col cols="3" class="d-flex align-center">
+                <v-col cols="4" class="d-flex align-center">
                     <div class="d-flex flex-column align-center justify-center">
                         <span class="text-14 mb-2 text-start w-100">Ngày kết thúc</span>
                         <el-date-picker v-model="expenseLimit.endDate" type="date" placeholder="Ngày kết thúc" size="large" />

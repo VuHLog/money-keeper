@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { formatCurrency } from '@/utils/Format';
 import { formatDateStringToDate } from '@/utils/DateUtil';
 import { useExpenseLimitStore } from '@/store/ExpenseLimitStore';
@@ -8,6 +8,7 @@ import { useExpenseRegularStore } from '@/store/ExpenseRegularStore';
 import ExpenseLimitDetail from '@/views/pages/ExpenseLimit/ExpenseLimitDetail.vue';
 
 const route = useRoute();
+const router = useRouter();
 const expenseLimitId = route.params.expenseLimitId;
 const expenseLimitStore = useExpenseLimitStore();
 const expenseRegularStore = useExpenseRegularStore();
@@ -379,13 +380,25 @@ function viewExpenseDetails() {
 
     <div class="expense-limit-info pa-4">
       <div class="d-flex justify-space-between align-center mb-8">
-        <h2 class="text-h4 d-flex align-center">
-          <v-btn icon variant="text" class="back-button d-flex align-center text-primary"
+        <div class="d-flex align-center">
+          <h2 class="text-h4 d-flex align-center mr-2">
+            <v-btn icon variant="text" class="back-button d-flex align-center text-primary"
               to="/expense-limit">
               <font-awesome-icon :icon="['fas', 'angle-left']" style="font-size: 32px" />
-          </v-btn>
-          Hàng tháng
-        </h2>
+            </v-btn>
+            <span>{{ expenseLimit?.name }}</span>
+          </h2>
+          <div>
+            <v-btn
+              color="primary"
+              variant="outlined"
+              size="small"
+              :to="'/expense-limit/edit/' + expenseLimit?.id"
+            >
+              <font-awesome-icon :icon="['fas', 'edit']" />
+            </v-btn>
+          </div>
+        </div>
         <div class="text-right">
           <div class="text-subtitle-1 mb-2">Hạn mức chi tiêu</div>
           <div class="text-h4">{{ formatCurrency(expenseLimit?.amount) }}</div>
