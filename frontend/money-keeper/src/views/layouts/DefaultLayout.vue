@@ -27,16 +27,23 @@ const fullPath = computed(() => route.fullPath)
       </div>
     </div>
     <div class="position-fixed z-index-99 feature-list user-select-none">
-      <router-link v-if="fullPath !== '/account'" :to="{path: '/expense/create', query: { redirect: route.fullPath }}"
-      class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
-        <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
-        <v-tooltip activator="parent" location="start">Ghi thu chi</v-tooltip>
-      </router-link>
-      <router-link v-else-if="fullPath === '/account'" :to="{path: '/account/create', query: { redirect: route.fullPath }}"
-      class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
-        <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
-        <v-tooltip activator="parent" location="start">Thêm tài khoản</v-tooltip>
-      </router-link>
+      <template v-if="!fullPath.includes('create') && !fullPath.includes('edit') && !fullPath.includes('info')">
+        <router-link v-if="getRoute === 'account'" :to="{path: '/account/create', query: { redirect: route.fullPath }}"
+          class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
+          <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
+          <v-tooltip activator="parent" location="start">Thêm tài khoản</v-tooltip>
+        </router-link>
+        <router-link v-else-if="getRoute === 'expense-limit'" :to="{path: '/expense-limit/create', query: { redirect: route.fullPath }}"
+        class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
+          <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
+          <v-tooltip activator="parent" location="start">Thêm hạn mức chi</v-tooltip>
+        </router-link>
+        <router-link v-else-if="getRoute === 'expense'" :to="{path: '/expense/create', query: { redirect: route.fullPath }}"
+        class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
+          <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
+          <v-tooltip activator="parent" location="start">Ghi thu chi</v-tooltip>
+        </router-link>
+      </template>
     </div>
   </div>
 </template>

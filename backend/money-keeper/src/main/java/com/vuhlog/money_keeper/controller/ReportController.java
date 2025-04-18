@@ -6,13 +6,11 @@ import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.ApiResponse;
 import com.vuhlog.money_keeper.dto.response.ReportExpenseRevenueResponse;
 import com.vuhlog.money_keeper.dto.response.TotalExpenseRevenueResponse;
+import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
 import com.vuhlog.money_keeper.service.ReportService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -40,6 +38,17 @@ public class ReportController {
     public ApiResponse<List<ReportCategoryResponse>> getTotalRevenueByTimeOptionAndCategory(TotalExpenseRevenueRequest req) {
         return ApiResponse.<List<ReportCategoryResponse>>builder()
                 .result(reportService.getTotalRevenueByTimeOptionAndCategory(req))
+                .build();
+    }
+
+    @GetMapping("/total-expense-by-expense-limit")
+    public ApiResponse<TotalExpenseByExpenseLimit> getTotalExpenseGroupByExpenseLimit(
+            @RequestParam(name = "expenseLimitId", required = true) String expenseLimitId,
+            @RequestParam(name = "startDate", required = true) String startDate,
+            @RequestParam(name = "endDate", required = false, defaultValue = "") String endDate
+    ) {
+        return ApiResponse.<TotalExpenseByExpenseLimit>builder()
+                .result(reportService.getTotalExpenseByExpenseLimit(expenseLimitId, startDate, endDate))
                 .build();
     }
 }

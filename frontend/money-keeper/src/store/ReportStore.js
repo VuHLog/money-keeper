@@ -53,5 +53,12 @@ export const useReportStore = defineStore("report", {
       })
       return response;
     },
+    async getTotalExpenseByExpenseLimit(expenseLimitId, startDate, endDate){
+      let response = null;
+      await base.get("/report/total-expense-by-expense-limit?startDate=" + formatDate(startDate) + "&endDate=" + formatDate(endDate) + "&expenseLimitId=" + expenseLimitId).then((res) => {
+        response = res.result;
+      })
+      return response;
+    }
   },
 });

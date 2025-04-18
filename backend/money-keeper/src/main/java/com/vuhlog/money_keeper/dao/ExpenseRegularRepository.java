@@ -1,5 +1,7 @@
 package com.vuhlog.money_keeper.dao;
 
+import com.vuhlog.money_keeper.dto.response.responseinterface.ExpenseLimitDetailResponse;
+import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
 import com.vuhlog.money_keeper.entity.ExpenseRegular;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -83,6 +85,25 @@ public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, 
     List<Object[]> getTotalExpenseFromStartDateToNowByCategoryAndBucketPayment(
             @Param("bucketPaymentIds") String bucketPaymentIds,
             @Param("categoriesId") String categoriesId,
+            @Param("startDate") Timestamp startDate,
+            @Param("endDate") Timestamp endDate
+    );
+
+    @Query(value = "SELECT el.id as expenseLimitId, SUM(er.amount) as totalExpense\n" +
+            "FROM users u\n" +
+            "JOIN expense_limit el ON u.id = el.user_id\n" +
+            "JOIN dictionary_bucket_payment dbp ON u.id = dbp.user_id\n" +
+            "JOIN expense_regular er ON er.dictionary_bucket_payment_id = dbp.id\n" +
+            "WHERE u.id = :userId\n" +
+            "AND el.id = :expenseLimitId\n" +
+            "AND FIND_IN_SET(dictionary_bucket_payment_id, el.bucket_payment_ids)\n" +
+            "AND FIND_IN_SET(dictionary_expense_id,el.categories_id)\n" +
+            "AND expense_date >= :startDate\n" +
+            "AND (:endDate IS NULL OR expense_date <= :endDate)\n"
+            , nativeQuery = true)
+    TotalExpenseByExpenseLimit getTotalExpenseByUserIdGroupByExpenseLimit(
+            @Param("userId") String userId,
+            @Param("expenseLimitId") String expenseLimitId,
             @Param("startDate") Timestamp startDate,
             @Param("endDate") Timestamp endDate
     );

@@ -16,6 +16,13 @@ import java.util.List;
 public class ExpenseLimitController {
     private final ExpenseLimitService expenseLimitService;
 
+    @GetMapping("")
+    public ApiResponse<List<ExpenseLimitResponse>> getAllExpenseLimit() {
+        return ApiResponse.<List<ExpenseLimitResponse>>builder()
+                .result(expenseLimitService.getAllExpenseLimit())
+                .build();
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<ExpenseLimitResponse> getExpenseLimitById(@PathVariable String id) {
         return ApiResponse.<ExpenseLimitResponse>builder()

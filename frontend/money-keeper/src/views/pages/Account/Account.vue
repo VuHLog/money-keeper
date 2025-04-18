@@ -51,16 +51,19 @@ async function updateUsageStatus(id, status){
 <template>
   <div class="h">
     <h1 class="text-center text-primary mb-10">Tài khoản</h1>
-    <div>
-      <router-link
+    <div class="d-flex justify-end mb-2">
+      <v-btn
+        icon
+        variant="text"
+        class="add-button"
+        elevation="2"
         to="/account/create"
-        class="text-decoration-none text-white bg-primary-color pa-2 rounded"
       >
-        <button>
-          <font-awesome-icon class="mr-2" :icon="['fas', 'plus']" />
-          <span>Thêm tài khoản</span>
-        </button>
-      </router-link>
+        <font-awesome-icon
+          :icon="['fas', 'plus']"
+          style="font-size: 28px"
+        />
+      </v-btn>
     </div>
     <div v-if="show">
       <div class="text-end mb-2">

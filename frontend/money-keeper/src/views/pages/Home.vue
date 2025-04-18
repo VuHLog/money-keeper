@@ -1,6 +1,6 @@
 <script setup>
 import RevenueExpenseReport from '../components/RevenueExpenseReport.vue';
-import SpendingLimitReport from '../components/SpendingLimitReport.vue';
+import ExpenseLimitReport from '../components/ExpenseLimitReport.vue';
 import SavingsReport from '../components/SavingsReport.vue';
 import SpendingAnalysisReport from '../components/SpendingAnalysisReport.vue';
 </script>
@@ -13,9 +13,9 @@ import SpendingAnalysisReport from '../components/SpendingAnalysisReport.vue';
         <revenue-expense-report />
       </v-col>
 
-      <!-- Spending Limit -->
+      <!-- expense Limit -->
       <v-col cols="12" md="6">
-        <spending-limit-report />
+        <expense-limit-report />
         
         <!-- Savings -->
         <savings-report class="mt-4" />

@@ -9,6 +9,7 @@ import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
 import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
 import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.*;
+import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
 import com.vuhlog.money_keeper.entity.ReportExpenseRevenue;
 import com.vuhlog.money_keeper.entity.Users;
 import com.vuhlog.money_keeper.mapper.ReportExpenseRevenueMapper;
@@ -128,6 +129,16 @@ public class ReportServiceImpl implements ReportService {
         PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(timeOption, startDate, endDate);
         List<Object[]> results = revenueRegularRepository.getTotalRevenueByTimeAndCategory(periodOfTime.getStartDate(), periodOfTime.getEndDate(), bucketPaymentIdsJoin, userId);
         return convertToReportCategoryResponse(results);
+    }
+
+    @Override
+    public TotalExpenseByExpenseLimit getTotalExpenseByExpenseLimit(String expenseLimitId, String startDate, String endDate) {
+        Timestamp startTime = Timestamp.valueOf(startDate);
+        Timestamp endTime = null;
+        if(endDate != null && !endDate.isEmpty()) {
+            endTime = Timestamp.valueOf(endDate);
+        }
+        return expenseRegularRepository.getTotalExpenseByUserIdGroupByExpenseLimit(userCommon.getMyUserInfo().getId(), expenseLimitId, startTime, endTime);
     }
 
     private List<ReportCategoryResponse> convertToReportCategoryResponse(List<Object[]> list) {

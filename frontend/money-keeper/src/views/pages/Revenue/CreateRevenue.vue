@@ -126,13 +126,13 @@ async function createRevenue() {
       title: "Thành công",
       text: "Bạn đã thêm khoản thu tiền thành công!",
       icon: "success",
-    }).catch((error) => {
+    })
+    router.push("/revenue");
+  }).catch((error) => {
       if(error.response.data.code === 10001){
         errMsg.value = "Ngày thu tiền không được lớn hơn ngày hiện tại";
       }
     });
-    router.push("/revenue");
-  });
 }
 </script>
 
