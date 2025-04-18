@@ -72,6 +72,10 @@ public class Users {
     @JsonIgnore
     private Set<ExpenseLimit> expenseLimits;
 
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private Set<Notification> notifications;
+
     @PrePersist
     public void onCreate() {
         if(oAuth2 == null) {

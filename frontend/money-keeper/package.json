@@ -14,7 +14,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/vue-fontawesome": "^3.0.8",
-    "@stomp/stompjs": "^7.0.0",
+    "@stomp/stompjs": "^7.1.1",
     "apexcharts": "^4.5.0",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
@@ -26,7 +26,7 @@
     "vue-sweetalert2": "^5.0.11",
     "vue3-apexcharts": "^1.8.0",
     "vuetify": "^3.7.12",
-    "ws": "^8.18.0"
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@mdi/font": "^7.4.47",

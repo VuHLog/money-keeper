@@ -7,8 +7,10 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Calendar;
 
@@ -29,6 +31,23 @@ public class TimestampUtil {
 
     public static String timestampToStringOnlyDate(Timestamp timestamp) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return dateFormat.format(timestamp);
+    }
+
+    public static String timestampToStringIfTodayTime(Timestamp timestamp) {
+        long elapseSeconds = ChronoUnit.SECONDS.between(timestamp.toInstant(), Instant.now());
+
+        if (elapseSeconds < 60) {
+            return elapseSeconds + " giây trước";
+        } else if (elapseSeconds < 3600) {
+            long elapseMinutes = ChronoUnit.MINUTES.between(timestamp.toInstant(), Instant.now());
+            return elapseMinutes + " phút trước";
+        } else if (elapseSeconds < 86400) {
+            long elapseHours = ChronoUnit.HOURS.between(timestamp.toInstant(), Instant.now());
+            return elapseHours + " giờ trước";
+        }
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
         return dateFormat.format(timestamp);
     }
 

@@ -39,6 +39,7 @@ public class SecurityConfiguration {
                 configurer -> configurer
                         .requestMatchers( HttpMethod.GET,"/api/users/*").authenticated()
                         .requestMatchers( HttpMethod.POST,PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated()
         );
 

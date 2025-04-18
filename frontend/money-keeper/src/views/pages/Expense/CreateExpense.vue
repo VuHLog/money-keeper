@@ -1,16 +1,18 @@
 <script setup>
-import { ref, watch, getCurrentInstance, onMounted, inject } from "vue";
+import { ref, watch, getCurrentInstance, onMounted, onBeforeUnmount, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { MainFeature } from "@/constants/MainFeature.js";
 import DictionaryExpense from "@components/DictionaryExpense.vue";
 import TripEvent from "@components/TripEvent.vue";
 import Beneficiary from "@components/Beneficiary.vue";
 import { AccountType } from "@/constants/AccountType.js";
+import { initializeStompClient } from "@/config/StompClientNotificationConfig.js";
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
 const swal = inject("$swal");
 const route = useRoute();
+const stompClient = ref(initializeStompClient());
 
 const mainFeatureList = ref(MainFeature);
 const feature = ref(mainFeatureList.value.find((value) => value.id === 1));
@@ -52,6 +54,21 @@ onMounted(() => {
     .catch((err) => {
       console.log(err);
     });
+  
+  connect();
+});
+
+function connect() {
+  stompClient.value.activate();
+}
+
+function disconnect() {
+  stompClient.value.deactivate();
+  console.log("Disconnected");
+}
+
+onBeforeUnmount(() => {
+  disconnect();
 });
 
 const expense = ref({

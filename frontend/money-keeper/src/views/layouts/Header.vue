@@ -18,6 +18,7 @@ const getRoute = computed(() => {
 const fullPath = computed(() => route.fullPath)
 
 const showUserMenu = ref(false);
+const showNotification = ref(false);
 
 const username = computed(() => store.username);
 const avatarUrl = computed(() => store.avatarUrl);
@@ -158,7 +159,20 @@ async function logOut() {
         </div>
       </div>
       <div class="d-flex align-center">
-        <span class="font-weight-bold text-grey-darken-4">{{ fullName }}</span>
+        <v-menu v-if="isLoggedIn">
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" icon variant="text" size="small" elevation="2" @click="showNotification = !showNotification">
+              <font-awesome-icon :icon="['fas', 'bell']" style="font-size: 24px" />
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item class="border-b">
+              <v-list-item-title>
+                <span class="font-weight-bold text-grey-darken-4">{{ fullName }}</span>
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
         <v-menu v-if="isLoggedIn">
           <template v-slot:activator="{ props }">
             <div class="d-flex align-center cursor-pointer h-100 pa-3 user-none" @click="showUserMenu = !showUserMenu"
@@ -168,6 +182,11 @@ async function logOut() {
             </div>
           </template>
           <v-list>
+            <v-list-item class="border-b">
+              <v-list-item-title>
+                <span class="font-weight-bold text-grey-darken-4">{{ fullName }}</span>
+              </v-list-item-title>
+            </v-list-item>
             <v-list-item class="hover-bg-grey cursor-pointer" @click="showUserInfo = true">
               <v-list-item-title>
                 <div>Thông tin tài khoản</div>
