@@ -10,6 +10,7 @@ const tokenDecoded = token? jwtDecode(token): {};
 export const useBaseStore = defineStore("base", {
   state: () => {
     return {
+      isLoading: false,
       isLoggedIn: tokenDecoded?true:false,
       roles: tokenDecoded?.scope || "",
       username: tokenDecoded?.sub || "",

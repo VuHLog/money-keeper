@@ -1,8 +1,13 @@
 <script setup>
 import HeaderApp from "./Header.vue";
+import Loading from "@components/Loading.vue";
 import { computed} from "vue";
 import { useRoute } from "vue-router";
+import { useBaseStore } from "@/store/index.js";
+
+
 const route = useRoute();
+const store = useBaseStore();
 
 const getRoute = computed(() => {
   const routeArr = route.path.split("/");
@@ -10,8 +15,10 @@ const getRoute = computed(() => {
 });
 
 const fullPath = computed(() => route.fullPath)
+const isLoading = computed(() => store.isLoading);
 </script>
 <template>
+  <Loading v-if="isLoading"/>
   <div class="app min-h-100vh">
     <HeaderApp></HeaderApp>
     <div style="padding-top: 60px">

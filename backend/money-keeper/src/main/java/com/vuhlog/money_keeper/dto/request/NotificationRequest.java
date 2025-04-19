@@ -12,9 +12,10 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Builder
 public class NotificationRequest {
+    private String title;
     private String content;
     private String type;
     private int readStatus;
     private String iconUrl;
-    private String path;
+    private String href;
 }

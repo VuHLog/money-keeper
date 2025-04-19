@@ -1,6 +1,7 @@
 package com.vuhlog.money_keeper.dao;
 
 import com.vuhlog.money_keeper.dto.response.responseinterface.ExpenseLimitDetailResponse;
+import com.vuhlog.money_keeper.dto.response.responseinterface.ExpenseLimitNotification;
 import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
 import com.vuhlog.money_keeper.entity.ExpenseRegular;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -107,4 +108,19 @@ public interface ExpenseRegularRepository extends JpaRepository<ExpenseRegular, 
             @Param("startDate") Timestamp startDate,
             @Param("endDate") Timestamp endDate
     );
+
+    @Query(value = "SELECT el.id , el.name AS NAME, el.amount AS limit_amount, SUM(er.amount) \n" +
+            "FROM expense_regular er\n" +
+            "JOIN dictionary_bucket_payment dbp ON er.dictionary_bucket_payment_id = dbp.id\n" +
+            "JOIN users u ON dbp.user_id = u.id\n" +
+            "JOIN expense_limit el ON u.id = el.user_id\n" +
+            "WHERE u.id = :userId\n" +
+            "AND FIND_IN_SET(er.dictionary_bucket_payment_id, el.bucket_payment_ids)\n" +
+            "AND FIND_IN_SET(er.dictionary_expense_id,el.categories_id)\n" +
+            "AND expense_date >= start_date_limit\n" +
+            "AND expense_date <= end_date_limit\n" +
+            "GROUP BY el.id, el.amount\n" +
+            "HAVING SUM(er.amount) > limit_amount\n" +
+            "ORDER BY el.name ASC", nativeQuery = true)
+    List<ExpenseLimitNotification> findOverExpenseLimitByUserAndExpense(String userId);
 }

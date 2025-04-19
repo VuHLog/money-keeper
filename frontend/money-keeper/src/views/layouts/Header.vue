@@ -1,12 +1,17 @@
 <script setup>
 import { getCurrentInstance, computed, ref, watch, onMounted } from "vue";
 import { useBaseStore } from "@/store/index.js";
+import { useNotificationStore } from "@/store/NotificationStore";
 import { useRouter, useRoute } from "vue-router";
 import { jwtDecode } from "jwt-decode";
 import ChangePassword from "@components/ChangePassword.vue";
 import UserInfo from "@components/UserInfo.vue";
+
+
 const { proxy } = getCurrentInstance();
+
 const store = useBaseStore();
+const notificationStore = useNotificationStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -16,6 +21,7 @@ const getRoute = computed(() => {
 });
 
 const fullPath = computed(() => route.fullPath)
+const countNewNotifications = computed(() => notificationStore.countNewNotifications)
 
 const showUserMenu = ref(false);
 const showNotification = ref(false);
@@ -26,6 +32,7 @@ const fullName = computed(() => store.fullName);
 const name = ref("");
 const showPopupChangePassword = ref(false);
 const showUserInfo = ref(false);
+const pageSize = ref(4);
 
 onMounted(async () => {
   let token = sessionStorage.getItem("token");
@@ -33,6 +40,8 @@ onMounted(async () => {
   const users = await store.getMyInfo();
   store.fullName = users.fullName;
   store.avatarUrl = users.avatarUrl;
+
+  await notificationStore.getNotifications();
 });
 
 function decodedToken(token) {
@@ -74,6 +83,11 @@ async function logOut() {
       })
       .catch();
   }
+}
+
+async function handleSeePreviusNotification() {
+  console.log(notificationStore.pageSize + pageSize.value);
+  await notificationStore.changePageSize(notificationStore.pageSize + pageSize.value);
 }
 </script>
 
@@ -161,17 +175,54 @@ async function logOut() {
       <div class="d-flex align-center">
         <v-menu v-if="isLoggedIn">
           <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" icon variant="text" size="small" elevation="2" @click="showNotification = !showNotification">
-              <font-awesome-icon :icon="['fas', 'bell']" style="font-size: 24px" />
-            </v-btn>
+            <div v-if="notificationStore.countNewNotifications > 0">
+              <v-badge
+                :content="notificationStore.countNewNotifications"
+                color="red"
+                overlap
+                v-bind="props"
+              >
+                <v-btn icon variant="text" size="small" elevation="2" @click="showNotification = !showNotification">
+                  <font-awesome-icon :icon="['fas', 'bell']" style="font-size: 24px" />
+                </v-btn>
+              </v-badge>
+            </div>
+            <div v-bind="props" v-else>
+              <v-btn icon variant="text" size="small" elevation="2" @click="showNotification = !showNotification">
+                <font-awesome-icon :icon="['fas', 'bell']" style="font-size: 24px" />
+              </v-btn>
+            </div>
           </template>
-          <v-list>
-            <v-list-item class="border-b">
-              <v-list-item-title>
-                <span class="font-weight-bold text-grey-darken-4">{{ fullName }}</span>
+          <div class="elevation-2 bg-white rounded-lg pa-3" style="width: 360px">
+            <v-list class="scrollable-list">
+              <template v-for="(notification) in notificationStore.notifications" :key="notification">
+                <v-list-item class="border-b">
+                  <v-list-item-title>
+                    <div class="d-flex align-center w-100">
+                      <a :href="'http://localhost:5173/'+ notification.href" class="d-inline-flex w-100 align-center text-decoration-none">
+                        <v-avatar class="mr-2">
+                          <img class="icon-size" src="https://res.cloudinary.com/cloud1412/image/upload/v1745068565/logo_mpkmjj.png" />
+                        </v-avatar>
+                        <div class="mr-2 flex-grow-1">
+                          <h5 class="text-primary text-16 mb-1">{{ notification.title }}</h5>
+                          <p class="text-14 text-grey-darken-4 truncate" style="max-width: 220px;">{{notification.content}}</p>
+                          <span class="text-12 d-inline-block text-grey-lighten-1 truncate" style="max-width: 220px;">{{notification.createdAt}}</span>
+                        </div>
+                        <div v-if="!notification.readStatus" class="ml-auto">
+                          <font-awesome-icon class="text-primary" :icon="['fas', 'circle']" />
+                        </div>
+                      </a>
+                    </div>
+                  </v-list-item-title>
+                </v-list-item>
+              </template>
+            </v-list>
+            <v-list-item v-if="notificationStore.pageNumber < notificationStore.totalPages">
+              <v-list-item-title class="d-flex justify-center">
+                <div class="d-inline-flexhover-bg-grey cursor-pointer mt-3 py-2 px-3 bg-grey-lighten-3 rounded-lg" @click.stop="handleSeePreviusNotification()">Xem thông báo trước đó</div>
               </v-list-item-title>
             </v-list-item>
-          </v-list>
+          </div>
         </v-menu>
         <v-menu v-if="isLoggedIn">
           <template v-slot:activator="{ props }">
@@ -229,5 +280,14 @@ async function logOut() {
       }
     }
   }
+}
+.scrollable-list {
+  max-height: 520px; 
+  overflow-y: auto;
+  max-width: 360px;
+}
+
+.bg-grey-lighten-3:hover {
+  background-color: #E0E0E0 !important;
 }
 </style>

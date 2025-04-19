@@ -17,7 +17,7 @@ public class NotificationController {
     @GetMapping("")
     public ApiResponse<Page<NotificationResponse>> getAllNotifications(
             @RequestParam (name = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-            @RequestParam (name = "pageSize", required = false, defaultValue = "10") Integer pageSize
+            @RequestParam (name = "pageSize", required = false, defaultValue = "5") Integer pageSize
     ) {
         return ApiResponse.<Page<NotificationResponse>>builder()
                 .result(notificationService.getAllNotifications(pageNumber, pageSize))

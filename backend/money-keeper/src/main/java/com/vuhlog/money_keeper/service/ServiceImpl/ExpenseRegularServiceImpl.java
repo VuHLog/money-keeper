@@ -11,6 +11,7 @@ import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
 import com.vuhlog.money_keeper.dto.request.TransferRequest;
 import com.vuhlog.money_keeper.dto.response.ExpenseRegularResponse;
 import com.vuhlog.money_keeper.dto.response.TotalExpenseByDateResponse;
+import com.vuhlog.money_keeper.dto.response.responseinterface.ExpenseLimitNotification;
 import com.vuhlog.money_keeper.entity.*;
 import com.vuhlog.money_keeper.exception.AppException;
 import com.vuhlog.money_keeper.exception.ErrorCode;
@@ -19,6 +20,7 @@ import com.vuhlog.money_keeper.mapper.RevenueRegularMapper;
 import com.vuhlog.money_keeper.model.NearestTransaction;
 import com.vuhlog.money_keeper.model.PeriodOfTime;
 import com.vuhlog.money_keeper.service.ExpenseRegularService;
+import com.vuhlog.money_keeper.service.NotificationService;
 import com.vuhlog.money_keeper.util.TimestampUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ExpenseRegularServiceImpl implements ExpenseRegularService {
     private final UserCommon userCommon;
+    private final NotificationService notificationService;
     private final ReportExpenseRevenueRepository reportExpenseRevenueRepository;
     private final ExpenseRegularRepository expenseRegularRepository;
     private final ExpenseLimitRepository expenseLimitRepository;
@@ -107,6 +110,13 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
         long balance =  getBalanceWhenCreate(dictionaryBucketPayment, expenseRegular.getExpenseDate(), request.getAmount());
         expenseRegular.setBalance(balance);
         expenseRegular = expenseRegularRepository.save(expenseRegular);
+
+        //check expense limit
+        List<ExpenseLimitNotification> expenseLimitNotifications = getOverExpenseLimit();
+        if(!expenseLimitNotifications.isEmpty()) {
+            notificationService.expenseLimitNotification(expenseLimitNotifications);
+        }
+
         return expenseRegularMapper.toExpenseRegularResponse(expenseRegular);
     }
 
@@ -473,5 +483,15 @@ public class ExpenseRegularServiceImpl implements ExpenseRegularService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextDayStart = now.plusDays(1).toLocalDate().atStartOfDay();
         return expenseDate.toLocalDateTime().isBefore(nextDayStart);
+    }
+
+    private List<ExpenseLimitNotification> getOverExpenseLimit(){
+        String userId = userCommon.getMyUserInfo().getId();
+        List<ExpenseLimitNotification> expenseLimitNotifications = new ArrayList<>();
+        List<ExpenseLimitNotification> expenseLimitNotificationsQuery = expenseRegularRepository.findOverExpenseLimitByUserAndExpense(userId);
+        if(expenseLimitNotificationsQuery != null){
+            expenseLimitNotifications.addAll(expenseLimitNotificationsQuery);
+        }
+        return expenseLimitNotifications;
     }
 }

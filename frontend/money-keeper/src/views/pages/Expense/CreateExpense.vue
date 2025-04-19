@@ -7,13 +7,19 @@ import TripEvent from "@components/TripEvent.vue";
 import Beneficiary from "@components/Beneficiary.vue";
 import { AccountType } from "@/constants/AccountType.js";
 import { initializeStompClient } from "@/config/StompClientNotificationConfig.js";
+import { useBaseStore } from "@/store/index.js";
+import { useNotificationStore } from "@/store/NotificationStore.js";
+import { width } from "@fortawesome/free-brands-svg-icons/fa42Group";
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
 const swal = inject("$swal");
 const route = useRoute();
-const stompClient = ref(initializeStompClient());
+const store = useBaseStore();
+const notificationStore = useNotificationStore();
+const stompClient = ref();
 
+const userId = ref();
 const mainFeatureList = ref(MainFeature);
 const feature = ref(mainFeatureList.value.find((value) => value.id === 1));
 const currentTime = ref(new Date());
@@ -38,9 +44,11 @@ watch(beneficiarySelected, () => {
 });
 
 const errMsg = ref("");
+const showToast = ref(false);
+const responseBodyToast = ref();
 
-onMounted(() => {
-  proxy.$api
+onMounted(async () => {
+  await proxy.$api
     .get("/dictionary-bucket-payment")
     .then((res) => {
       dictionaryBucketPayment.value = res.result;
@@ -54,7 +62,21 @@ onMounted(() => {
     .catch((err) => {
       console.log(err);
     });
-  
+
+  let user = await store.getMyInfo();
+  userId.value = user.id;
+  stompClient.value = initializeStompClient();
+  stompClient.value.onConnect = (frame) =>{
+    console.log("Connected: " + frame);
+        stompClient.value.subscribe(
+          "/topic/notifications/" + userId.value,
+          (response) => {
+            responseBodyToast.value = JSON.parse(response.body);
+            notificationStore.countNewNotifications += 1;
+            showToast.value = true;
+          }
+        );
+  }
   connect();
 });
 
@@ -137,11 +159,17 @@ async function createExpense() {
         .replace('T', ' ')
     : currentTime.value;
 
+  store.isLoading = true;
   await proxy.$api.post("/expense-regular", expense.value).then(() => {
+    store.isLoading = false;
     swal.fire({
       title: "Thành công",
       text: "Bạn đã thêm khoản chi tiền thành công!",
       icon: "success",
+    }).then(() => {
+      if(showToast.value){
+        showToastNotify(responseBodyToast.value);
+      }
     });
     router.push("/expense");
   }).catch((error) => {
@@ -149,6 +177,37 @@ async function createExpense() {
       errMsg.value = "Ngày chi tiêu không được lớn hơn ngày hiện tại";
     }
   });
+}
+
+function showToastNotify(responseBody) {
+  showToast.value = true;
+  const Toast = swal.mixin({
+    toast: true,
+    position: "bottom-end",
+    showConfirmButton: false,
+    width: 360,
+    timer: 2000,
+    timerProgressBar: false,
+    didOpen: (toast) => {
+      toast.onmouseenter = swal.stopTimer;
+      toast.onmouseleave = swal.resumeTimer;
+    },
+  });
+  if (
+      responseBody.type === "expense limit"
+  ) {
+    Toast.fire({
+      html:   `<a href="http://localhost:5173/${responseBody.href}" class="d-flex align-center text-decoration-none">
+                <v-avatar class="mr-2">
+                  <img class="icon-size" src="https://res.cloudinary.com/cloud1412/image/upload/v1745068565/logo_mpkmjj.png" />
+                </v-avatar>
+                <div>
+                  <h5 class="text-primary text-16 mb-2">Hạn mức chi</h5>
+                  <p class="text-14 text-grey-darken-4">${responseBody.content}</p>
+                </div>
+              </a>`,
+    });
+  }
 }
 </script>
 

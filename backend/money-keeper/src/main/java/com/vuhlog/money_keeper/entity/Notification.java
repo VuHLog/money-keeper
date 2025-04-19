@@ -16,12 +16,13 @@ public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+    private String title;
     private String content;
     private Timestamp createdAt;
     private String type;
     private int readStatus;
     private String iconUrl;
-    private String path;
+    private String href;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

@@ -11,11 +11,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class NotificationResponse {
     private String id;
+    private String title;
     private String content;
     private String type;
     private int readStatus;
     private String iconUrl;
     private String createdAt;
-    private String path;
+    private String href;
 
 }
