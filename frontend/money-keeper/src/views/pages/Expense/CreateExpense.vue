@@ -65,32 +65,14 @@ onMounted(async () => {
 
   let user = await store.getMyInfo();
   userId.value = user.id;
-  stompClient.value = initializeStompClient();
-  stompClient.value.onConnect = (frame) =>{
-    console.log("Connected: " + frame);
-        stompClient.value.subscribe(
-          "/topic/notifications/" + userId.value,
-          (response) => {
-            responseBodyToast.value = JSON.parse(response.body);
-            notificationStore.countNewNotifications += 1;
-            showToast.value = true;
-          }
-        );
-  }
-  connect();
-});
+  store.stompClient.subscribe(
+    "/topic/notifications/" + userId.value,
+    (response) => {
+      responseBodyToast.value = JSON.parse(response.body);
+      showToast.value = true;
+    }
+  );
 
-function connect() {
-  stompClient.value.activate();
-}
-
-function disconnect() {
-  stompClient.value.deactivate();
-  console.log("Disconnected");
-}
-
-onBeforeUnmount(() => {
-  disconnect();
 });
 
 const expense = ref({
@@ -171,7 +153,7 @@ async function createExpense() {
         showToastNotify(responseBodyToast.value);
       }
     });
-    router.push("/expense");
+    // router.push("/expense");
   }).catch((error) => {
     if(error.response.data.code === 10001){
       errMsg.value = "Ngày chi tiêu không được lớn hơn ngày hiện tại";

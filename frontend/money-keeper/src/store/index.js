@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { jwtDecode } from "jwt-decode";
 import {base} from "@/apis/ApiService.js"
 import TokenService from "@/service/TokenService.js"
+import { initializeStompClient } from "@/config/StompClientNotificationConfig.js";
 
 const token = TokenService.getSessionAccessToken();
 const tokenDecoded = token? jwtDecode(token): {};
@@ -10,6 +11,7 @@ const tokenDecoded = token? jwtDecode(token): {};
 export const useBaseStore = defineStore("base", {
   state: () => {
     return {
+      stompClient: initializeStompClient(),
       isLoading: false,
       isLoggedIn: tokenDecoded?true:false,
       roles: tokenDecoded?.scope || "",
@@ -64,6 +66,12 @@ export const useBaseStore = defineStore("base", {
       const seconds = String(now.getSeconds()).padStart(2, '0');
     
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    }
+    },
+    connectStompClient() {
+      this.stompClient.activate();
+    },
+    disconnectStompClient() {
+      this.stompClient.deactivate();
+    },
   },
 });

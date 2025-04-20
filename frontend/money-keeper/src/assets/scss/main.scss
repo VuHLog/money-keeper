@@ -177,11 +177,10 @@ ol {
 
 .multiline-truncate {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  white-space: normal;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  word-wrap: break-word;
 }
 
 .p__MPF {

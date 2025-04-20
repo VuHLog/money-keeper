@@ -1,5 +1,5 @@
 <script setup>
-import { getCurrentInstance, computed, ref, watch, onMounted } from "vue";
+import { getCurrentInstance, computed, ref, watch, onMounted, onBeforeUnmount, inject } from "vue";
 import { useBaseStore } from "@/store/index.js";
 import { useNotificationStore } from "@/store/NotificationStore";
 import { useRouter, useRoute } from "vue-router";
@@ -10,6 +10,7 @@ import UserInfo from "@components/UserInfo.vue";
 
 const { proxy } = getCurrentInstance();
 
+const swal = inject("$swal");
 const store = useBaseStore();
 const notificationStore = useNotificationStore();
 const router = useRouter();
@@ -42,6 +43,24 @@ onMounted(async () => {
   store.avatarUrl = users.avatarUrl;
 
   await notificationStore.getNotifications();
+  let user = await store.getMyInfo();
+  store.connectStompClient();
+  store.stompClient.onConnect = (frame) =>{
+    console.log("Connected: " + frame);
+        store.stompClient.subscribe(
+          "/topic/notifications/" + user.id,
+          (response) => {
+            let responseBody = JSON.parse(response.body);
+            notificationStore.notifications.unshift(responseBody);
+            notificationStore.countNewNotifications += 1;
+            notificationStore.showToastNotify(responseBody, swal);
+          }
+        );
+  }
+});
+
+onBeforeUnmount(() => {
+  store.disconnectStompClient();
 });
 
 function decodedToken(token) {
@@ -88,6 +107,26 @@ async function logOut() {
 async function handleSeePreviusNotification() {
   console.log(notificationStore.pageSize + pageSize.value);
   await notificationStore.changePageSize(notificationStore.pageSize + pageSize.value);
+}
+
+function onNotificationMenuToggle(isOpen) {
+  if (isOpen) {
+    notificationStore.countNewNotifications = 0;
+  }
+}
+
+function handleScroll(event) {
+  const element = event.target;
+  
+  if (element.scrollHeight - element.scrollTop <= element.clientHeight + 1) {
+    loadMoreNotifications();
+  }
+}
+
+async function loadMoreNotifications() {
+  if (notificationStore.pageNumber < notificationStore.totalPages) {
+    await notificationStore.changePageSize(notificationStore.pageSize + pageSize.value);
+  }
 }
 </script>
 
@@ -173,7 +212,7 @@ async function handleSeePreviusNotification() {
         </div>
       </div>
       <div class="d-flex align-center">
-        <v-menu v-if="isLoggedIn">
+        <v-menu v-if="isLoggedIn" @update:modelValue="onNotificationMenuToggle">
           <template v-slot:activator="{ props }">
             <div v-if="notificationStore.countNewNotifications > 0">
               <v-badge
@@ -193,8 +232,8 @@ async function handleSeePreviusNotification() {
               </v-btn>
             </div>
           </template>
-          <div class="elevation-2 bg-white rounded-lg pa-3" style="width: 360px">
-            <v-list class="scrollable-list">
+          <div class="elevation-2 bg-white rounded-lg pa-3" style="width: 360px" v-if="notificationStore.notifications.length > 0">
+            <v-list class="scrollable-list" @scroll="handleScroll">
               <template v-for="(notification) in notificationStore.notifications" :key="notification">
                 <v-list-item class="border-b">
                   <v-list-item-title>
@@ -205,8 +244,8 @@ async function handleSeePreviusNotification() {
                         </v-avatar>
                         <div class="mr-2 flex-grow-1">
                           <h5 class="text-primary text-16 mb-1">{{ notification.title }}</h5>
-                          <p class="text-14 text-grey-darken-4 truncate" style="max-width: 220px;">{{notification.content}}</p>
-                          <span class="text-12 d-inline-block text-grey-lighten-1 truncate" style="max-width: 220px;">{{notification.createdAt}}</span>
+                          <p class="text-14 text-grey-darken-4 multiline-truncate" style="max-width: 200px;" v-html="notification.content"></p>
+                          <span class="text-12 d-inline-block text-grey-lighten-1">{{notification.createdAt}}</span>
                         </div>
                         <div v-if="!notification.readStatus" class="ml-auto">
                           <font-awesome-icon class="text-primary" :icon="['fas', 'circle']" />
@@ -217,11 +256,14 @@ async function handleSeePreviusNotification() {
                 </v-list-item>
               </template>
             </v-list>
-            <v-list-item v-if="notificationStore.pageNumber < notificationStore.totalPages">
+            <v-list-item v-if="notificationStore.pageNumber < notificationStore.totalPages && notificationStore.pageSize === 4">
               <v-list-item-title class="d-flex justify-center">
                 <div class="d-inline-flexhover-bg-grey cursor-pointer mt-3 py-2 px-3 bg-grey-lighten-3 rounded-lg" @click.stop="handleSeePreviusNotification()">Xem thông báo trước đó</div>
               </v-list-item-title>
             </v-list-item>
+          </div>
+          <div v-else class="d-flex justify-center align-center" style="width: 360px; height: 520px;">
+            <h4 class="text-grey-darken-4">Không có thông báo nào</h4>
           </div>
         </v-menu>
         <v-menu v-if="isLoggedIn">
