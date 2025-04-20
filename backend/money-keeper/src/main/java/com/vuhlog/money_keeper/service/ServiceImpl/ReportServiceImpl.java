@@ -1,16 +1,17 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
 import com.vuhlog.money_keeper.common.UserCommon;
+import com.vuhlog.money_keeper.constants.TimeOptionCurrentFinanceType;
 import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.dao.ExpenseRegularRepository;
 import com.vuhlog.money_keeper.dao.ReportExpenseRevenueRepository;
 import com.vuhlog.money_keeper.dao.RevenueRegularRepository;
-import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
+import com.vuhlog.money_keeper.dto.request.ExpenseRevenueSituation;
 import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
 import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.*;
 import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
-import com.vuhlog.money_keeper.entity.ReportExpenseRevenue;
+import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForExpenseRevenueSituation;
 import com.vuhlog.money_keeper.entity.Users;
 import com.vuhlog.money_keeper.mapper.ReportExpenseRevenueMapper;
 import com.vuhlog.money_keeper.model.PeriodOfTime;
@@ -18,10 +19,6 @@ import com.vuhlog.money_keeper.service.ReportService;
 import com.vuhlog.money_keeper.util.TimestampUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -88,6 +85,36 @@ public class ReportServiceImpl implements ReportService {
             }
         }
         return totalExpenseRevenueResponse;
+    }
+
+    @Override
+    public List<TotalExpenseRevenueForExpenseRevenueSituation> getTotalExpenseRevenueForExpenseRevenueSituation(ExpenseRevenueSituation req) {
+        String timeOption = req.getTimeOption();
+        List<TotalExpenseRevenueForExpenseRevenueSituation> totalExpenseRevenue = new ArrayList<>();
+        if(timeOption.equals(TimeOptionCurrentFinanceType.PRESENT.getType())){
+
+        }else if(timeOption.equals(TimeOptionCurrentFinanceType.MONTH.getType())){
+            totalExpenseRevenue = reportExpenseRevenueRepository.getReportExpenseRevenueByYearOrderByMonth(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    req.getYear()
+            );
+        }else if(timeOption.equals(TimeOptionCurrentFinanceType.QUARTER.getType())){
+            totalExpenseRevenue = reportExpenseRevenueRepository.getReportExpenseRevenueByYearOrderByQuarter(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    req.getYear()
+            );
+        }else if(timeOption.equals(TimeOptionCurrentFinanceType.YEAR.getType())){
+            totalExpenseRevenue = reportExpenseRevenueRepository.getReportExpenseRevenueByYearOrderByYear(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    req.getStartYear(),
+                    req.getEndYear()
+            );
+        }
+
+        return totalExpenseRevenue;
     }
 
     @Override

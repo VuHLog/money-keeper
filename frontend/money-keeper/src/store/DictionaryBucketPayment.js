@@ -19,11 +19,6 @@ export const useDictionaryBucketPaymentStore = defineStore("dictionaryBucketPaym
         .get("/dictionary-bucket-payment")
         .then((res) => {
           response = res.result;
-          response.forEach((item) => {
-            item.accountType = AccountType.find(
-              (type) => type.name === item.accountType
-            );
-          });
         })
         .catch((err) => {
           console.log(err);
@@ -45,11 +40,6 @@ export const useDictionaryBucketPaymentStore = defineStore("dictionaryBucketPaym
         )
         .then((res) => {
           response = res.result;
-          response.content.forEach((item) => {
-            item.accountType = AccountType.find(
-              (type) => type.name === item.accountType
-            );
-          });
         })
         .catch((err) => {
           console.log(err);

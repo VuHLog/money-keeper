@@ -153,7 +153,7 @@ async function createExpense() {
         showToastNotify(responseBodyToast.value);
       }
     });
-    // router.push("/expense");
+    router.push("/expense");
   }).catch((error) => {
     if(error.response.data.code === 10001){
       errMsg.value = "Ngày chi tiêu không được lớn hơn ngày hiện tại";

@@ -69,14 +69,14 @@ async function getData() {
     );
   chartSeries.value = [
     {
-      name: "Thu Chi",
+      name: "Số tiền",
       data: [
         {
           x: "Thu",
           y: revenueExpenseData.value.totalRevenue,
         },
         {
-          x: "Chi b",
+          x: "Chi",
           y: revenueExpenseData.value.totalExpense,
         },
       ],
@@ -222,12 +222,6 @@ const chartOptions = ref({
         fontSize: "12px",
       },
     },
-    axisBorder: {
-      show: false,
-    },
-    axisTicks: {
-      show: false,
-    },
   },
   legend: {
     show: false,
@@ -235,6 +229,9 @@ const chartOptions = ref({
   yaxis: {
     labels: {
       show: true,
+      formatter: function (val) {
+        return formatCurrency(val);
+      },
     },
     title: {
       text: "₫ (Đồng)",
@@ -459,7 +456,7 @@ function updateRevenuePieOptions() {
                               hide-details></v-checkbox>
                             <div>
                               <v-avatar start>
-                                <img class="icon-size" :src="bucketPayment.accountType?.icon" alt="icon" />
+                                <img class="icon-size" :src="bucketPayment.iconUrl" alt="icon" />
                               </v-avatar>
                               <span class="text-grey-color">{{ bucketPayment.accountName }}</span>
                             </div>
@@ -488,11 +485,11 @@ function updateRevenuePieOptions() {
     </div>
 
     <div class="d-flex align-items-center justify-space-between gap-4 mb-6">
-      <div style="width: 40%">
+      <div style="width: 50%">
         <apexchart type="bar" :options="chartOptions" :series="chartSeries" height="200"></apexchart>
       </div>
 
-      <div class="d-flex flex-column gap-4" style="width: 50%">
+      <div class="d-flex flex-column gap-4" style="width: 40%">
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
             <div class="rounded-circle mr-2 bg-primary" style="width: 10px; height: 10px"></div>

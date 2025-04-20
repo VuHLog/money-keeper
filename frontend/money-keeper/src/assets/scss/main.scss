@@ -231,6 +231,43 @@ ol {
   }
 }
 
+.stacked-images {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+
+  .stacked-image {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+
+      &:hover {
+          z-index: 3;
+          transform: scale(1.1);
+      }
+  }
+
+  .stacked-image-1 {
+      left: 0;
+      z-index: 3;
+  }
+
+  .stacked-image-2 {
+      left: 8px;
+      z-index: 2;
+  }
+
+  .stacked-image-3 {
+      left: 16px;
+      z-index: 1;
+  }
+}
+
 //css google
 .gsi-material-button {
   -moz-user-select: none;

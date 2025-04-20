@@ -204,7 +204,7 @@ async function loadMoreNotifications() {
             <li class="nav-item">
               <router-link :class="getRoute === '' ? 'border-b-active' : ''"
                 class="nav-link d-flex h-100 align-center text-decoration-none text-grey-darken-1 font-weight-bold text-14 text-uppercase hover-green-lighten px-2"
-                to="/home">
+                to="/report">
                 Báo cáo
               </router-link>
             </li>

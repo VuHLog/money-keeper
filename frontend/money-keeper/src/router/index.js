@@ -24,6 +24,8 @@ import CreateExpenseLimit from "@pages/ExpenseLimit/CreateExpenseLimit.vue";
 import ExpenseLimitInfo from "@pages/ExpenseLimit/ExpenseLimitInfo.vue";
 import ExpenseLimitEdit from "@pages/ExpenseLimit/ExpenseLimitEdit.vue";
 import ExpenseLimit from "@pages/ExpenseLimit/ExpenseLimit.vue";
+import Report from "@pages/Report/Report.vue";
+
 
 const routes = [
   {
@@ -132,6 +134,11 @@ const routes = [
         path: "/expense-limit/edit/:expenseLimitId",
         name: "Edit expense limit",
         component: ExpenseLimitEdit
+      },
+      {
+        path: "/report",
+        name: "Report",
+        component: Report
       }
     ],
   },

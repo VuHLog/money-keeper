@@ -5,9 +5,9 @@ export const initializeStompClient = () => {
     const token = TokenService.getSessionAccessToken();
     const stompClient = new Client({
       brokerURL: "http://localhost:8080/api/ws",
-      debug: (str) => {
-        console.log(str);
-      },
+      // debug: (str) => {
+      //   console.log(str);
+      // },
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },

@@ -1,14 +1,13 @@
 package com.vuhlog.money_keeper.controller;
 
-import com.vuhlog.money_keeper.dto.request.ExpenseRevenueHistoryRequest;
+import com.vuhlog.money_keeper.dto.request.ExpenseRevenueSituation;
 import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
 import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.ApiResponse;
-import com.vuhlog.money_keeper.dto.response.ReportExpenseRevenueResponse;
 import com.vuhlog.money_keeper.dto.response.TotalExpenseRevenueResponse;
 import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
+import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForExpenseRevenueSituation;
 import com.vuhlog.money_keeper.service.ReportService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +48,13 @@ public class ReportController {
     ) {
         return ApiResponse.<TotalExpenseByExpenseLimit>builder()
                 .result(reportService.getTotalExpenseByExpenseLimit(expenseLimitId, startDate, endDate))
+                .build();
+    }
+
+    @PostMapping("/expense-revenue-situation")
+    public ApiResponse<List<TotalExpenseRevenueForExpenseRevenueSituation>> getTotalExpenseRevenueForExpenseRevenueSituation(@RequestBody ExpenseRevenueSituation req) {
+        return ApiResponse.<List<TotalExpenseRevenueForExpenseRevenueSituation>>builder()
+                .result(reportService.getTotalExpenseRevenueForExpenseRevenueSituation(req))
                 .build();
     }
 }
