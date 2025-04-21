@@ -3,7 +3,7 @@ package com.vuhlog.money_keeper.constants;
 import lombok.Getter;
 
 @Getter
-public enum TimeOptionCurrentFinanceType {
+public enum TimeOptionExpenseRevenueSituationType {
     PRESENT("Hiện tại"),
     MONTH("Tháng"),
     QUARTER("Quý"),
@@ -13,7 +13,7 @@ public enum TimeOptionCurrentFinanceType {
 
     private final String type;
 
-    TimeOptionCurrentFinanceType(String type) {
+    TimeOptionExpenseRevenueSituationType(String type) {
         this.type = type;
     }
 }

@@ -1,5 +1,6 @@
 package com.vuhlog.money_keeper.controller;
 
+import com.vuhlog.money_keeper.constants.TimeOptionExpenseRevenueSituationType;
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueSituation;
 import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
 import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
@@ -52,9 +53,18 @@ public class ReportController {
     }
 
     @PostMapping("/expense-revenue-situation")
-    public ApiResponse<List<TotalExpenseRevenueForExpenseRevenueSituation>> getTotalExpenseRevenueForExpenseRevenueSituation(@RequestBody ExpenseRevenueSituation req) {
-        return ApiResponse.<List<TotalExpenseRevenueForExpenseRevenueSituation>>builder()
-                .result(reportService.getTotalExpenseRevenueForExpenseRevenueSituation(req))
+    public <T> ApiResponse<T> getTotalExpenseRevenueForExpenseRevenueSituation(@RequestBody ExpenseRevenueSituation req) {
+        T result = null;
+        String timeOption = req.getTimeOption();
+        if(timeOption.equals(TimeOptionExpenseRevenueSituationType.PRESENT.getType())){
+            result = (T) reportService.getReportExpenseRevenueByPresent(req);
+        } else if(timeOption.equals(TimeOptionExpenseRevenueSituationType.OPTIONAL.getType())){
+            result = (T) reportService.getReportExpenseRevenueByOptional(req);
+        }else {
+            result = (T) reportService.getTotalExpenseRevenueForExpenseRevenueSituation(req);
+        }
+        return ApiResponse.<T>builder()
+                .result(result)
                 .build();
     }
 }

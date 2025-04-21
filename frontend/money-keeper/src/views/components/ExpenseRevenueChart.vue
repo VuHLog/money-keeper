@@ -86,11 +86,11 @@ function setupChart() {
         chartSeries.value = [
             {
                 name: "Tổng chi",
-                data: data.value.map(item => item.totalExpense),
+                data: timeOption.value === "Tùy chọn" ? data.value.totalExpense : data.value.map(item => item.totalExpense),
             },
             {
                 name: "Tổng thu",
-                data: data.value.map(item => item.totalRevenue),
+                data: timeOption.value === "Tùy chọn" ? data.value.totalRevenue : data.value.map(item => item.totalRevenue),
             },
         ];
 
@@ -117,7 +117,7 @@ function setupChart() {
                 }
             }],
             xaxis: {
-                categories: data.value.map(item => timeOption.value+ " " + item.unit),
+                categories: timeOption.value === "Tùy chọn" ? [] : data.value.map(item => timeOption.value+ " " + item.unit),
             },
             yaxis: {
                 labels: {
@@ -175,34 +175,87 @@ function setupChart() {
             </div>
         </div>
         <div>
-            <div v-for="(item, index) in data" :key="index" class="mb-4">
-                <div class="d-flex justify-space-between">
-                    <span>{{ timeOption }} {{ item.unit }}</span>
-                    <div>
-                        <span class="text-primary">
-                            {{ formatCurrency(item.totalRevenue) }}
-                        </span>
-                    </div>
-                </div>
-                <div class="d-flex justify-space-between">
-                    <span></span>
-                    <div>
-                        <span class="text-red-accent-3">
-                            {{ formatCurrency(item.totalExpense) }}
-                        </span>
-                    </div>
-                </div>
-                <div class="d-flex justify-space-between">
-                    <span></span>
-                    <div>
-                        <span class="text-grey-darken-4 font-weight-bold">
-                            {{ formatCurrency(item.totalRevenue - item.totalExpense) }}
-                        </span>
-                    </div>
-                </div>
+            <div v-for="(item, index) in data" :key="index" class="mb-4" v-if="timeOption !== 'Tùy chọn'">
+                <v-card class="period-card" elevation="2" rounded="lg">
+                    <v-card-title class="text-h6 font-weight-medium">
+                        {{ timeOption }} {{ item.unit }}
+                    </v-card-title>
+                    <v-card-text>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex justify-space-between align-center">
+                                <span class="text-subtitle-1">Thu nhập</span>
+                                <span class="text-primary text-subtitle-1 font-weight-medium">
+                                    {{ formatCurrency(item.totalRevenue) }}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-space-between align-center">
+                                <span class="text-subtitle-1">Chi tiêu</span>
+                                <span class="text-red-accent-3 text-subtitle-1 font-weight-medium">
+                                    {{ formatCurrency(item.totalExpense) }}
+                                </span>
+                            </div>
+                            <v-divider class="my-2"></v-divider>
+                            <div class="d-flex justify-space-between align-center">
+                                <span class="text-subtitle-1 font-weight-bold"></span>
+                                <span class="text-grey-darken-4 text-subtitle-1 font-weight-bold">
+                                    {{ formatCurrency(item.totalRevenue - item.totalExpense) }}
+                                </span>
+                            </div>
+                        </div>
+                    </v-card-text>
+                </v-card>
+            </div>
+            <div class="mb-4" v-else>
+                <v-card class="period-card" elevation="2" rounded="lg">
+                    <v-card-text>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex justify-space-between align-center">
+                                <span class="text-subtitle-1">Thu nhập</span>
+                                <span class="text-primary text-subtitle-1 font-weight-medium">
+                                    {{ formatCurrency(data.totalRevenue) }}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-space-between align-center">
+                                <span class="text-subtitle-1">Chi tiêu</span>
+                                <span class="text-red-accent-3 text-subtitle-1 font-weight-medium">
+                                    {{ formatCurrency(data.totalExpense) }}
+                                </span>
+                            </div>
+                            <v-divider class="my-2"></v-divider>
+                            <div class="d-flex justify-space-between align-center">
+                                <span class="text-subtitle-1 font-weight-bold"></span>
+                                <span class="text-grey-darken-4 text-subtitle-1 font-weight-bold">
+                                    {{ formatCurrency(data.totalRevenue - data.totalExpense) }}
+                                </span>
+                            </div>
+                        </div>
+                    </v-card-text>
+                </v-card>
             </div>
         </div>
     </v-card>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.period-card {
+    height: 100%;
+    transition: transform 0.2s ease-in-out;
+    
+    &:hover {
+        transform: translateY(-4px);
+    }
+
+    .v-card-title {
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    }
+
+    .v-card-text {
+        padding: 16px;
+    }
+}
+
+.gap-2 {
+    gap: 8px;
+}
+</style>

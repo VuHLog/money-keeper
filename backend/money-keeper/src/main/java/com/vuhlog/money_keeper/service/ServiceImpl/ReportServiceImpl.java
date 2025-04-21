@@ -1,7 +1,7 @@
 package com.vuhlog.money_keeper.service.ServiceImpl;
 
 import com.vuhlog.money_keeper.common.UserCommon;
-import com.vuhlog.money_keeper.constants.TimeOptionCurrentFinanceType;
+import com.vuhlog.money_keeper.constants.TimeOptionExpenseRevenueSituationType;
 import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.dao.ExpenseRegularRepository;
 import com.vuhlog.money_keeper.dao.ReportExpenseRevenueRepository;
@@ -11,6 +11,8 @@ import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
 import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.*;
 import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
+import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByOptional;
+import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByPresent;
 import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForExpenseRevenueSituation;
 import com.vuhlog.money_keeper.entity.Users;
 import com.vuhlog.money_keeper.mapper.ReportExpenseRevenueMapper;
@@ -23,9 +25,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -91,21 +97,19 @@ public class ReportServiceImpl implements ReportService {
     public List<TotalExpenseRevenueForExpenseRevenueSituation> getTotalExpenseRevenueForExpenseRevenueSituation(ExpenseRevenueSituation req) {
         String timeOption = req.getTimeOption();
         List<TotalExpenseRevenueForExpenseRevenueSituation> totalExpenseRevenue = new ArrayList<>();
-        if(timeOption.equals(TimeOptionCurrentFinanceType.PRESENT.getType())){
-
-        }else if(timeOption.equals(TimeOptionCurrentFinanceType.MONTH.getType())){
+        if(timeOption.equals(TimeOptionExpenseRevenueSituationType.MONTH.getType())){
             totalExpenseRevenue = reportExpenseRevenueRepository.getReportExpenseRevenueByYearOrderByMonth(
                     userCommon.getMyUserInfo().getId(),
                     req.getBucketPaymentIds(),
                     req.getYear()
             );
-        }else if(timeOption.equals(TimeOptionCurrentFinanceType.QUARTER.getType())){
+        }else if(timeOption.equals(TimeOptionExpenseRevenueSituationType.QUARTER.getType())){
             totalExpenseRevenue = reportExpenseRevenueRepository.getReportExpenseRevenueByYearOrderByQuarter(
                     userCommon.getMyUserInfo().getId(),
                     req.getBucketPaymentIds(),
                     req.getYear()
             );
-        }else if(timeOption.equals(TimeOptionCurrentFinanceType.YEAR.getType())){
+        }else if(timeOption.equals(TimeOptionExpenseRevenueSituationType.YEAR.getType())){
             totalExpenseRevenue = reportExpenseRevenueRepository.getReportExpenseRevenueByYearOrderByYear(
                     userCommon.getMyUserInfo().getId(),
                     req.getBucketPaymentIds(),
@@ -115,6 +119,55 @@ public class ReportServiceImpl implements ReportService {
         }
 
         return totalExpenseRevenue;
+    }
+
+    @Override
+    public TotalExpenseRevenueByPresent getReportExpenseRevenueByPresent(ExpenseRevenueSituation req) {
+        return reportExpenseRevenueRepository.getReportExpenseRevenueByPresent(
+                userCommon.getMyUserInfo().getId(),
+                req.getBucketPaymentIds()
+        );
+    }
+
+    @Override
+    public TotalExpenseRevenueByOptional getReportExpenseRevenueByOptional(ExpenseRevenueSituation req) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDate startDate = LocalDate.parse(req.getStartDate(), formatter);
+        LocalDate endDate = LocalDate.parse(req.getEndDate(), formatter);
+
+        // start date -> end day of month
+        LocalDate endOfStartMonth = startDate.withDayOfMonth(startDate.lengthOfMonth());
+        if (!startDate.isEqual(endOfStartMonth)) {
+
+        }
+
+        // months in between
+        YearMonth current = YearMonth.from(startDate).plusMonths(1);
+        YearMonth endMonth = YearMonth.from(endDate);
+        LocalDate startDateBetween = null;
+        LocalDate endDateBetween = null;
+
+        // start day of month end date -> end date
+        LocalDate startDateOfMonthEndDate = null;
+
+        if(endMonth.isAfter(current)){
+            startDateBetween = current.atDay(1);
+            endDateBetween = endMonth.minusMonths(1).atEndOfMonth();
+
+            startDateOfMonthEndDate = endDate.withDayOfMonth(1);
+        }else {
+            endOfStartMonth = endDate;
+        }
+        return reportExpenseRevenueRepository.getReportExpenseRevenueByOptional(
+                userCommon.getMyUserInfo().getId(),
+                req.getBucketPaymentIds(),
+                startDate,
+                endOfStartMonth,
+                startDateBetween,
+                endDateBetween,
+                startDateOfMonthEndDate,
+                endDate
+        );
     }
 
     @Override
