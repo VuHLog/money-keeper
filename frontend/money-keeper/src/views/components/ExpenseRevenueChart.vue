@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useReportStore } from "@/store/ReportStore.js";
 import { useDictionaryBucketPaymentStore } from "@/store/DictionaryBucketPayment";
 import { formatCurrency } from "@/utils/format.js";
+import ExpenseRevenueModal from "@pages/Report/ExpenseRevenueSituation/ExpenseRevenueModal.vue";
 
 const props = defineProps({
     account: {
@@ -36,9 +37,7 @@ const props = defineProps({
     },
 });
 
-const { proxy } = getCurrentInstance();
-const router = useRouter();
-const route = useRoute();
+const showExpenseRevenueModal = ref(false);
 const reportStore = useReportStore();
 const bucketPaymentIds = computed(() => props.account.length > 0 ? props.account.join(",") : null);
 const timeOption = computed(() => props.timeOption);
@@ -50,6 +49,7 @@ const endYear = computed(() => props.endYear);
 const data = ref([]);
 const chartOptions = ref({});
 const chartSeries = ref([]);
+const itemIdSelected = ref("");
 
 onMounted(async () => {
     await getData();
@@ -68,7 +68,7 @@ async function getData() {
     );
 }
 
-watchEffect(async() => {
+watchEffect(async () => {
     data.value = await reportStore.getTotalExpenseRevenueForExpenseRevenueSituation(
         bucketPaymentIds.value,
         timeOption.value,
@@ -117,7 +117,7 @@ function setupChart() {
                 }
             }],
             xaxis: {
-                categories: timeOption.value === "Tùy chọn" ? [] : data.value.map(item => timeOption.value+ " " + item.unit),
+                categories: timeOption.value === "Tùy chọn" ? [] : data.value.map(item => timeOption.value + " " + item.unit),
             },
             yaxis: {
                 labels: {
@@ -175,8 +175,9 @@ function setupChart() {
             </div>
         </div>
         <div>
-            <div v-for="(item, index) in data" :key="index" class="mb-4" v-if="timeOption !== 'Tùy chọn'">
-                <v-card class="period-card" elevation="2" rounded="lg">
+            <div v-for="(item, index) in data" :key="index" class="mb-4">
+                <v-card class="period-card cursor-pointer" elevation="2" rounded="lg" v-if="timeOption !== 'Tùy chọn'"
+                    @click="showExpenseRevenueModal = true; itemIdSelected = item.id">
                     <v-card-title class="text-h6 font-weight-medium">
                         {{ timeOption }} {{ item.unit }}
                     </v-card-title>
@@ -203,10 +204,18 @@ function setupChart() {
                             </div>
                         </div>
                     </v-card-text>
+                    <v-dialog v-if="itemIdSelected === item.id" v-model="showExpenseRevenueModal" width="auto">
+                        <expense-revenue-modal :bucketPaymentIds="bucketPaymentIds" :timeOption="timeOption"
+                            :month="item.unit" :quarter="item.unit"
+                            :year="timeOption == 'Năm' ? item.unit : year"
+                            :startDate="startDate" :endDate="endDate"
+                            :totalExpense="item.totalExpense" :totalRevenue="item.totalRevenue"
+                        ></expense-revenue-modal>
+                    </v-dialog>
                 </v-card>
             </div>
-            <div class="mb-4" v-else>
-                <v-card class="period-card" elevation="2" rounded="lg">
+            <div class="mb-4" v-if="timeOption === 'Tùy chọn'">
+                <v-card class="cursor-pointer period-card" v-if="data.totalExpense || data.totalRevenue" elevation="2" rounded="lg" @click="showExpenseRevenueModal = true;">
                     <v-card-text>
                         <div class="d-flex flex-column gap-2">
                             <div class="d-flex justify-space-between align-center">
@@ -231,6 +240,12 @@ function setupChart() {
                         </div>
                     </v-card-text>
                 </v-card>
+                <v-dialog v-model="showExpenseRevenueModal" width="auto">
+                    <expense-revenue-modal :bucketPaymentIds="bucketPaymentIds" :timeOption="timeOption"
+                        :startDate="startDate" :endDate="endDate"
+                        :totalExpense="data.totalExpense" :totalRevenue="data.totalRevenue"
+                    ></expense-revenue-modal>
+                </v-dialog>
             </div>
         </div>
     </v-card>
@@ -240,9 +255,10 @@ function setupChart() {
 .period-card {
     height: 100%;
     transition: transform 0.2s ease-in-out;
-    
+
     &:hover {
         transform: translateY(-4px);
+        background-color: #EEEEEE;
     }
 
     .v-card-title {

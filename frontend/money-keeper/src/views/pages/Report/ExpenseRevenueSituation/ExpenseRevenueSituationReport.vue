@@ -4,6 +4,7 @@ import { formatCurrency } from "@/utils/Format";
 import ExpenseRevenueChart from "@/views/components/ExpenseRevenueChart.vue";
 import { useReportStore } from "@/store/ReportStore.js";
 import AccountModal from "@components/AccountModal.vue";
+import ExpenseRevenueModal from "@pages/Report/ExpenseRevenueSituation/ExpenseRevenueModal.vue";
 
 const reportStore = useReportStore();
 
@@ -14,10 +15,12 @@ const startDate = ref("");
 const endDate = ref("");
 const date = ref(new Date());
 const showAccountModal = ref(false);
+const showExpenseRevenueModal = ref(false);
 const account = ref([]);
 const yearRange = ref([new Date(), new Date()]);
 const dateRange = ref([new Date(), new Date()]);
 const data = ref(null);
+const presentOptionSelected = ref();
 
 onMounted(async () => {
     await getDataPresent();
@@ -108,9 +111,9 @@ function handleConfirmAccount() {
                 { title: 'Tuần này', revenue: data?.weekRevenue, expense: data?.weekExpense },
                 { title: 'Tháng này', revenue: data?.monthRevenue, expense: data?.monthExpense },
                 { title: 'Quý này', revenue: data?.quarterRevenue, expense: data?.quarterExpense },
-                { title: 'Năm này', revenue: data?.yearRevenue, expense: data?.yearExpense }
+                { title: 'Năm nay', revenue: data?.yearRevenue, expense: data?.yearExpense }
             ]" :key="index">
-                <v-card class="period-card" elevation="2" rounded="lg">
+                <v-card class="period-card" elevation="2" rounded="lg" @click="showExpenseRevenueModal = true; presentOptionSelected = period.title">
                     <v-card-title class="text-h6 font-weight-medium">{{ period.title }}</v-card-title>
                     <v-card-text>
                         <div class="d-flex flex-column gap-2">
@@ -136,6 +139,12 @@ function handleConfirmAccount() {
                         </div>
                     </v-card-text>
                 </v-card>
+                <v-dialog v-if="presentOptionSelected === period.title" v-model="showExpenseRevenueModal" width="auto">
+                    <expense-revenue-modal :bucketPaymentIds="account.length > 0 ? account.join(',') : null" :timeOption="timeOption"
+                                        :presentOption="period.title"
+                                        :totalExpense="period.expense" :totalRevenue="period.revenue"
+                    ></expense-revenue-modal>
+                </v-dialog>
             </v-col>
         </v-row>
     </v-container>

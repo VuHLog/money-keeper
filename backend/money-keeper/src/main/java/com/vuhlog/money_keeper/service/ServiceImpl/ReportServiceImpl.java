@@ -8,12 +8,10 @@ import com.vuhlog.money_keeper.dao.ReportExpenseRevenueRepository;
 import com.vuhlog.money_keeper.dao.RevenueRegularRepository;
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueSituation;
 import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
+import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueForCategoryRequest;
 import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.*;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByOptional;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByPresent;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForExpenseRevenueSituation;
+import com.vuhlog.money_keeper.dto.response.responseinterface.*;
 import com.vuhlog.money_keeper.entity.Users;
 import com.vuhlog.money_keeper.mapper.ReportExpenseRevenueMapper;
 import com.vuhlog.money_keeper.model.PeriodOfTime;
@@ -69,9 +67,9 @@ public class ReportServiceImpl implements ReportService {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(periodOfTime.getStartDate());
             int startMonth = calendar.get(Calendar.MONTH) + 1;
+            int year = calendar.get(Calendar.YEAR);
             calendar.setTime(periodOfTime.getEndDate());
             int endMonth = calendar.get(Calendar.MONTH) + 1;
-            int year = calendar.get(Calendar.YEAR);
             Object[] result = reportExpenseRevenueRepository.getTotalExpenseRevenueByMonthAndThisYear(startMonth, endMonth, year, userId, bucketPaymentIdsJoin, categoriesIdJoin);
             if(result != null && result.length > 0) {
                 Object[] object = (Object[]) result[0];
@@ -137,9 +135,6 @@ public class ReportServiceImpl implements ReportService {
 
         // start date -> end day of month
         LocalDate endOfStartMonth = startDate.withDayOfMonth(startDate.lengthOfMonth());
-        if (!startDate.isEqual(endOfStartMonth)) {
-
-        }
 
         // months in between
         YearMonth current = YearMonth.from(startDate).plusMonths(1);
@@ -159,6 +154,104 @@ public class ReportServiceImpl implements ReportService {
             endOfStartMonth = endDate;
         }
         return reportExpenseRevenueRepository.getReportExpenseRevenueByOptional(
+                userCommon.getMyUserInfo().getId(),
+                req.getBucketPaymentIds(),
+                startDate,
+                endOfStartMonth,
+                startDateBetween,
+                endDateBetween,
+                startDateOfMonthEndDate,
+                endDate
+        );
+    }
+
+    @Override
+    public List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategory(TotalExpenseRevenueForCategoryRequest req) {
+        String timeOption = req.getTimeOption();
+        List<TotalExpenseRevenueForCategory> totalExpenseRevenueForCategoryList= new ArrayList<>();
+        if(timeOption.equals(TimeOptionExpenseRevenueSituationType.MONTH.getType())){
+            totalExpenseRevenueForCategoryList = reportExpenseRevenueRepository.getTotalExpenseRevenueForCategory(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    req.getMonth(),
+                    null,
+                    req.getYear()
+            );
+        }else if(timeOption.equals(TimeOptionExpenseRevenueSituationType.QUARTER.getType())){
+            totalExpenseRevenueForCategoryList = reportExpenseRevenueRepository.getTotalExpenseRevenueForCategory(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    null,
+                    req.getQuarter(),
+                    req.getYear()
+            );
+        }else if(timeOption.equals(TimeOptionExpenseRevenueSituationType.YEAR.getType())){
+            totalExpenseRevenueForCategoryList = reportExpenseRevenueRepository.getTotalExpenseRevenueForCategory(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    null,
+                    null,
+                    req.getYear()
+            );
+        }
+
+        return totalExpenseRevenueForCategoryList;
+    }
+
+    @Override
+    public List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategoryByPresent(TotalExpenseRevenueForCategoryRequest req) {
+        String option = req.getPresentOption();
+        String bucketPaymentIdsJoin = req.getBucketPaymentIds();
+        Users user = userCommon.getMyUserInfo();
+        String userId = user.getId();
+        PeriodOfTime periodOfTime = TimestampUtil.handleTimeOption(option, null, null);
+        List<TotalExpenseRevenueForCategory> totalExpenseRevenueForCategoryList = new ArrayList<>();
+        if(option.equals(TimeOptionType.TODAY.getType()) || option.equals(TimeOptionType.THIS_WEEK.getType())){
+            return reportExpenseRevenueRepository.getTotalExpenseRevenueForCategoryByTodayOrThisWeek(userId, bucketPaymentIdsJoin, periodOfTime.getStartDate(), periodOfTime.getEndDate());
+        }else if (option.equals(TimeOptionType.THIS_MONTH.getType()) || option.equals(TimeOptionType.THIS_QUARTER.getType()) || option.equals(TimeOptionType.THIS_YEAR.getType())){
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(periodOfTime.getStartDate());
+            int startMonth = calendar.get(Calendar.MONTH) + 1;
+            int year = calendar.get(Calendar.YEAR);
+            calendar.setTime(periodOfTime.getEndDate());
+            int endMonth = calendar.get(Calendar.MONTH) + 1;
+            if(option.equals(TimeOptionType.THIS_YEAR.getType())){
+                totalExpenseRevenueForCategoryList = reportExpenseRevenueRepository.getTotalExpenseRevenueForCategoryByThisMonthOrThisQuarterOrThisYear(userId, bucketPaymentIdsJoin, null, null, year);
+            }else{
+                totalExpenseRevenueForCategoryList = reportExpenseRevenueRepository.getTotalExpenseRevenueForCategoryByThisMonthOrThisQuarterOrThisYear(userId, bucketPaymentIdsJoin, startMonth, endMonth, year);
+
+            }
+        }
+        return totalExpenseRevenueForCategoryList;
+    }
+
+    @Override
+    public List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategoryByOptional(TotalExpenseRevenueForCategoryRequest req) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDate startDate = LocalDate.parse(req.getStartDate(), formatter);
+        LocalDate endDate = LocalDate.parse(req.getEndDate(), formatter);
+
+        // start date -> end day of month
+        LocalDate endOfStartMonth = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+        // months in between
+        YearMonth current = YearMonth.from(startDate).plusMonths(1);
+        YearMonth endMonth = YearMonth.from(endDate);
+        LocalDate startDateBetween = null;
+        LocalDate endDateBetween = null;
+
+        // start day of month end date -> end date
+        LocalDate startDateOfMonthEndDate = null;
+
+        if(endMonth.isAfter(current)){
+            startDateBetween = current.atDay(1);
+            endDateBetween = endMonth.minusMonths(1).atEndOfMonth();
+
+            startDateOfMonthEndDate = endDate.withDayOfMonth(1);
+        }else {
+            endOfStartMonth = endDate;
+        }
+        return reportExpenseRevenueRepository.getTotalExpenseRevenueForCategoryByOptional(
                 userCommon.getMyUserInfo().getId(),
                 req.getBucketPaymentIds(),
                 startDate,

@@ -58,12 +58,13 @@ public class TimestampUtil {
         if(timeOption.equals(TimeOptionType.TODAY.getType())){
             LocalDateTime startDateTimeToday = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.getMonth(), localDateTimeNow.getDayOfMonth(), 0, 0, 0);
             periodOfTime.setStartDate(Timestamp.valueOf(startDateTimeToday));
-            LocalDateTime endDateTimeToday = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.getMonth(), localDateTimeNow.getDayOfMonth(), 23, 59, 59);
+            LocalDateTime nextDay = localDateTimeNow.plusDays(1);
+            LocalDateTime endDateTimeToday = LocalDateTime.of(nextDay.getYear(), nextDay.getMonth(), nextDay.getDayOfMonth(), 0, 0, 0);
             periodOfTime.setEndDate(Timestamp.valueOf(endDateTimeToday));
         }else if(timeOption.equalsIgnoreCase(TimeOptionType.THIS_WEEK.getType())){
             LocalDateTime firstDayOfWeek = localDateTimeNow.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).withHour(0).withMinute(0).withSecond(0);
             periodOfTime.setStartDate(Timestamp.valueOf(firstDayOfWeek));
-            LocalDateTime lastDayOfWeek = localDateTimeNow.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).withHour(23).withMinute(59).withSecond(59);
+            LocalDateTime lastDayOfWeek = localDateTimeNow.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).plusDays(1).withHour(0).withMinute(0).withSecond(0);
             periodOfTime.setEndDate(Timestamp.valueOf(lastDayOfWeek));
         }else if(timeOption.equalsIgnoreCase(TimeOptionType.LAST_30_DAYS.getType())){
             LocalDateTime localDateTimeLast30Days = localDateTimeNow.minusDays(30);
@@ -73,19 +74,21 @@ public class TimestampUtil {
             LocalDateTime startDateTimeThisMonth = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.getMonth(), 1, 0, 0, 0);
             periodOfTime.setStartDate(Timestamp.valueOf(startDateTimeThisMonth));
             LocalDateTime endDateTimeThisMonth = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.getMonth(), 1, 23, 59, 59).with(TemporalAdjusters.lastDayOfMonth());
+            endDateTimeThisMonth = endDateTimeThisMonth.plusDays(1).withHour(0).withMinute(0).withSecond(0);
             periodOfTime.setEndDate(Timestamp.valueOf(endDateTimeThisMonth));
         } else if(timeOption.equalsIgnoreCase(TimeOptionType.LAST_MONTH.getType())){
-            LocalDateTime startDateTimeThisMonth = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.minusMonths(1).getMonth(), 1, 0, 0, 0);
-            periodOfTime.setStartDate(Timestamp.valueOf(startDateTimeThisMonth));
-            LocalDateTime endDateTimeThisMonth = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.minusMonths(1).getMonth(), 1, 23, 59, 59).with(TemporalAdjusters.lastDayOfMonth());
-            periodOfTime.setEndDate(Timestamp.valueOf(endDateTimeThisMonth));
+            LocalDateTime startDateTimeLastMonth = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.minusMonths(1).getMonth(), 1, 0, 0, 0);
+            periodOfTime.setStartDate(Timestamp.valueOf(startDateTimeLastMonth));
+            LocalDateTime endDateTimeLastMonth = LocalDateTime.of(localDateTimeNow.getYear(), localDateTimeNow.minusMonths(1).getMonth(), 1, 23, 59, 59).with(TemporalAdjusters.lastDayOfMonth());
+            endDateTimeLastMonth = endDateTimeLastMonth.plusDays(1).withHour(0).withMinute(0).withSecond(0);
+            periodOfTime.setEndDate(Timestamp.valueOf(endDateTimeLastMonth));
         } else if(timeOption.equalsIgnoreCase(TimeOptionType.THIS_QUARTER.getType())){
             int currentQuarter = (localDateTimeNow.getMonthValue() - 1) / 3 + 1;
             int year = localDateTimeNow.getYear();
             int startMonth = (currentQuarter - 1) * 3 + 1; //tháng bắt đầu của quý này
             int endMonth = startMonth + 2;
             LocalDateTime startDateTime = LocalDateTime.of(year, startMonth, 1,0,0,0);
-            LocalDateTime endDateTime = LocalDateTime.of(year, endMonth, 1,23,59,59).with(TemporalAdjusters.lastDayOfMonth());
+            LocalDateTime endDateTime = LocalDateTime.of(year, endMonth, 1,23,59,59).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1).withHour(0).withMinute(0).withSecond(0);
             periodOfTime.setStartDate(Timestamp.valueOf(startDateTime));
             periodOfTime.setEndDate(Timestamp.valueOf(endDateTime));
         }else if (timeOption.equalsIgnoreCase(TimeOptionType.LAST_QUARTER.getType())){
@@ -100,19 +103,19 @@ public class TimestampUtil {
             int startMonth = (previousQuarter - 1) * 3 + 1; //tháng bắt đầu của quý trước
             int endMonth = startMonth + 2;
             LocalDateTime startDateTime = LocalDateTime.of(year, startMonth, 1,0,0,0);
-            LocalDateTime endDateTime = LocalDateTime.of(year, endMonth, 1,23,59,59).with(TemporalAdjusters.lastDayOfMonth());
+            LocalDateTime endDateTime = LocalDateTime.of(year, endMonth, 1,23,59,59).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1).withHour(0).withMinute(0).withSecond(0);
             periodOfTime.setStartDate(Timestamp.valueOf(startDateTime));
             periodOfTime.setEndDate(Timestamp.valueOf(endDateTime));
         } else if (timeOption.equalsIgnoreCase(TimeOptionType.THIS_YEAR.getType())) {
             int year = localDateTimeNow.getYear();
             LocalDateTime startDateTime = LocalDateTime.of(year, 1, 1, 0, 0, 0);
-            LocalDateTime endDateTime = LocalDateTime.of(year, 12, 31, 23,59,59).with(TemporalAdjusters.lastDayOfMonth());
+            LocalDateTime endDateTime = LocalDateTime.of(year, 12, 31, 23,59,59).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1).withHour(0).withMinute(0).withSecond(0);
             periodOfTime.setStartDate(Timestamp.valueOf(startDateTime));
             periodOfTime.setEndDate(Timestamp.valueOf(endDateTime));
         }else if (timeOption.equalsIgnoreCase(TimeOptionType.LAST_YEAR.getType())) {
             int year = localDateTimeNow.getYear() - 1;
             LocalDateTime startDateTime = LocalDateTime.of(year, 1, 1, 0, 0, 0);
-            LocalDateTime endDateTime = LocalDateTime.of(year, 12, 31, 23,59,59).with(TemporalAdjusters.lastDayOfMonth());
+            LocalDateTime endDateTime = LocalDateTime.of(year, 12, 31, 23,59,59).with(TemporalAdjusters.lastDayOfMonth()).plusDays(1).withHour(0).withMinute(0).withSecond(0);
             periodOfTime.setStartDate(Timestamp.valueOf(startDateTime));
             periodOfTime.setEndDate(Timestamp.valueOf(endDateTime));
         }

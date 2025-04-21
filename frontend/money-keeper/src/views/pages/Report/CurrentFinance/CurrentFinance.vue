@@ -39,15 +39,19 @@ async function getData() {
             <table class="details-table">
                 <tbody>
                     <tr v-for="(item, index) in bucketPayments" :key="index">
-                        <td class="detail-item">
-                            <v-avatar>
-                                <img class="icon-size" :src="item.iconUrl" :alt="item.accountName" />
-                            </v-avatar>
-                            <span class="name">{{ item.accountName }}</span>
-                        </td>
-                        <td class="text-right" :class="item.balance < 0 ? 'text-red-accent-3' : 'text-primary'">
-                            {{ formatCurrency(item.balance) }}
-                        </td>
+                        <router-link class="text-decoration-none" :to="'/account/info/' + item.id">
+                            <td class="detail-item justify-space-between">
+                                <div class="d-flex align-center">
+                                    <v-avatar>
+                                        <img class="icon-size" :src="item.iconUrl" :alt="item.accountName" />
+                                    </v-avatar>
+                                    <span class="name">{{ item.accountName }}</span>
+                                </div>
+                                <div :class="item.balance < 0 ? 'text-red-accent-3' : 'text-primary'">
+                                    {{ formatCurrency(item.balance) }}
+                                </div>
+                            </td>
+                        </router-link>
                     </tr>
                 </tbody>
             </table>
@@ -128,6 +132,9 @@ async function getData() {
     display: flex;
     align-items: center;
     gap: 8px;
+    &:hover {
+        background-color: #EEEEEE;
+    }
 }
 
 .icon {

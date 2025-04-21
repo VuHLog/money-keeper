@@ -76,5 +76,22 @@ export const useReportStore = defineStore("report", {
       })
       return response;
     },
+    async getTotalExpenseRevenueForCategory(bucketPaymentIds, timeOption, presentOption, month, quarter, year, startDate, endDate){
+      let response = null;
+      const request = {
+        bucketPaymentIds: bucketPaymentIds,
+        timeOption: timeOption,
+        presentOption: presentOption,
+        month: month,
+        quarter: quarter,
+        year: year,
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate)
+      }
+      await base.post("/report/expense-revenue-for-category", request).then((res) => {
+        response = res.result;
+      })
+      return response;
+    },
   },
 });

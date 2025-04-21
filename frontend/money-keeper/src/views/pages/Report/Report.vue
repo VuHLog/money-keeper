@@ -2,8 +2,8 @@
 import { ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ReportList } from "@/constants/ReportList";
-import CurrentFinance from "@pages/Report/CurrentFinance.vue";
-import ExpenseRevenueSituationReport from "@pages/Report/ExpenseRevenueSituationReport.vue";
+import CurrentFinance from "@pages/Report/CurrentFinance/CurrentFinance.vue";
+import ExpenseRevenueSituationReport from "@pages/Report/ExpenseRevenueSituation/ExpenseRevenueSituationReport.vue";
 
 const route = useRoute();
 const report = ref("Tài chính hiện tại");

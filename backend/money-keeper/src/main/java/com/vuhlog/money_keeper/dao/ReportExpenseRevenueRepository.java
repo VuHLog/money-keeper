@@ -2,12 +2,14 @@ package com.vuhlog.money_keeper.dao;
 
 import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByOptional;
 import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByPresent;
+import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForCategory;
 import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForExpenseRevenueSituation;
 import com.vuhlog.money_keeper.entity.ReportExpenseRevenue;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -179,7 +181,7 @@ public interface ReportExpenseRevenueRepository extends JpaRepository<ReportExpe
             "\tFROM report_expense_revenue rer\n" +
             "\tWHERE rer.user_id = :userId\n" +
             "\tAND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id,:bucketPaymentIds))\n" +
-            "\tAND (rer.`month` BETWEEN MONTH(:startDateBetween) AND MONTH(:endDateBetween)) AND (rer.`year` BETWEEN YEAR(:startDateBetween) AND YEAR(:endDateBetween) )\n" +
+            "\tAND (DATE(CONCAT(year, '-', LPAD(month, 2, '0'), '-01')) BETWEEN :startDateBetween AND :endDateBetween)\n" +
             ") AS derived", nativeQuery = true)
     TotalExpenseRevenueByOptional getReportExpenseRevenueByOptional(
             @Param("userId") String userId,
@@ -191,4 +193,138 @@ public interface ReportExpenseRevenueRepository extends JpaRepository<ReportExpe
             @Param("startDateOfMonthEndDate") LocalDate startDateOfMonthEndDate,
             @Param("endDate") LocalDate endDate
             );
+
+    @Query(value = "SELECT COALESCE(SUM(rer.total_expense), 0) AS totalExpense, 0 AS totalRevenue, rer.type, de.name, de.icon_url AS iconUrl\n" +
+            "FROM report_expense_revenue rer\n" +
+            "JOIN dictionary_expense de ON (rer.type = 'expense' AND rer.category_id = de.id)\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (:month is null or rer.month = :month) AND (:quarter IS NULL OR CEIL(rer.month / 3) = :quarter) AND (:year IS NULL OR rer.year = :year)\n" +
+            "GROUP BY rer.type, de.id, de.name, de.icon_url\n" +
+            "UNION ALL\n" +
+            "SELECT 0 AS totalExpense, COALESCE(SUM(rer.total_revenue), 0) AS totalRevenue, rer.type, dr.name, dr.icon_url\n" +
+            "FROM report_expense_revenue rer\n" +
+            "JOIN dictionary_revenue dr ON (rer.type = 'revenue' AND rer.category_id = dr.id)\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (:month is null or rer.month = :month) AND (:quarter IS NULL OR CEIL(rer.month / 3) = :quarter) AND (:year IS NULL OR rer.year = :year)\n" +
+            "GROUP BY rer.type, dr.id, dr.name, dr.icon_url", nativeQuery = true)
+    List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategory(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("month") Integer month,
+            @Param("quarter") Integer quarter,
+            @Param("year") Integer year
+    );
+
+    @Query(value = "SELECT COALESCE(SUM(er.amount), 0) AS totalExpense, 0 AS totalRevenue, 'expense' as type, de.name, de.icon_url AS iconUrl\n" +
+            "FROM expense_regular er\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = er.dictionary_bucket_payment_id\n" +
+            "JOIN dictionary_expense de ON de.id = er.dictionary_expense_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(er.dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (:startDate IS NULL OR er.expense_date >= :startDate) AND (:endDate IS NULL OR er.expense_date <= :endDate)\n" +
+            "GROUP BY de.id, de.name, de.icon_url\n" +
+            "UNION ALL\n" +
+            "SELECT 0 AS totalExpense, COALESCE(SUM(rr.amount), 0) AS totalRevenue, 'revenue' as type, dr.name, dr.icon_url AS iconUrl\n" +
+            "FROM revenue_regular rr\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = rr.dictionary_bucket_payment_id\n" +
+            "JOIN dictionary_revenue dr ON dr.id = rr.dictionary_revenue_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rr.dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (:startDate IS NULL OR rr.revenue_date >= :startDate) AND (:endDate IS NULL OR rr.revenue_date <= :endDate)\n" +
+            "GROUP BY dr.id, dr.name, dr.icon_url", nativeQuery = true)
+    List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategoryByTodayOrThisWeek(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("startDate") Timestamp startDate,
+            @Param("endDate") Timestamp endDate
+    );
+
+    @Query(value = "SELECT COALESCE(SUM(rer.total_expense), 0) AS totalExpense, 0 AS totalRevenue, rer.type, de.name, de.icon_url AS iconUrl\n" +
+            "FROM report_expense_revenue rer\n" +
+            "JOIN dictionary_expense de ON (rer.type = 'expense' AND rer.category_id = de.id)\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (:startMonth IS NULL OR rer.month >= :startMonth) AND (:endMonth IS NULL OR rer.month <= :endMonth)\n" +
+            "AND (:year IS NULL OR YEAR = :year) \n" +
+            "GROUP BY rer.type, de.id, de.name, de.icon_url\n" +
+            "UNION ALL\n" +
+            "SELECT 0 AS totalExpense, COALESCE(SUM(rer.total_revenue), 0) AS totalRevenue, rer.type, dr.name, dr.icon_url\n" +
+            "FROM report_expense_revenue rer\n" +
+            "JOIN dictionary_revenue dr ON (rer.type = 'revenue' AND rer.category_id = dr.id)\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (:startMonth IS NULL OR rer.month >= :startMonth) AND (:endMonth IS NULL OR rer.month <= :endMonth)\n" +
+            "AND (:year IS NULL OR YEAR = :year) \n" +
+            "GROUP BY rer.type, dr.id, dr.name, dr.icon_url", nativeQuery = true)
+    List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategoryByThisMonthOrThisQuarterOrThisYear(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("startMonth")Integer startMonth,
+            @Param("endMonth") Integer endMonth,
+            @Param("year") Integer year
+    );
+
+    @Query(value="SELECT COALESCE(SUM(amount), 0) AS totalExpense, 0 AS totalRevenue, 'expense' as type, de.name, de.icon_url AS iconUrl\n" +
+            "FROM expense_regular er\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = er.dictionary_bucket_payment_id\n" +
+            "JOIN dictionary_expense de ON de.id = er.dictionary_expense_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(er.dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "and DATE(er.expense_date) >= :startDate AND DATE(er.expense_date) <= :endOfStartMonth\n" +
+            "GROUP BY de.id, de.name, de.icon_url\n" +
+            "UNION ALL\n" +
+            "SELECT COALESCE(SUM(amount), 0) AS totalExpense, 0 AS totalRevenue, 'expense' as type, de.name, de.icon_url AS iconUrl\n" +
+            "FROM expense_regular er\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = er.dictionary_bucket_payment_id\n" +
+            "JOIN dictionary_expense de ON de.id = er.dictionary_expense_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(er.dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND DATE(er.expense_date) >= :startDateOfMonthEndDate AND DATE(er.expense_date) <= :endDate\n" +
+            "GROUP BY de.id, de.name, de.icon_url\n" +
+            "UNION ALL\n" +
+            "SELECT 0 AS totalExpense, COALESCE(SUM(amount), 0) AS totalRevenue, 'revenue' as type, dr.name, dr.icon_url AS iconUrl\n" +
+            "FROM revenue_regular rr\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = rr.dictionary_bucket_payment_id\n" +
+            "JOIN dictionary_revenue dr ON dr.id = rr.dictionary_revenue_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rr.dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND DATE(rr.revenue_date) >= :startDate AND DATE(rr.revenue_date) <= :endOfStartMonth\n" +
+            "GROUP BY dr.id, dr.name, dr.icon_url\n" +
+            "UNION ALL\n" +
+            "SELECT 0 AS totalExpense, COALESCE(SUM(amount), 0) AS totalRevenue, 'revenue' as type, dr.name, dr.icon_url AS iconUrl\n" +
+            "FROM revenue_regular rr\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = rr.dictionary_bucket_payment_id\n" +
+            "JOIN dictionary_revenue dr ON dr.id = rr.dictionary_revenue_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rr.dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND DATE(rr.revenue_date) >= :startDateOfMonthEndDate AND DATE(rr.revenue_date) <= :endDate\n" +
+            "GROUP BY dr.id, dr.name, dr.icon_url\n" +
+            "UNION ALL\n" +
+            "SELECT COALESCE(SUM(rer.total_expense), 0) AS totalExpense, 0 AS totalRevenue, rer.type, de.name, de.icon_url AS iconUrl\n" +
+            "FROM report_expense_revenue rer\n" +
+            "JOIN dictionary_expense de ON (rer.type = 'expense' AND rer.category_id = de.id)\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (DATE(CONCAT(year, '-', LPAD(month, 2, '0'), '-01')) BETWEEN :startDateBetween AND :endDateBetween)\n" +
+            "GROUP BY rer.type, de.id, de.name, de.icon_url\n" +
+            "UNION ALL\n" +
+            "SELECT 0 AS totalExpense, COALESCE(SUM(rer.total_revenue), 0) AS totalRevenue, rer.type, dr.name, dr.icon_url AS iconUrl\n" +
+            "FROM report_expense_revenue rer\n" +
+            "JOIN dictionary_revenue dr ON (rer.type = 'revenue' AND rer.category_id = dr.id)\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND (:bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (DATE(CONCAT(year, '-', LPAD(month, 2, '0'), '-01')) BETWEEN :startDateBetween AND :endDateBetween)\n" +
+            "GROUP BY rer.type, dr.id, dr.name, dr.icon_url", nativeQuery = true)
+    List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategoryByOptional(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("startDate") LocalDate startDate,
+            @Param("endOfStartMonth") LocalDate endOfStartMonth,
+            @Param("startDateBetween") LocalDate startDateBetween,
+            @Param("endDateBetween") LocalDate endDateBetween,
+            @Param("startDateOfMonthEndDate") LocalDate startDateOfMonthEndDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

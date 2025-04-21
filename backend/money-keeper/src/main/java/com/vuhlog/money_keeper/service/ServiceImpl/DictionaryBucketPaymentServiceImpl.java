@@ -2,7 +2,6 @@ package com.vuhlog.money_keeper.service.ServiceImpl;
 
 import com.vuhlog.money_keeper.common.UserCommon;
 import com.vuhlog.money_keeper.constants.DictionaryBucketPaymentType;
-import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.dao.BankRepository;
 import com.vuhlog.money_keeper.dao.DictionaryBucketPaymentRepository;
 import com.vuhlog.money_keeper.dao.UsersRepository;
@@ -34,7 +33,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 

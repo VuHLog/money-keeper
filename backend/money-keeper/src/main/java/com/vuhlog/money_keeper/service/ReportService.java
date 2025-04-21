@@ -2,12 +2,10 @@ package com.vuhlog.money_keeper.service;
 
 import com.vuhlog.money_keeper.dto.request.ExpenseRevenueSituation;
 import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
+import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueForCategoryRequest;
 import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
 import com.vuhlog.money_keeper.dto.response.TotalExpenseRevenueResponse;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByOptional;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByPresent;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForExpenseRevenueSituation;
+import com.vuhlog.money_keeper.dto.response.responseinterface.*;
 
 import java.util.List;
 
@@ -15,6 +13,12 @@ public interface ReportService {
     TotalExpenseRevenueResponse getTotalExpenseRevenueByTimeOption(TotalExpenseRevenueRequest req);
 
     List<TotalExpenseRevenueForExpenseRevenueSituation> getTotalExpenseRevenueForExpenseRevenueSituation(ExpenseRevenueSituation req);
+
+    List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategory(TotalExpenseRevenueForCategoryRequest req);
+
+    List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategoryByPresent(TotalExpenseRevenueForCategoryRequest req);
+
+    List<TotalExpenseRevenueForCategory> getTotalExpenseRevenueForCategoryByOptional(TotalExpenseRevenueForCategoryRequest req);
 
     List<ReportCategoryResponse> getTotalExpenseByTimeOptionAndCategory(TotalExpenseRevenueRequest req);
 

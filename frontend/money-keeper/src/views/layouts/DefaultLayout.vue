@@ -50,6 +50,11 @@ const isLoading = computed(() => store.isLoading);
           <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
           <v-tooltip activator="parent" location="start">Ghi thu chi</v-tooltip>
         </router-link>
+        <router-link v-else :to="{path: '/expense/create', query: { redirect: route.fullPath }}"
+        class="feature-item bg-white rounded-circle flex-center cursor-pointer hover-opacity z-index-99">
+          <font-awesome-icon class="text-primary" :icon="['fas', 'plus']" />
+          <v-tooltip activator="parent" location="start">Ghi thu chi</v-tooltip>
+        </router-link>
       </template>
     </div>
   </div>
