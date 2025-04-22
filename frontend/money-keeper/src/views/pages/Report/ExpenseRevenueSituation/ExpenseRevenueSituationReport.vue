@@ -140,7 +140,7 @@ function handleConfirmAccount() {
                     </v-card-text>
                 </v-card>
                 <v-dialog v-if="presentOptionSelected === period.title" v-model="showExpenseRevenueModal" width="auto">
-                    <expense-revenue-modal :bucketPaymentIds="account.length > 0 ? account.join(',') : null" :timeOption="timeOption"
+                    <expense-revenue-modal :title="presentOptionSelected" :bucketPaymentIds="account.length > 0 ? account.join(',') : null" :timeOption="timeOption"
                                         :presentOption="period.title"
                                         :totalExpense="period.expense" :totalRevenue="period.revenue"
                     ></expense-revenue-modal>

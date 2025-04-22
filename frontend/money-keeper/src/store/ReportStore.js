@@ -93,5 +93,38 @@ export const useReportStore = defineStore("report", {
       })
       return response;
     },
+    async getTotalExpenseForSpendingAnalysis(timeOption, bucketPaymentIds, categoriesId, startDate, endDate, startMonth, endMonth, startYear, endYear){
+      let response = null;
+      const request = {
+        timeOption: timeOption,
+        bucketPaymentIds: bucketPaymentIds,
+        categoriesId: categoriesId,
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate),
+        startMonth: formatDate(startMonth),
+        endMonth: formatDate(endMonth),
+        startYear: startYear,
+        endYear: endYear
+      }
+      await base.post("/report/spending-analysis", request).then((res) => {
+        response = res.result;
+      })
+      return response;
+    },
+    async getTotalExpenseExactByTime(timeOption, bucketPaymentIds, categoriesId, date, month, year){
+      let response = null;
+      const request = {
+        timeOption: timeOption,
+        bucketPaymentIds: bucketPaymentIds,
+        categoriesId: categoriesId,
+        date: formatDate(date),
+        month: month,
+        year: year,
+      }
+      await base.post("/report/total-expense-exact-time", request).then((res) => {
+        response = res.result;
+      })
+      return response;
+    },
   },
 });

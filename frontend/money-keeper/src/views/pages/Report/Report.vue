@@ -4,6 +4,8 @@ import { useRoute } from "vue-router";
 import { ReportList } from "@/constants/ReportList";
 import CurrentFinance from "@pages/Report/CurrentFinance/CurrentFinance.vue";
 import ExpenseRevenueSituationReport from "@pages/Report/ExpenseRevenueSituation/ExpenseRevenueSituationReport.vue";
+import SpendingAnalysisReport from "@pages/Report/SpendingAnalysis/SpendingAnalysisReport.vue";
+
 
 const route = useRoute();
 const report = ref("Tài chính hiện tại");
@@ -47,6 +49,7 @@ onMounted(async () => {
     <v-container fluid class="transaction-section">
         <CurrentFinance v-if="report === 'Tài chính hiện tại'" />
         <ExpenseRevenueSituationReport v-else-if="report === 'Tình hình thu chi'" />
+        <SpendingAnalysisReport v-else-if="report === 'Phân tích chi tiêu'" />
     </v-container>
   </div>
 </template>

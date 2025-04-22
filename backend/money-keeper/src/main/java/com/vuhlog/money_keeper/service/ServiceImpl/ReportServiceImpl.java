@@ -2,14 +2,12 @@ package com.vuhlog.money_keeper.service.ServiceImpl;
 
 import com.vuhlog.money_keeper.common.UserCommon;
 import com.vuhlog.money_keeper.constants.TimeOptionExpenseRevenueSituationType;
+import com.vuhlog.money_keeper.constants.TimeOptionSpendingAnalysisType;
 import com.vuhlog.money_keeper.constants.TimeOptionType;
 import com.vuhlog.money_keeper.dao.ExpenseRegularRepository;
 import com.vuhlog.money_keeper.dao.ReportExpenseRevenueRepository;
 import com.vuhlog.money_keeper.dao.RevenueRegularRepository;
-import com.vuhlog.money_keeper.dto.request.ExpenseRevenueSituation;
-import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
-import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueForCategoryRequest;
-import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
+import com.vuhlog.money_keeper.dto.request.*;
 import com.vuhlog.money_keeper.dto.response.*;
 import com.vuhlog.money_keeper.dto.response.responseinterface.*;
 import com.vuhlog.money_keeper.entity.Users;
@@ -163,6 +161,78 @@ public class ReportServiceImpl implements ReportService {
                 startDateOfMonthEndDate,
                 endDate
         );
+    }
+
+    @Override
+    public List<TotalExpenseForSpendingAnalysis> getTotalExpenseForSpendingAnalysis(SpendingAnalysisReportRequest req) {
+        String timeOption = req.getTimeOption();
+        String userId = userCommon.getMyUserInfo().getId();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDate startDate = LocalDate.parse(req.getStartDate(), formatter);
+        LocalDate endDate = LocalDate.parse(req.getEndDate(), formatter);
+        List<TotalExpenseForSpendingAnalysis> totalExpenseForSpendingAnalysisList = new ArrayList<>();
+        if(timeOption.equals(TimeOptionSpendingAnalysisType.DAY.getType())){
+            totalExpenseForSpendingAnalysisList = reportExpenseRevenueRepository.getTotalExpenseForSpendingAnalysisByDay(
+                    userId,
+                    req.getBucketPaymentIds(),
+                    req.getCategoriesId(),
+                    startDate,
+                    endDate
+            );
+        }else if(timeOption.equals(TimeOptionSpendingAnalysisType.MONTH.getType())){
+            LocalDate startMonth = LocalDate.parse(req.getStartMonth(), formatter);
+            startMonth = startMonth.withDayOfMonth(1);
+            LocalDate endMonth = LocalDate.parse(req.getEndMonth(), formatter);
+            endMonth = endMonth.withDayOfMonth(endMonth.lengthOfMonth());
+            totalExpenseForSpendingAnalysisList = reportExpenseRevenueRepository.getTotalExpenseForSpendingAnalysisByMonth(
+                    userId,
+                    req.getBucketPaymentIds(),
+                    req.getCategoriesId(),
+                    startMonth,
+                    endMonth
+            );
+        } else if (timeOption.equals(TimeOptionSpendingAnalysisType.YEAR.getType())) {
+            totalExpenseForSpendingAnalysisList = reportExpenseRevenueRepository.getTotalExpenseForSpendingAnalysisByYear(
+                    userId,
+                    req.getBucketPaymentIds(),
+                    req.getCategoriesId(),
+                    req.getStartYear(),
+                    req.getEndYear()
+            );
+        }
+        return totalExpenseForSpendingAnalysisList;
+    }
+
+    @Override
+    public List<TotalExpenseByCategory> getTotalExpenseExactByTime(TotalExpenseExactRequest req) {
+        String timeOption = req.getTimeOption();
+        List<TotalExpenseByCategory> totalExpenseByCategoryList = new ArrayList<>();
+        if(timeOption.equals(TimeOptionSpendingAnalysisType.DAY.getType())){
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate date = LocalDate.parse(req.getDate(), formatter);
+            totalExpenseByCategoryList = reportExpenseRevenueRepository.getTotalExpenseExactByDate(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    req.getCategoriesId(),
+                    date
+            );
+        }else if (timeOption.equals(TimeOptionSpendingAnalysisType.MONTH.getType())){
+            totalExpenseByCategoryList = reportExpenseRevenueRepository.getTotalExpenseExactByMonth(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    req.getCategoriesId(),
+                    req.getMonth(),
+                    req.getYear()
+            );
+        } else if (timeOption.equals(TimeOptionSpendingAnalysisType.YEAR.getType())) {
+            totalExpenseByCategoryList = reportExpenseRevenueRepository.getTotalExpenseExactByYear(
+                    userCommon.getMyUserInfo().getId(),
+                    req.getBucketPaymentIds(),
+                    req.getCategoriesId(),
+                    req.getYear()
+            );
+        }
+        return totalExpenseByCategoryList;
     }
 
     @Override

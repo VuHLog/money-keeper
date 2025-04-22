@@ -205,7 +205,7 @@ function setupChart() {
                         </div>
                     </v-card-text>
                     <v-dialog v-if="itemIdSelected === item.id" v-model="showExpenseRevenueModal" width="auto">
-                        <expense-revenue-modal :bucketPaymentIds="bucketPaymentIds" :timeOption="timeOption"
+                        <expense-revenue-modal :title="timeOption + ' ' + item.unit" :bucketPaymentIds="bucketPaymentIds" :timeOption="timeOption"
                             :month="item.unit" :quarter="item.unit"
                             :year="timeOption == 'Năm' ? item.unit : year"
                             :startDate="startDate" :endDate="endDate"
@@ -241,7 +241,7 @@ function setupChart() {
                     </v-card-text>
                 </v-card>
                 <v-dialog v-model="showExpenseRevenueModal" width="auto">
-                    <expense-revenue-modal :bucketPaymentIds="bucketPaymentIds" :timeOption="timeOption"
+                    <expense-revenue-modal :title="startDate + ' -> ' + endDate" :bucketPaymentIds="bucketPaymentIds" :timeOption="timeOption"
                         :startDate="startDate" :endDate="endDate"
                         :totalExpense="data.totalExpense" :totalRevenue="data.totalRevenue"
                     ></expense-revenue-modal>

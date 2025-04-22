@@ -1,15 +1,10 @@
 package com.vuhlog.money_keeper.controller;
 
 import com.vuhlog.money_keeper.constants.TimeOptionExpenseRevenueSituationType;
-import com.vuhlog.money_keeper.dto.request.ExpenseRevenueSituation;
-import com.vuhlog.money_keeper.dto.request.ReportCategoryResponse;
-import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueForCategoryRequest;
-import com.vuhlog.money_keeper.dto.request.TotalExpenseRevenueRequest;
+import com.vuhlog.money_keeper.dto.request.*;
 import com.vuhlog.money_keeper.dto.response.ApiResponse;
 import com.vuhlog.money_keeper.dto.response.TotalExpenseRevenueResponse;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseByExpenseLimit;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForCategory;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForExpenseRevenueSituation;
+import com.vuhlog.money_keeper.dto.response.responseinterface.*;
 import com.vuhlog.money_keeper.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -83,6 +78,20 @@ public class ReportController {
         }
         return ApiResponse.<List<TotalExpenseRevenueForCategory>>builder()
                 .result(result)
+                .build();
+    }
+
+    @PostMapping("/spending-analysis")
+    public ApiResponse<List<TotalExpenseForSpendingAnalysis>> getTotalExpenseRevenueForSpendingAnalysis(@RequestBody SpendingAnalysisReportRequest req) {
+        return ApiResponse.<List<TotalExpenseForSpendingAnalysis>>builder()
+                .result(reportService.getTotalExpenseForSpendingAnalysis(req))
+                .build();
+    }
+
+    @PostMapping("/total-expense-exact-time")
+    public ApiResponse<List<TotalExpenseByCategory>> getTotalExpenseExactByTime(@RequestBody TotalExpenseExactRequest req) {
+        return ApiResponse.<List<TotalExpenseByCategory>>builder()
+                .result(reportService.getTotalExpenseExactByTime(req))
                 .build();
     }
 }

@@ -1,9 +1,6 @@
 package com.vuhlog.money_keeper.dao;
 
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByOptional;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueByPresent;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForCategory;
-import com.vuhlog.money_keeper.dto.response.responseinterface.TotalExpenseRevenueForExpenseRevenueSituation;
+import com.vuhlog.money_keeper.dto.response.responseinterface.*;
 import com.vuhlog.money_keeper.entity.ReportExpenseRevenue;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -326,5 +323,108 @@ public interface ReportExpenseRevenueRepository extends JpaRepository<ReportExpe
             @Param("endDateBetween") LocalDate endDateBetween,
             @Param("startDateOfMonthEndDate") LocalDate startDateOfMonthEndDate,
             @Param("endDate") LocalDate endDate
+    );
+
+    @Query(value = "SELECT SUM(er.amount) AS totalExpense, DATE(er.expense_date) AS 'date', NULL AS yearMonth, NULL AS year\n" +
+            "FROM expense_regular er\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = er.dictionary_bucket_payment_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND ( :categoriesId IS NULL OR FIND_IN_SET(er.dictionary_expense_id, :categoriesId))\n" +
+            "AND ( :bucketPaymentIds IS NULL OR FIND_IN_SET(er.dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND ( :startDate IS NULL OR DATE(er.expense_date) >= DATE(:startDate)) AND ( :endDate IS NULL OR DATE(er.expense_date) <= DATE(:endDate))\n" +
+            "GROUP BY DATE(er.expense_date)\n" +
+            "ORDER BY DATE(er.expense_date) desc", nativeQuery = true)
+    List<TotalExpenseForSpendingAnalysis> getTotalExpenseForSpendingAnalysisByDay(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("categoriesId") String categoriesId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query(value = "SELECT SUM(rer.total_expense) AS totalExpense, NULL AS 'date', CONCAT(MONTH,'/',YEAR) AS yearMonth, NULL AS year\n" +
+            "FROM report_expense_revenue rer\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND rer.`type` = 'expense'\n" +
+            "AND( :categoriesId IS NULL OR FIND_IN_SET(rer.category_id, :categoriesId))\n" +
+            "AND ( :bucketPaymentIds  IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (DATE(CONCAT(year, '-', LPAD(month, 2, '0'), '-01')) BETWEEN :startMonth AND :endMonth)\n" +
+            "GROUP BY YEAR, month\n" +
+            "ORDER BY YEAR DESC, MONTH desc", nativeQuery = true)
+    List<TotalExpenseForSpendingAnalysis> getTotalExpenseForSpendingAnalysisByMonth(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("categoriesId") String categoriesId,
+            @Param("startMonth") LocalDate startMonth,
+            @Param("endMonth") LocalDate endMonth
+    );
+
+    @Query(value = "SELECT SUM(rer.total_expense) AS totalExpense, NULL AS 'date', NULL AS yearMonth, year\n" +
+            "FROM report_expense_revenue rer\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND rer.`type` = 'expense'\n" +
+            "AND( :categoriesId IS NULL OR FIND_IN_SET(rer.category_id, :categoriesId))\n" +
+            "AND ( :bucketPaymentIds  IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND (year BETWEEN :startYear AND :endYear)\n" +
+            "GROUP BY YEAR\n" +
+            "ORDER BY YEAR DESC", nativeQuery = true)
+    List<TotalExpenseForSpendingAnalysis> getTotalExpenseForSpendingAnalysisByYear(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("categoriesId") String categoriesId,
+            @Param("startYear") Integer startYear,
+            @Param("endYear") Integer endYear
+    );
+
+    @Query(value="SELECT SUM(er.amount) AS totalExpense, de.`name`, de.icon_url AS iconUrl\n" +
+            "FROM expense_regular er\n" +
+            "JOIN dictionary_bucket_payment dbp ON dbp.id = er.dictionary_bucket_payment_id\n" +
+            "JOIN dictionary_expense de ON de.id = er.dictionary_expense_id\n" +
+            "WHERE dbp.user_id = :userId\n" +
+            "AND( :categoriesId IS NULL OR FIND_IN_SET(er.dictionary_expense_id,:categoriesId))\n" +
+            "AND ( :bucketPaymentIds IS NULL OR FIND_IN_SET(er.dictionary_bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND DATE(er.expense_date) = DATE(:date)\n" +
+            "GROUP BY de.id, de.name, de.icon_url\n" +
+            "ORDER BY de.name", nativeQuery = true)
+    List<TotalExpenseByCategory> getTotalExpenseExactByDate(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("categoriesId") String categoriesId,
+            @Param("date") LocalDate date
+    );
+
+    @Query(value="SELECT SUM(rer.total_expense) AS totalExpense, de.`name`, de.icon_url AS iconUrl\n" +
+            "FROM report_expense_revenue rer\n" +
+            "JOIN dictionary_expense de ON rer.category_id = de.id\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND rer.`type` = 'expense'\n" +
+            "AND( :categoriesId IS NULL OR FIND_IN_SET(rer.category_id,:categoriesId))\n" +
+            "AND ( :bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND MONTH = :month AND YEAR = :year\n" +
+            "GROUP BY de.id, de.name, de.icon_url\n" +
+            "ORDER BY de.name", nativeQuery = true)
+    List<TotalExpenseByCategory> getTotalExpenseExactByMonth(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("categoriesId") String categoriesId,
+            @Param("month") Integer month,
+            @Param("year") Integer year
+    );
+
+    @Query(value="SELECT SUM(rer.total_expense) AS totalExpense, de.`name`, de.icon_url AS iconUrl\n" +
+            "FROM report_expense_revenue rer\n" +
+            "JOIN dictionary_expense de ON rer.category_id = de.id\n" +
+            "WHERE rer.user_id = :userId\n" +
+            "AND rer.`type` = 'expense'\n" +
+            "AND( :categoriesId IS NULL OR FIND_IN_SET(rer.category_id,:categoriesId))\n" +
+            "AND ( :bucketPaymentIds IS NULL OR FIND_IN_SET(rer.bucket_payment_id, :bucketPaymentIds))\n" +
+            "AND YEAR = :year\n" +
+            "GROUP BY de.id, de.name, de.icon_url\n" +
+            "ORDER BY de.name", nativeQuery = true)
+    List<TotalExpenseByCategory> getTotalExpenseExactByYear(
+            @Param("userId") String userId,
+            @Param("bucketPaymentIds") String bucketPaymentIds,
+            @Param("categoriesId") String categoriesId,
+            @Param("year") Integer year
     );
 }
